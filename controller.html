@@ -150,7 +150,7 @@
 
     <div class="sub-header-bar">
         <div class="sub-header-item"><span>Innings:</span><select id="innings" onchange="window.updateTargetMessage()"><option value="1">1st</option><option value="2">2nd</option></select></div>
-        <div class="sub-header-item"><span>Overs:</span><input type="number" id="totalOvers" value="10" onchange="window.updateTargetMessage()"></div>
+        <div class="sub-header-item"><span>Overs:</span><input type="number" id="totalOvers" value="" onchange="window.updateTargetMessage()"></div>
         <button class="btn-sub-action btn-winner-sub" onclick="window.declareWinnerManually()">🏆 End Match</button>
     </div>
 
@@ -271,6 +271,7 @@
     let lastBowler = ""; let activeBowler = ""; let bowlersRecord = {}; 
     let firstInningsRunsStored = 0; let firstInningsOversStored = "0.0";
     let detailedStats = {};
+    let scheduledMatchOvers = null;
 
     function sendToFirebase(scoreData) {
         const btn = document.getElementById('updateBtn');
@@ -384,7 +385,6 @@
         return lines.length > 1 ? lines.slice(1) : lines;
     }
 
-    // ড্রপডাউন সাজেশন আপডেট (আউট ব্যাটার চিরতরে বাদ)
     function updateSuggestions() {
         const battingPlayers = getPlayersList(true);
         const bowlingPlayers = getPlayersList(false);
@@ -398,7 +398,6 @@
         const currentBat2 = bat2Select.value;
         const currentBowler = bowlerSelect.value;
 
-        // বোলার
         bowlerSelect.innerHTML = '<option value="">-- Select Bowler --</option>';
         bowlingPlayers.forEach(player => {
             if (player !== lastBowler || player === currentBowler) {
@@ -410,7 +409,6 @@
         });
         if (currentBowler) bowlerSelect.value = currentBowler;
 
-        // স্ট্রাইকার (আউট প্লেয়ার ও নন-স্ট্রাইকার বাদে)
         bat1Select.innerHTML = '<option value="">-- Select Striker --</option>';
         battingPlayers.forEach(player => {
             if ((!outPlayersList.includes(player) && player !== currentBat2) || player === currentBat1) {
@@ -422,7 +420,6 @@
         });
         if (currentBat1) bat1Select.value = currentBat1;
 
-        // নন-স্ট্রাইকার (আউট প্লেয়ার ও স্ট্রাইকার বাদে)
         bat2Select.innerHTML = '<option value="">-- Select Non-Striker --</option>';
         battingPlayers.forEach(player => {
             if ((!outPlayersList.includes(player) && player !== currentBat1) || player === currentBat2) {
@@ -657,7 +654,6 @@
                 currentEvent = "OVER_END"; currentOverBalls = []; legalBallsInCurrentOver = 0; bowlerSelectionPending = true;
                 lastBowler = document.getElementById('bowlerName').value; document.getElementById('bowlerName').value = ""; activeBowler = ""; 
                 
-                // শুধুমাত্র বোলারের ড্রপডাউন প্যানেল ওপেন করা
                 document.getElementById('playerPanel').open = true;
                 updateSuggestions();
                 processAndUpdate();
@@ -681,7 +677,11 @@
             document.getElementById('runs').value = data.runs || 0;
             document.getElementById('wickets').value = data.wickets || 0;
             document.getElementById('overs').value = data.overs || "0.0";
-            if(data.totalOvers) document.getElementById('totalOvers').value = data.totalOvers;
+            
+            // শিডিউলের ওভার না থাকলে তবেই লোকাল ক্যাশ থেকে ওভার নেবে
+            if(!scheduledMatchOvers && data.totalOvers) {
+                document.getElementById('totalOvers').value = data.totalOvers;
+            }
             
             if (data.outPlayers) outPlayersList = [...data.outPlayers];
             if (data.currentOverBalls) currentOverBalls = [...data.currentOverBalls];
@@ -721,7 +721,6 @@
         }
     }
 
-    // উইন্ডো ফাংশনস এক্সপোজ করা (HTML ক্লিক হ্যান্ডলারের জন্য)
     window.swapStrike = function() { if(!validateMandatorySelections()) return; autoClosePanel(); saveState(); swapStrikeInternal(); currentEvent = ""; processAndUpdate(); };
 
     window.addBall = function(runs) {
@@ -800,7 +799,6 @@
     };
     window.closeWicketModal = function() { document.getElementById('wicketPopupModal').style.display = 'none'; };
 
-    // স্ট্রাইকার আউট হ্যান্ডলার
     window.submitWicketDetails = function() {
         let t = document.getElementById('dismissalType').value; let f = document.getElementById('fielderName').value;
         if ((t === 'caught' || t === 'stumped') && !f) { alert("⚠️ Select fielder!"); return; }
@@ -821,7 +819,6 @@
         
         let w = getVal('wickets');
         if (w < 10) { 
-            // শুধুমাত্র স্ট্রাইকার খালি হবে
             document.getElementById('bat1Name').innerHTML = `<option value="">-- Striker --</option>`; 
             document.getElementById('bat1Name').value = ""; 
             setVal('bat1Runs', 0); 
@@ -870,7 +867,6 @@
     };
     window.closeRunOutModal = function() { document.getElementById('runOutPopupModal').style.display = 'none'; };
 
-    // রান আউট হ্যান্ডলার: যে নির্দিষ্ট ব্যাটার আউট হবে শুধু তার ড্রপডাউন ফাঁকা হবে
     window.submitRunOutDetails = function() {
         let rInp = parseInt(document.getElementById('runOutRuns').value) || 0; let f = document.getElementById('runOutFielder').value; let oAns = document.getElementById('runOutBatsman').value;
         if (!f) { alert("⚠️ Select fielder!"); return; } window.closeRunOutModal(); saveState();
@@ -888,7 +884,6 @@
         let w = getVal('wickets');
         if (w < 10) {
             if (oAns === "1") { 
-                // স্ট্রাইকার আউট হলে স্ট্রাইকার খালি হবে
                 document.getElementById('bat1Name').innerHTML = `<option value="">-- Striker --</option>`; 
                 document.getElementById('bat1Name').value = ""; 
                 setVal('bat1Runs', 0); 
@@ -897,7 +892,6 @@
                 updateSuggestions();
                 document.getElementById('bat1Name').focus();
             } else { 
-                // নন-স্ট্রাইকার আউট হলে শুধুমাত্র নন-স্ট্রাইকার খালি হবে
                 document.getElementById('bat2Name').innerHTML = `<option value="">-- Non-Striker --</option>`; 
                 document.getElementById('bat2Name').value = ""; 
                 setVal('bat2Runs', 0); 
@@ -1088,7 +1082,6 @@
         if(sumBtn) { sumBtn.style.background = isSummaryVisible ? "#dc3545" : "#27ae60"; sumBtn.innerText = isSummaryVisible ? "📋 Summary [ON]" : "📋 Summary"; }
     }
 
-    // Leaderboard Functions
     let currentLeaderboardMode = 'tournament'; let cachedPlayersData = {};
     window.switchLeaderboardMode = function(mode) {
         currentLeaderboardMode = mode;
@@ -1159,14 +1152,13 @@
         alert(`📺 ${playerName}'s stats casted to Scoreboard!`); document.getElementById('leaderboardModal').style.display = 'none';
     };
 
-    // পৃষ্ঠা লোড এক্সিকিউশন
     async function initPage() {
         let loadedBatTeam = "";
         let loadedBowlTeam = "";
         let squad1 = "";
         let squad2 = "";
+        scheduledMatchOvers = null;
 
-        // ১. টুর্নামেন্ট ডাটাবেজ থেকে ম্যাচ তথ্য পড়া
         if (activeTournamentId && activeMatchId) {
             try {
                 const userSnap = await get(ref(db, 'usernames/' + currentMatchUser));
@@ -1179,9 +1171,14 @@
                         if (matchInfo) {
                             loadedBatTeam = matchInfo.team1 || "";
                             loadedBowlTeam = matchInfo.team2 || "";
-                            if (matchInfo.overs) document.getElementById('totalOvers').value = matchInfo.overs;
+                            
+                            // ড্যাশবোর্ড থেকে শিডিউল করা ওভার রিড করা
+                            if (matchInfo.overs) {
+                                scheduledMatchOvers = matchInfo.overs;
+                                document.getElementById('totalOvers').value = scheduledMatchOvers;
+                            }
+                            
                             isLeagueMatchGlobal = (matchInfo.type === 'league');
-
                             squad1 = (tData.teams || {})[loadedBatTeam] || loadedBatTeam;
                             squad2 = (tData.teams || {})[loadedBowlTeam] || loadedBowlTeam;
                         }
@@ -1192,7 +1189,6 @@
             }
         }
 
-        // ২. ব্যাকআপ লাইভ স্কোর রিড
         if (!loadedBatTeam || !loadedBowlTeam) {
             try {
                 const liveSnap = await get(ref(db, `live_matches/${currentMatchUser}/score`));
@@ -1202,31 +1198,36 @@
                     if (!loadedBowlTeam) loadedBowlTeam = mData.bowlTeamName || "";
                     if (!squad1) squad1 = mData.squad1Data || "";
                     if (!squad2) squad2 = mData.squad2Data || "";
+                    if (!scheduledMatchOvers && mData.totalOvers) {
+                        scheduledMatchOvers = mData.totalOvers;
+                        document.getElementById('totalOvers').value = scheduledMatchOvers;
+                    }
                 }
             } catch (e) {}
         }
 
-        // ৩. ইনপুট বক্সে নাম সেট
         if (loadedBatTeam) document.getElementById('batTeamName').value = loadedBatTeam;
         if (loadedBowlTeam) document.getElementById('bowlTeamName').value = loadedBowlTeam;
 
-        // ৪. স্কোয়াড ক্যাশে রাখা
         localStorage.setItem(`tempSelectedBatTeamSquad_${currentMatchUser}`, squad1);
         localStorage.setItem(`tempSelectedBowlTeamSquad_${currentMatchUser}`, squad2);
         localStorage.setItem(`localCricketSquads_${currentMatchUser}`, JSON.stringify({ t1: squad1, t2: squad2 }));
 
-        // ৫. স্টেট লোড
         loadControllerState();
 
-        // টিম নাম অক্ষুণ্ণ রাখা
         if (loadedBatTeam) document.getElementById('batTeamName').value = loadedBatTeam;
         if (loadedBowlTeam) document.getElementById('bowlTeamName').value = loadedBowlTeam;
+        
+        // শিডিউল করা ওভারকে নিশ্চিতভাবে বক্সে বসানো
+        if (scheduledMatchOvers) {
+            document.getElementById('totalOvers').value = scheduledMatchOvers;
+        } else if (!document.getElementById('totalOvers').value) {
+            document.getElementById('totalOvers').value = 10;
+        }
 
-        // ৬. ড্রপডাউনে খেলোয়াড়দের নাম বসানো
         updateSuggestions();
         document.getElementById('playerPanel').open = true;
 
-        // ৭. ফায়ারবেসে সিঙ্ক
         processAndUpdate();
     }
 
@@ -1234,7 +1235,3 @@
 </script>
 </body>
 </html>
-
-
-
-
