@@ -181,8 +181,6 @@
         .match-item.completed-card {
             background: #f8fafc;
             border-color: #e2e8f0;
-            cursor: not-allowed;
-            user-select: none;
         }
         .match-badge {
             font-size: 11px;
@@ -302,7 +300,7 @@
         <p id="signup-message" class="msg" style="color: red;"></p>
     </div>
 
-    <!-- User Dashboard -->
+    <!-- User Dashboard (হোমপেজ) -->
     <div id="dashboard-section" class="hidden">
         <h2>Welcome, <span id="display-username" style="color: #ff9800;"></span>!</h2>
         
@@ -318,11 +316,11 @@
             </div>
         </div>
 
-        <!-- মূল হোমপেজ কন্টেইনার (স্টেপ ১ এবং স্টেপ ২ এখানে থাকবে) -->
+        <!-- মূল হোমপেজ ভিউ (ব্যালেন্স, লিংক, গ্লোবাল টিম লাইব্রেরি এবং টুর্নামেন্ট বাটন লিস্ট) -->
         <div id="homeMainView">
-            <!-- 1. Global Team Library Section (Step 1) -->
+            <!-- 1. Global Team Library Section -->
             <div class="card-box" style="background: #f0f7ff; border-color: #b8daff;">
-                <h3 style="color: #0056b3;">👥 Step 1: Global Team & Squad Library</h3>
+                <h3 style="color: #0056b3;">👥 Global Team & Squad Library</h3>
                 <p style="font-size: 12px; color: #555; margin: 0 0 6px;">Create and save your teams here once.</p>
                 <textarea id="globalSquadText" rows="3" placeholder="Kolkata Tigers&#10;Player 1&#10;Player 2 (wk)"></textarea>
                 <button class="btn-action-small" style="background:#0056b3; width: 100%;" onclick="saveGlobalTeam()">💾 Save Team to Library</button>
@@ -333,9 +331,9 @@
                 </div>
             </div>
 
-            <!-- 2. Tournaments List & Creator (Step 2) -->
+            <!-- 2. Tournaments List & Creator (টুর্নামেন্ট বাটন লিস্ট) -->
             <div class="card-box">
-                <h3>🏆 Step 2: Tournaments</h3>
+                <h3>🏆 Tournaments</h3>
                 <p style="font-size: 12px; color: #555; margin: 0 0 8px;">Click on any tournament to open it and manage matches:</p>
                 <div id="tournamentsListContainer">
                     <p style="font-size: 12px; color: #888;">No tournaments created yet.</p>
@@ -344,15 +342,15 @@
             </div>
         </div>
 
-        <!-- নির্দিষ্ট টুর্নামেন্টের ভেতরের ভিউ (স্টেপ ৩ এবং Step 4 এখানে থাকবে, যা টুর্নামেন্ট ক্লিক করলে ওপেন হবে) -->
+        <!-- নির্দিষ্ট টুর্নামেন্টের ভেতরের ভিউ (টুর্নামেন্ট বাটনে ক্লিক করলে এটি ওপেন হবে) -->
         <div id="specificTournamentView" class="hidden" style="text-align: left;">
-            <button class="btn-action-small btn-back-tour" onclick="backToTournamentsList()">⬅️ Back to Tournaments</button>
+            <button class="btn-action-small btn-back-tour" onclick="backToTournamentsList()">⬅️️ Back to Tournaments</button>
             <div style="clear: both;"></div>
             <h2 id="activeTournamentTitle" style="color: #0056b3; margin: 5px 0 15px 0; text-align: center;">Tournament Name</h2>
 
-            <!-- Step 3: Add Teams to This Tournament -->
+            <!-- Add Teams to This Tournament -->
             <div class="card-box">
-                <h3>📋 Step 3: Add Teams to Tournament</h3>
+                <h3>📋 Add Teams to Tournament</h3>
                 <p style="font-size: 12px; color: #666; margin: 0 0 6px;">Pick teams from your library to add to this tournament:</p>
                 <div style="display: flex; gap: 8px;">
                     <select id="libraryTeamSelect"></select>
@@ -363,9 +361,9 @@
                 </div>
             </div>
 
-            <!-- Step 4: Schedule & Launch Matches -->
+            <!-- Schedule & Launch Matches -->
             <div class="card-box">
-                <h3>📅 Step 4: Schedule & Launch Matches</h3>
+                <h3>📅 Schedule & Launch Matches</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                     <div>
                         <label style="font-size: 12px; font-weight: bold;">Team 1 (Batting):</label>
@@ -391,7 +389,7 @@
                 </div>
                 <button class="btn-action-small" style="background: #007bff; width: 100%; margin-top: 8px;" onclick="scheduleNewMatch()">➕ Add Match to Fixture</button>
 
-                <h4 style="margin: 12px 0 6px; font-size: 14px; color: #333;">Scheduled Fixtures:</h4>
+                <h4 style="margin: 12px 0 6px; font-size: 14px; color: #333;">Match Fixtures (Scheduled & Completed):</h4>
                 <div id="scheduledMatchesList">
                     <p style="font-size: 12px; color: #888;">No matches scheduled for this tournament yet.</p>
                 </div>
@@ -671,8 +669,8 @@
     window.openTournament = (tId, tName) => {
         activeTournamentId = tId;
         document.getElementById('activeTournamentTitle').innerText = tName;
-        document.getElementById('homeMainView').classList.add('hidden'); // হোমপেজের স্টেপ ১ ও ২ হাইড করা
-        document.getElementById('specificTournamentView').classList.remove('hidden'); // স্টেপ ৩ ও ৪ ওপেন করা
+        document.getElementById('homeMainView').classList.add('hidden');
+        document.getElementById('specificTournamentView').classList.remove('hidden');
         renderActiveTournamentUI();
     };
 
@@ -799,7 +797,7 @@
 
             let actionArea = "";
             if (isCompleted) {
-                actionArea = `<span class="badge-locked" title="Match ended. Cannot be launched again.">🔒 Completed</span>`;
+                actionArea = `<span class="badge-locked" title="Match ended. Locked permanently.">🔒 Completed</span>`;
             } else {
                 actionArea = `<button class="btn-launch" onclick="launchScheduledMatch('${mId}')">▶️ Launch (1 Credit)</button>`;
             }
@@ -887,7 +885,7 @@
     };
 
     window.resetAllUserData = async () => {
-        const confirm1 = confirm("⚠️️ DANGER: Do you really want to delete ALL your tournaments, teams, squads, and match fixtures?");
+        const confirm1 = confirm("⚠️ DANGER: Do you really want to delete ALL your tournaments, teams, squads, and match fixtures?");
         if (!confirm1) return;
 
         const confirm2 = prompt("Type 'DELETE' in capital letters to confirm wiping out your entire setup:");
@@ -919,7 +917,7 @@
                 }
             }
 
-            alert("🗑️️ All your tournaments and global teams have been wiped successfully!");
+            alert("🗑️ All your tournaments and global teams have been wiped successfully!");
             location.reload();
         } catch (error) {
             alert("Error resetting data: " + error.message);
