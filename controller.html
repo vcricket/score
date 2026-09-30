@@ -285,7 +285,6 @@
         });
     }
 
-    // নির্দিষ্ট ঘরে সুন্দর ও নিখুঁত ফোকাস দেওয়া
     function highlightPlayerBox(target) {
         const sBox = document.getElementById('strikerBox');
         const nsBox = document.getElementById('nonStrikerBox');
@@ -421,7 +420,7 @@
         return lines.length > 1 ? lines.slice(1) : lines;
     }
 
-    // ড্রপডাউনে খেলোয়াড়দের নাম তৈরি ও বর্তমান ভ্যালু দৃঢ়ভাবে সংরক্ষণ
+    // ড্রপডাউনে খেলোয়াড়দের নাম তৈরি ও ক্রিজে থাকা ব্যাটারকে স্থায়ী রাখা
     function updateSuggestions() {
         const battingPlayers = getPlayersList(true);
         const bowlingPlayers = getPlayersList(false);
@@ -447,7 +446,7 @@
         });
         if (currentBowler) bowlerSelect.value = currentBowler;
 
-        // স্ট্রাইকার (আউট ব্যাটার ও বর্তমান নন-স্ট্রাইকার বাদে)
+        // স্ট্রাইকার: আউট হওয়া ব্যাটার ও বর্তমান নন-স্ট্রাইকার বাদে অপশন তৈরি
         bat1Select.innerHTML = '<option value="">-- Select Striker --</option>';
         battingPlayers.forEach(player => {
             if ((!outPlayersList.includes(player) && player !== currentBat2) || (currentBat1 && player === currentBat1)) {
@@ -457,14 +456,14 @@
                 bat1Select.appendChild(opt);
             }
         });
-        // স্ট্রাইকার আউট না হয়ে থাকলে তার নাম কোনোমতেই ড্রপডাউন থেকে সরবে না
+        // বর্তমান স্ট্রাইকার আউট না হয়ে থাকলে তার নাম বহাল থাকবে
         if (currentBat1 && !outPlayersList.includes(currentBat1)) {
             bat1Select.value = currentBat1;
         } else {
             bat1Select.value = "";
         }
 
-        // নন-স্ট্রাইকার (আউট ব্যাটার ও বর্তমান স্ট্রাইকার বাদে)
+        // নন-স্ট্রাইকার: আউট হওয়া ব্যাটার ও বর্তমান স্ট্রাইকার বাদে অপশন তৈরি
         bat2Select.innerHTML = '<option value="">-- Select Non-Striker --</option>';
         battingPlayers.forEach(player => {
             if ((!outPlayersList.includes(player) && player !== currentBat1) || (currentBat2 && player === currentBat2)) {
@@ -474,7 +473,7 @@
                 bat2Select.appendChild(opt);
             }
         });
-        // নন-স্ট্রাইকার আউট না হয়ে থাকলে তার নাম কোনোমতেই ড্রপডাউন থেকে সরবে না
+        // বর্তমান নন-স্ট্রাইকার আউট না হয়ে থাকলে তার নাম বহাল থাকবে
         if (currentBat2 && !outPlayersList.includes(currentBat2)) {
             bat2Select.value = currentBat2;
         } else {
@@ -613,14 +612,14 @@
 
     function incrementOver(oversStr) { let p = String(oversStr).split('.'); let o = parseInt(p[0])||0, b = parseInt(p[1])||0; b++; if (b >= 6) { o++; b = 0; } return `${o}.${b}`; }
     
+    // নিরাপদ স্ট্রাইক সোয়াপ: দুজন ব্যাটার উপস্থিত থাকলেই কেবল অদলবদল হবে
     function swapStrikeInternal() {
         let b1N = document.getElementById('bat1Name').value, b1R = getVal('bat1Runs'), b1B = getVal('bat1Balls');
         let b2N = document.getElementById('bat2Name').value, b2R = getVal('bat2Runs'), b2B = getVal('bat2Balls');
         
-        // যদি দুজন ব্যাটারই উপস্থিত থাকে তবেই নিরাপদে সোয়াপ হবে
         if (b1N && b2N) {
-            document.getElementById('bat1Name').innerHTML = `<option value="${b2N}">${b2N}</option>`; document.getElementById('bat1Name').value = b2N; setVal('bat1Runs', b2R); setVal('bat1Balls', b2B);
-            document.getElementById('bat2Name').innerHTML = `<option value="${b1N}">${b1N}</option>`; document.getElementById('bat2Name').value = b1N; setVal('bat2Runs', b1R); setVal('bat2Balls', b1B);
+            document.getElementById('bat1Name').value = b2N; setVal('bat1Runs', b2R); setVal('bat1Balls', b2B);
+            document.getElementById('bat2Name').value = b1N; setVal('bat2Runs', b1R); setVal('bat2Balls', b1B);
             updateSuggestions();
         }
     }
@@ -645,6 +644,7 @@
     function convertOversToBalls(oversStr) { let parts = String(oversStr).split('.'); return (parseInt(parts[0]) * 6) + parseInt(parts[1]||0); }
     function convertBallsToOversStr(t) { return `${Math.floor(t / 6)}.${t % 6}`; }
 
+    // প্রতিটি বলে তাৎক্ষণিক জয় চেক
     function checkInstantTargetChase() {
         let innings = document.getElementById('innings').value;
         if (innings !== "2" || matchEnded) return false;
@@ -744,7 +744,6 @@
                 currentEvent = "OVER_END"; currentOverBalls = []; legalBallsInCurrentOver = 0; bowlerSelectionPending = true;
                 lastBowler = document.getElementById('bowlerName').value; document.getElementById('bowlerName').value = ""; activeBowler = ""; 
                 
-                // ওভার শেষে শুধুমাত্র উভয় ব্যাটার অক্ষত থাকলে স্ট্রাইক সোয়াপ হবে
                 let b1 = document.getElementById('bat1Name').value;
                 let b2 = document.getElementById('bat2Name').value;
                 if (b1 && b2) {
@@ -902,7 +901,7 @@
     };
     window.closeWicketModal = function() { document.getElementById('wicketPopupModal').style.display = 'none'; };
 
-    // স্ট্রাইকার আউট
+    // স্ট্রাইকার আউট: শুধুমাত্র স্ট্রাইকার খালি হবে
     window.submitWicketDetails = function() {
         let t = document.getElementById('dismissalType').value; let f = document.getElementById('fielderName').value;
         if ((t === 'caught' || t === 'stumped') && !f) { alert("⚠️ Select fielder!"); return; }
@@ -967,7 +966,7 @@
     };
     window.closeRunOutModal = function() { document.getElementById('runOutPopupModal').style.display = 'none'; };
 
-    // রান আউট লজিক: নন-স্ট্রাইকার আউট হলে স্ট্রাইকার অক্ষত থাকবে
+    // রান আউট সম্পূর্ণ নিখুঁত সমাধান: একজন আউট হলে কেবল তারই ড্রপডাউন ফাঁকা হবে
     window.submitRunOutDetails = function() {
         let rInp = parseInt(document.getElementById('runOutRuns').value) || 0; 
         let f = document.getElementById('runOutFielder').value; 
@@ -984,6 +983,7 @@
         initDS(outB); initDS(bw);
         if(rInp === 0) { detailedStats[outB].dotBalls++; detailedStats[bw].dotBallsBowled++; }
 
+        // রান যোগ করা (স্ট্রাইকারের খাতায় রান ও বল যোগ হবে)
         setVal('runs', getVal('runs') + rInp); 
         setVal('bat1Runs', getVal('bat1Runs') + rInp); 
         setVal('bRuns', getVal('bRuns') + rInp); 
@@ -999,48 +999,25 @@
 
         if (w < 10) {
             if (oAns === "1") { 
-                // স্ট্রাইকার আউট
+                // স্ট্রাইকার আউট: কেবল স্ট্রাইকার খালি হবে, নন-স্ট্রাইকার অক্ষত থাকবে
                 document.getElementById('bat1Name').value = ""; 
                 setVal('bat1Runs', 0); 
                 setVal('bat1Balls', 0); 
                 targetHighlight = "striker";
-
-                // ১ বা ৩ রান নিয়ে স্ট্রাইকার রান আউট হলে অন্য প্রান্তের ব্যাটার স্ট্রাইকে আসবে
-                if (rInp === 1 || rInp === 3) {
-                    let nsName = document.getElementById('bat2Name').value;
-                    let nsR = getVal('bat2Runs');
-                    let nsB = getVal('bat2Balls');
-                    document.getElementById('bat1Name').value = nsName;
-                    setVal('bat1Runs', nsR);
-                    setVal('bat1Balls', nsB);
-                    document.getElementById('bat2Name').value = "";
-                    setVal('bat2Runs', 0);
-                    setVal('bat2Balls', 0);
-                    targetHighlight = "nonStriker";
-                }
             } else { 
-                // নন-স্ট্রাইকার আউট: স্ট্রাইকারকে অক্ষত রেখে শুধুই নন-স্ট্রাইকার রিসেট
+                // নন-স্ট্রাইকার আউট: কেবল নন-স্ট্রাইকার খালি হবে, স্ট্রাইকার অক্ষত থাকবে
                 document.getElementById('bat2Name').value = ""; 
                 setVal('bat2Runs', 0); 
                 setVal('bat2Balls', 0); 
                 targetHighlight = "nonStriker";
-
-                // ১ বা ৩ রান নিয়ে নন-স্ট্রাইকার রান আউট হলে স্ট্রাইকার নন-স্ট্রাইকে চলে যাবে
-                if (rInp === 1 || rInp === 3) {
-                    let sName = document.getElementById('bat1Name').value;
-                    let sR = getVal('bat1Runs');
-                    let sB = getVal('bat1Balls');
-                    document.getElementById('bat2Name').value = sName;
-                    setVal('bat2Runs', sR);
-                    setVal('bat2Balls', sB);
-                    document.getElementById('bat1Name').value = "";
-                    setVal('bat1Runs', 0);
-                    setVal('bat1Balls', 0);
-                    targetHighlight = "striker";
-                }
             }
         }
         
+        // শুধু ওভার শেষ হলে (যদি উভয় ব্যাটারই থাকে) তবেই সোয়াপ হবে
+        if (nOv.endsWith('.0') && document.getElementById('bat1Name').value && document.getElementById('bat2Name').value) {
+            swapStrikeInternal();
+        }
+
         currentOverBalls.push("W(ro)"); 
         legalBallsInCurrentOver++; 
         currentEvent = "OUT"; 
@@ -1179,7 +1156,7 @@
 
     window.validatePlayers = function() {
         const b1 = document.getElementById('bat1Name').value; const b2 = document.getElementById('bat2Name').value;
-        if (b1 !== "" && b2 !== "" && b1 === b2) { alert("⚠️️ Same player cannot be in both positions!"); document.getElementById('bat2Name').value = ""; }
+        if (b1 !== "" && b2 !== "" && b1 === b2) { alert("⚠️ Same player cannot be in both positions!"); document.getElementById('bat2Name').value = ""; }
         updateSuggestions(); processAndUpdate(); autoClosePanel();
     };
 
