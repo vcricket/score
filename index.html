@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scoreboard - Tournament & Match Manager</title>
+    <title>Scoreboard - Global Team & Tournament Manager</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -22,7 +22,7 @@
             border-radius: 12px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
             width: 100%; 
-            max-width: 600px; 
+            max-width: 650px; 
             text-align: center; 
         }
         h2 { color: #1e3c72; margin-top: 0; margin-bottom: 15px; font-size: 22px; }
@@ -220,6 +220,16 @@
             gap: 4px;
             letter-spacing: 0.3px;
         }
+        .team-tag {
+            display: inline-block;
+            background: #e2e8f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 3px;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -278,34 +288,47 @@
             </div>
         </div>
 
-        <!-- 1. Tournament Selector & Creator -->
+        <!-- 1. Global Team Library Section -->
+        <div class="card-box" style="background: #f0f7ff; border-color: #b8daff;">
+            <h3 style="color: #0056b3;">👥 Step 1: Global Team & Squad Library</h3>
+            <p style="font-size: 12px; color: #555; margin: 0 0 6px;">Create and save your teams here once. (First line: Team Name, next lines: Player names)</p>
+            <textarea id="globalSquadText" rows="4" placeholder="Kolkata Tigers&#10;Player 1&#10;Player 2 (wk)&#10;Player 3"></textarea>
+            <button class="btn-action-small" style="background:#0056b3; width: 100%;" onclick="saveGlobalTeam()">💾 Save Team to Library</button>
+            
+            <div style="margin-top: 10px; font-size: 12px; color: #333;">
+                <b>Saved Teams in Library:</b><br>
+                <div id="globalTeamsList" style="margin-top: 5px;">None</div>
+            </div>
+        </div>
+
+        <!-- 2. Tournament Selector & Creator -->
         <div class="card-box">
-            <h3>🏆 Step 1: Manage Tournaments</h3>
+            <h3>🏆 Step 2: Manage Tournaments</h3>
             <label style="font-size: 12px; font-weight: bold; color: #555;">Active Tournament:</label>
             <div style="display: flex; gap: 8px;">
                 <select id="tournamentSelect" onchange="onTournamentChange()">
                     <option value="">-- Select or Create Tournament --</option>
                 </select>
-                <button class="btn-action-small" onclick="promptCreateTournament()">➕ New</button>
+                <button class="btn-action-small" onclick="promptCreateTournament()">➕ New Tournament</button>
             </div>
         </div>
 
-        <!-- 2. Teams & Squads -->
-        <div class="card-box" id="teamSectionBox" style="display: none;">
-            <h3>👥 Step 2: Add Teams & Squads</h3>
-            <p style="font-size: 12px; color: #666; margin: 0 0 6px;">Add team squads before match day (First line team name, then player names):</p>
-            <textarea id="squadText" rows="4" placeholder="King XI&#10;Player 1&#10;Player 2 (wk)&#10;Player 3"></textarea>
+        <!-- 3. Assign Teams to Active Tournament -->
+        <div class="card-box" id="tournamentTeamBox" style="display: none;">
+            <h3>📋 Step 3: Add Teams to Tournament</h3>
+            <p style="font-size: 12px; color: #666; margin: 0 0 6px;">Select from your saved global teams to include in this tournament:</p>
             <div style="display: flex; gap: 8px;">
-                <button class="btn-action-small" style="background:#28a745; width: 100%;" onclick="saveTeamSquad()">💾 Save Team to Tournament</button>
+                <select id="libraryTeamSelect"></select>
+                <button class="btn-action-small" style="background:#28a745; width: auto;" onclick="addTeamToTournament()">➕ Add Team</button>
             </div>
             <div style="margin-top: 8px; font-size: 12px; color: #444;">
-                <b>Saved Teams:</b> <span id="savedTeamsList">None</span>
+                <b>Teams in this Tournament:</b> <span id="tournamentTeamsList">None</span>
             </div>
         </div>
 
-        <!-- 3. Pre-Schedule Match & Launch -->
+        <!-- 4. Pre-Schedule Match & Launch -->
         <div class="card-box" id="matchSchedulerBox" style="display: none;">
-            <h3>📅 Step 3: Schedule & Launch Match</h3>
+            <h3>📅 Step 4: Schedule & Launch Match</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                 <div>
                     <label style="font-size: 12px; font-weight: bold;">Team 1 (Batting):</label>
@@ -331,9 +354,9 @@
             </div>
             <button class="btn-action-small" style="background: #007bff; width: 100%; margin-top: 8px;" onclick="scheduleNewMatch()">➕ Add to Fixture</button>
 
-            <h4 style="margin: 12px 0 6px; font-size: 14px; color: #333;">Scheduled Fixtures:</h4>
+            <h4 style="margin: 12px 0 6px; font-size: 14px; color: #333;">Scheduled Fixtures for Selected Tournament:</h4>
             <div id="scheduledMatchesList">
-                <p style="font-size: 12px; color: #888;">No matches scheduled yet.</p>
+                <p style="font-size: 12px; color: #888;">No matches scheduled for this tournament yet.</p>
             </div>
         </div>
 
@@ -399,6 +422,7 @@
     let currentUsername = "";
     let activeTournamentId = "";
     let tournamentsData = {};
+    let globalTeamsLibrary = {};
 
     window.togglePasswordVisibility = (inputId, iconElement) => {
         const passwordInput = document.getElementById(inputId);
@@ -523,6 +547,49 @@
         }
     };
 
+    // গ্লোবাল টিম লাইব্রেরিতে টিম সেভ করা
+    window.saveGlobalTeam = async () => {
+        const text = document.getElementById('globalSquadText').value.trim();
+        if (!text) return alert("Please enter team name and squad!");
+
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const teamName = lines[0];
+
+        await set(ref(db, `users/${currentUser.uid}/global_teams/${teamName}`), text);
+        document.getElementById('globalSquadText').value = '';
+        alert(`✅ Team '${teamName}' saved to your Global Team Library!`);
+    };
+
+    function listenGlobalTeams() {
+        const teamsRef = ref(db, `users/${currentUser.uid}/global_teams`);
+        onValue(teamsRef, (snapshot) => {
+            globalTeamsLibrary = snapshot.val() || {};
+            const listContainer = document.getElementById('globalTeamsList');
+            const librarySelect = document.getElementById('libraryTeamSelect');
+            
+            listContainer.innerHTML = '';
+            librarySelect.innerHTML = '<option value="">-- Select Team from Library --</option>';
+
+            const teamNames = Object.keys(globalTeamsLibrary);
+            if (teamNames.length === 0) {
+                listContainer.innerHTML = '<span style="color: #888; font-size: 11px;">No teams saved in library yet.</span>';
+                return;
+            }
+
+            teamNames.forEach(tName => {
+                const tag = document.createElement('span');
+                tag.className = 'team-tag';
+                tag.innerText = tName;
+                listContainer.appendChild(tag);
+
+                const opt = document.createElement('option');
+                opt.value = tName;
+                opt.innerText = tName;
+                librarySelect.appendChild(opt);
+            });
+        });
+    }
+
     window.promptCreateTournament = async () => {
         const name = prompt("Enter Tournament Name (e.g. Winter Cup 2026):");
         if (!name || !name.trim()) return;
@@ -532,7 +599,8 @@
             name: name.trim(),
             createdAt: Date.now()
         });
-        alert(`🏆 Tournament '${name}' created!`);
+        activeTournamentId = tourId;
+        alert(`🏆 Tournament '${name}' created successfully!`);
     };
 
     function listenUserTournaments() {
@@ -562,6 +630,46 @@
     window.onTournamentChange = () => {
         activeTournamentId = document.getElementById('tournamentSelect').value;
         renderActiveTournamentUI();
+    };
+
+    // লাইব্রেরি থেকে টুর্নামেন্টে টিম যোগ করা
+    window.addTeamToTournament = async () => {
+        if (!activeTournamentId) return alert("Please select a tournament first!");
+        const teamName = document.getElementById('libraryTeamSelect').value;
+        if (!teamName) return alert("Please select a team from your library!");
+
+        const teamSquadText = globalTeamsLibrary[teamName];
+
+        // ১. টুর্নামেন্টের নিজস্ব স্কোয়াড লিস্টে টিম সেভ করা
+        await set(ref(db, `users/${currentUser.uid}/tournaments/${activeTournamentId}/teams/${teamName}`), teamSquadText);
+
+        // ২. পয়েন্ট টেবিলের স্ট্যান্ডিংসে দলটিকে জিরো পয়েন্টসহ যুক্ত করা
+        const teamPointsRef = ref(db, `live_matches/${currentUsername}/tournament/teams/`);
+        const snapshot = await get(teamPointsRef);
+        let teamsData = snapshot.val() || {};
+
+        let exists = false;
+        for (let k in teamsData) {
+            if (teamsData[k].name && teamsData[k].name.toLowerCase() === teamName.toLowerCase()) {
+                exists = true;
+                break;
+            }
+        }
+
+        if (!exists) {
+            let newKey = 'team_' + Date.now();
+            teamsData[newKey] = {
+                name: teamName,
+                matchesPlayed: 0,
+                won: 0,
+                lost: 0,
+                points: 0,
+                netRunRate: "+0.000"
+            };
+            await set(teamPointsRef, teamsData);
+        }
+
+        alert(`✅ Team '${teamName}' added to tournament successfully!`);
     };
 
     window.onScheduleTeamSelectChange = () => {
@@ -599,7 +707,7 @@
     };
 
     function renderActiveTournamentUI() {
-        const teamBox = document.getElementById('teamSectionBox');
+        const teamBox = document.getElementById('tournamentTeamBox');
         const matchBox = document.getElementById('matchSchedulerBox');
 
         if (!activeTournamentId || !tournamentsData[activeTournamentId]) {
@@ -615,7 +723,7 @@
         const teams = tData.teams || {};
         
         const teamNames = Object.keys(teams);
-        document.getElementById('savedTeamsList').innerText = teamNames.length > 0 ? teamNames.join(', ') : 'None';
+        document.getElementById('tournamentTeamsList').innerText = teamNames.length > 0 ? teamNames.join(', ') : 'None';
 
         window.onScheduleTeamSelectChange();
 
@@ -624,7 +732,7 @@
         const matches = tData.matches || {};
 
         if (Object.keys(matches).length === 0) {
-            matchesContainer.innerHTML = '<p style="font-size: 12px; color: #888;">No matches scheduled yet.</p>';
+            matchesContainer.innerHTML = '<p style="font-size: 12px; color: #888;">No matches scheduled for this tournament yet.</p>';
             return;
         }
 
@@ -680,48 +788,6 @@
         }
     }
 
-    // আপডেটেড saveTeamSquad ফাংশন: টিম সেভ হওয়ার সাথে সাথে পয়েন্ট টেবিলে জিরো পয়েন্ট নিয়ে যুক্ত হবে
-    window.saveTeamSquad = async () => {
-        const text = document.getElementById('squadText').value.trim();
-        if (!text) return alert("Please enter team name and squad!");
-
-        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        const teamName = lines[0];
-
-        // ১. স্কোয়াড সেভ করা
-        await set(ref(db, `users/${currentUser.uid}/tournaments/${activeTournamentId}/teams/${teamName}`), text);
-
-        // ২. লাইভ পয়েন্ট টেবিলের স্ট্যান্ডিংসে দলটিকে জিরো পয়েন্টসহ যুক্ত করা (যাতে ম্যাচ না খেললেও নাম থাকে)
-        const teamPointsRef = ref(db, `live_matches/${currentUsername}/tournament/teams/`);
-        const snapshot = await get(teamPointsRef);
-        let teamsData = snapshot.val() || {};
-
-        // চেক করা দলটি ইতিমধ্যে পয়েন্ট টেবিলে আছে কি না
-        let exists = false;
-        for (let k in teamsData) {
-            if (teamsData[k].name && teamsData[k].name.toLowerCase() === teamName.toLowerCase()) {
-                exists = true;
-                break;
-            }
-        }
-
-        if (!exists) {
-            let newKey = 'team_' + Date.now();
-            teamsData[newKey] = {
-                name: teamName,
-                matchesPlayed: 0,
-                won: 0,
-                lost: 0,
-                points: 0,
-                netRunRate: "+0.000"
-            };
-            await set(teamPointsRef, teamsData);
-        }
-
-        document.getElementById('squadText').value = '';
-        alert(`✅ Team '${teamName}' saved to tournament and points table!`);
-    };
-
     window.scheduleNewMatch = async () => {
         const t1 = document.getElementById('scheduleTeam1').value;
         const t2 = document.getElementById('scheduleTeam2').value;
@@ -741,7 +807,7 @@
             createdAt: Date.now()
         });
 
-        alert("✅ Match fixture added successfully!");
+        alert("✅ Match fixture added to active tournament successfully!");
     };
 
     window.launchScheduledMatch = async (matchId) => {
@@ -803,6 +869,7 @@
 
         try {
             await set(ref(db, `users/${currentUser.uid}/tournaments`), null);
+            await set(ref(db, `users/${currentUser.uid}/global_teams`), null);
 
             await set(ref(db, `live_matches/${currentUsername}`), {
                 score: {
@@ -824,7 +891,7 @@
                 }
             }
 
-            alert("🗑️ All your tournaments and matches have been wiped successfully!");
+            alert("🗑️ All your tournaments and global teams have been wiped successfully!");
             location.reload();
         } catch (error) {
             alert("Error resetting data: " + error.message);
@@ -853,6 +920,7 @@
                 }
             });
 
+            listenGlobalTeams();
             listenUserTournaments();
         } else {
             currentUser = null;
