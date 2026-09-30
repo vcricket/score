@@ -257,7 +257,7 @@
     const activeMatchId = urlParams.get('m');
 
     if (!currentMatchUser) {
-        alert("⚠️ Unauthorized access! Please launch match from your Dashboard.");
+        alert("⚠️️ Unauthorized access! Please launch match from your Dashboard.");
         window.location.href = "index.html";
     }
 
@@ -285,7 +285,6 @@
         });
     }
 
-    // নির্দিষ্ট বক্সে হাইলাইট ও ফোকাস করার নিখুঁত ফাংশন
     function highlightPlayerBox(target) {
         const sBox = document.getElementById('strikerBox');
         const nsBox = document.getElementById('nonStrikerBox');
@@ -434,7 +433,6 @@
         const currentBat2 = bat2Select.value;
         const currentBowler = bowlerSelect.value;
 
-        // বোলার
         bowlerSelect.innerHTML = '<option value="">-- Select Bowler --</option>';
         bowlingPlayers.forEach(player => {
             if (player !== lastBowler || player === currentBowler) {
@@ -446,7 +444,6 @@
             }
         });
 
-        // স্ট্রাইকার
         bat1Select.innerHTML = '<option value="">-- Select Striker --</option>';
         battingPlayers.forEach(player => {
             if ((!outPlayersList.includes(player) && player !== currentBat2) || player === currentBat1) {
@@ -458,7 +455,6 @@
             }
         });
 
-        // নন-স্ট্রাইকার
         bat2Select.innerHTML = '<option value="">-- Select Non-Striker --</option>';
         battingPlayers.forEach(player => {
             if ((!outPlayersList.includes(player) && player !== currentBat1) || player === currentBat2) {
@@ -595,7 +591,8 @@
             if(!autoInningsSwitched) document.getElementById('targetMsg').value = "1st Innings is going on..."; checkAndSwitchInnings(); 
         }
         else if (document.getElementById('innings').value === "2") {
-            if (firstInningsRunsStored > 0 || autoInningsSwitched) document.getElementById('targetMsg').value = `Target: ${firstInningsRunsStored + 1}`;
+            let tRuns = firstInningsRunsStored > 0 ? (firstInningsRunsStored + 1) : 0;
+            if (tRuns > 0) document.getElementById('targetMsg').value = `Target: ${tRuns}`;
         }
     }
 
@@ -629,45 +626,92 @@
     function convertOversToBalls(oversStr) { let parts = String(oversStr).split('.'); return (parseInt(parts[0]) * 6) + parseInt(parts[1]||0); }
     function convertBallsToOversStr(t) { return `${Math.floor(t / 6)}.${t % 6}`; }
 
+    // প্রতিটি বলে রান টার্গেট চেক করার ফাংশন
+    function checkInstantTargetChase() {
+        let innings = document.getElementById('innings').value;
+        if (innings !== "2" || matchEnded) return false;
+
+        let runs = getVal('runs');
+        let wickets = getVal('wickets');
+        let oversStr = document.getElementById('overs').value;
+        let targetMsg = document.getElementById('targetMsg').value;
+        let bTeam = document.getElementById('batTeamName').value;
+        let bwTeam = document.getElementById('bowlTeamName').value;
+
+        let targetNum = 9999;
+        if (targetMsg.includes("Target:")) {
+            targetNum = parseInt(targetMsg.match(/Target:\s*(\d+)/)[1]);
+        } else if (firstInningsRunsStored > 0) {
+            targetNum = firstInningsRunsStored + 1;
+        }
+
+        // টার্গেট পূরণ হলে সাথে সাথে ম্যাচ শেষ
+        if (runs >= targetNum) {
+            matchEnded = true;
+            let winnerText = `${bTeam} Won by ${10 - wickets} Wickets! 🎉`;
+            document.getElementById('targetMsg').value = winnerText;
+            currentEvent = "WINNER";
+            let bPlayed = convertOversToBalls(oversStr);
+            if(isLeagueMatchGlobal && !tournamentPointsUpdated) {
+                updateTournamentStandings(bTeam, bwTeam, runs, convertBallsToOversStr(bPlayed), firstInningsRunsStored, convertBallsToOversStr(convertOversToBalls(firstInningsOversStored)));
+                tournamentPointsUpdated = true;
+            }
+            processAndUpdate();
+            showMatchResultPopup(winnerText, bTeam);
+            return true;
+        }
+        return false;
+    }
+
     function checkAndSwitchInnings() {
-        let innings = document.getElementById('innings').value; let totalOvers = getVal('totalOvers'); let oversStr = document.getElementById('overs').value;
-        let completedOvers = parseInt(oversStr.split('.')[0]) || 0; let wickets = getVal('wickets'); let runs = getVal('runs'); let targetMsg = document.getElementById('targetMsg').value;
+        let innings = document.getElementById('innings').value; 
+        let totalOvers = getVal('totalOvers'); 
+        let oversStr = document.getElementById('overs').value;
+        let completedOvers = parseInt(oversStr.split('.')[0]) || 0; 
+        let wickets = getVal('wickets'); 
+        let runs = getVal('runs'); 
+        let targetMsg = document.getElementById('targetMsg').value;
 
         if (innings === "2" && !matchEnded) {
+            if (checkInstantTargetChase()) return true;
+
             let targetNum = 9999;
             if (targetMsg.includes("Target:")) {
                 targetNum = parseInt(targetMsg.match(/Target:\s*(\d+)/)[1]);
-                if (runs >= targetNum) {
-                    matchEnded = true; let bTeam = document.getElementById('batTeamName').value; let bwTeam = document.getElementById('bowlTeamName').value;
-                    let winnerText = `${bTeam} Won by ${10 - wickets} Wickets! 🎉`; document.getElementById('targetMsg').value = winnerText;
-                    currentEvent = "WINNER"; let bPlayed = convertOversToBalls(oversStr);
-                    if(isLeagueMatchGlobal && !tournamentPointsUpdated) {
-                        updateTournamentStandings(bTeam, bwTeam, runs, convertBallsToOversStr(bPlayed), firstInningsRunsStored, convertBallsToOversStr(convertOversToBalls(firstInningsOversStored)));
-                        tournamentPointsUpdated = true;
-                    }
-                    processAndUpdate(); showMatchResultPopup(winnerText, bTeam); return true;
-                }
+            } else if (firstInningsRunsStored > 0) {
+                targetNum = firstInningsRunsStored + 1;
             }
+
+            // ওভার শেষ অথবা অল-আউট হয়ে ম্যাচ ড্র বা বোলিং টিম জয়ী হওয়া
             if (completedOvers >= totalOvers || wickets >= 10) {
-                matchEnded = true; let bTeam = document.getElementById('batTeamName').value; let bwTeam = document.getElementById('bowlTeamName').value;
+                matchEnded = true; 
+                let bTeam = document.getElementById('batTeamName').value; 
+                let bwTeam = document.getElementById('bowlTeamName').value;
                 let winnerText = (runs === targetNum - 1) ? `Match Tied! 🤝` : `${bwTeam} Won by ${targetNum - runs} Runs! 🏆`;
-                document.getElementById('targetMsg').value = winnerText; currentEvent = "WINNER";
+                document.getElementById('targetMsg').value = winnerText; 
+                currentEvent = "WINNER";
                 let winTeamName = (runs === targetNum - 1) ? "Tied" : bwTeam;
                 if(isLeagueMatchGlobal && !tournamentPointsUpdated) {
                     let loseTeam = (runs === targetNum - 1) ? "Tied" : bTeam;
                     updateTournamentStandings(winTeamName, loseTeam, firstInningsRunsStored, convertBallsToOversStr(convertOversToBalls(firstInningsOversStored)), runs, convertBallsToOversStr(totalOvers * 6));
                     tournamentPointsUpdated = true;
                 }
-                processAndUpdate(); showMatchResultPopup(winnerText, winTeamName); return true;
+                processAndUpdate(); 
+                showMatchResultPopup(winnerText, winTeamName); 
+                return true;
             }
         }
         if (innings === "1" && !autoInningsSwitched && !matchEnded) {
             if (completedOvers >= totalOvers || wickets >= 10) {
-                autoInningsSwitched = true; firstInningsRunsStored = runs; firstInningsOversStored = oversStr;
+                autoInningsSwitched = true; 
+                firstInningsRunsStored = runs; 
+                firstInningsOversStored = oversStr;
                 document.getElementById('popupInningsDetails').innerText = `${document.getElementById('batTeamName').value}: ${runs}/${wickets} (${oversStr} Overs)`;
                 document.getElementById('inningsPopupModal').style.display = 'flex';
                 document.getElementById('targetMsg').value = `Target: ${runs + 1}`;
-                currentEvent = "INNINGS_BREAK"; processAndUpdate(); return true;
+                currentEvent = "INNINGS_BREAK"; 
+                processAndUpdate(); 
+                return true;
             }
         }
         return false;
@@ -686,8 +730,6 @@
                 
                 updateSuggestions();
                 processAndUpdate();
-                
-                // শুধুমাত্র বোলারের ড্রপডাউন ও বক্স হাইলাইট হবে (ব্যাটাররা ছোঁয়াও হবে না)
                 highlightPlayerBox('bowler');
             } else { 
                 currentOverBalls = []; legalBallsInCurrentOver = 0; bowlerSelectionPending = true; 
@@ -771,7 +813,11 @@
         if (runs === 4) currentEvent = "FOUR"; else if (runs === 6) currentEvent = "SIX"; else currentEvent = "";
         currentOverBalls.push(bLabel); legalBallsInCurrentOver++;
         
-        if(currentEvent !== "") processAndUpdate(); checkAndTriggerOverEnd();
+        // প্রতিটি বল হওয়ার পর সাথে সাথে টার্গেট ছোঁয়া চেক করা
+        if (checkInstantTargetChase()) return;
+
+        if(currentEvent !== "") processAndUpdate(); 
+        checkAndTriggerOverEnd();
     };
 
     window.addExtra = function(type) {
@@ -793,7 +839,12 @@
             if (rInput === 1 || rInput === 3) swapStrikeInternal();
             currentOverBalls.push(rInput > 0 ? `WD+${rInput}` : "WD");
         }
-        if(currentEvent !== "") processAndUpdate(); checkAndSwitchInnings();
+
+        // এক্সট্রা বল হলেও সাথে সাথে টার্গেট ছোঁয়া চেক করা
+        if (checkInstantTargetChase()) return;
+
+        if(currentEvent !== "") processAndUpdate(); 
+        checkAndSwitchInnings();
     };
 
     window.addLegBye = function() {
@@ -806,7 +857,12 @@
         let nOv = incrementOver(document.getElementById('overs').value);
         setVal('overs', nOv); setVal('bowlerOvers', incrementOver(document.getElementById('bowlerOvers').value));
         if (rInput === 1 || rInput === 3) swapStrikeInternal(); if (nOv.endsWith('.0')) swapStrikeInternal();
-        currentOverBalls.push(`LB${rInput}`); legalBallsInCurrentOver++; currentEvent = ""; processAndUpdate(); checkAndTriggerOverEnd();
+        currentOverBalls.push(`LB${rInput}`); legalBallsInCurrentOver++; currentEvent = ""; 
+
+        if (checkInstantTargetChase()) return;
+
+        processAndUpdate(); 
+        checkAndTriggerOverEnd();
     };
 
     window.openWicketModal = function() {
@@ -825,7 +881,6 @@
     };
     window.closeWicketModal = function() { document.getElementById('wicketPopupModal').style.display = 'none'; };
 
-    // স্ট্রাইকার আউট: শুধু স্ট্রাইকারের ঘর খালি হবে ও ফোকাস হবে
     window.submitWicketDetails = function() {
         let t = document.getElementById('dismissalType').value; let f = document.getElementById('fielderName').value;
         if ((t === 'caught' || t === 'stumped') && !f) { alert("⚠️ Select fielder!"); return; }
@@ -890,7 +945,6 @@
     };
     window.closeRunOutModal = function() { document.getElementById('runOutPopupModal').style.display = 'none'; };
 
-    // রান আউট: সঠিক আউট হওয়া ব্যাটারকেই কেবল খালি এবং ফোকাস করা
     window.submitRunOutDetails = function() {
         let rInp = parseInt(document.getElementById('runOutRuns').value) || 0; let f = document.getElementById('runOutFielder').value; let oAns = document.getElementById('runOutBatsman').value;
         if (!f) { alert("⚠️ Select fielder!"); return; } window.closeRunOutModal(); saveState();
@@ -908,14 +962,12 @@
         let w = getVal('wickets');
         if (w < 10) {
             if (oAns === "1") { 
-                // স্ট্রাইকার আউট
                 document.getElementById('bat1Name').value = ""; 
                 setVal('bat1Runs', 0); 
                 setVal('bat1Balls', 0); 
                 updateSuggestions();
                 highlightPlayerBox('striker');
             } else { 
-                // নন-স্ট্রাইকার আউট (স্ট্রাইকারের রান ও নাম অপরিবর্তিত থাকবে)
                 document.getElementById('bat2Name').value = ""; 
                 setVal('bat2Runs', 0); 
                 setVal('bat2Balls', 0); 
@@ -925,7 +977,12 @@
         }
         if (rInp === 1 || rInp === 3) swapStrikeInternal(); if (nOv.endsWith('.0')) swapStrikeInternal();
         
-        currentOverBalls.push("W(ro)"); legalBallsInCurrentOver++; currentEvent = "OUT"; processAndUpdate(); checkAndTriggerOverEnd();
+        currentOverBalls.push("W(ro)"); legalBallsInCurrentOver++; currentEvent = "OUT"; 
+
+        if (checkInstantTargetChase()) return;
+
+        processAndUpdate(); 
+        checkAndTriggerOverEnd();
     };
 
     window.closeInningsPopup = function() {
