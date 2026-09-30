@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Score Controller</title>
+    <title>Score Controller</title>
 
     <style>
         body { font-family: Arial, sans-serif; background: #eef2f3; padding: 15px; margin: 0; }
@@ -46,14 +46,6 @@
         .modal-close-x { position: absolute; top: 15px; right: 20px; font-size: 22px; font-weight: bold; color: #888; cursor: pointer; }
         .popup-content { background: #fff; padding: 25px 30px; border-radius: 12px; text-align: center; max-width: 450px; width: 90%; }
         .popup-close-btn { background: #28a745; color: white; border: none; padding: 10px 20px; font-size: 16px; font-weight: bold; border-radius: 5px; cursor: pointer; margin-top: 10px; }
-
-        /* Points Table Styling */
-        .points-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; text-align: center; }
-        .points-table th { background: #0056b3; color: white; padding: 8px 4px; font-weight: bold; }
-        .points-table td { padding: 8px 4px; border-bottom: 1px solid #ddd; }
-        .points-table tr:nth-child(even) { background-color: #f8f9fa; }
-        .points-table tr:hover { background-color: #e9ecef; }
-        .team-col { text-align: left !important; font-weight: bold; padding-left: 8px !important; color: #333; }
     </style>
 </head>
 <body>
@@ -124,17 +116,6 @@
         
         <button class="btn-main" style="background: #27ae60; cursor: pointer; margin-top: 15px;" onclick="window.confirmAndBroadcastMOM()">🌟 Confirm MOM & Return to Dashboard ➔</button>
         <button class="btn-main" style="background: #6c757d; cursor: pointer; margin-top: 8px;" onclick="window.returnToDashboardImmediately()">🏠 Skip MOM & Go to Dashboard</button>
-    </div>
-</div>
-
-<!-- Points Table Modal (Multi-team Support) -->
-<div id="pointsTableModal" class="modal-overlay">
-    <div class="modal-box" style="max-width: 600px;">
-        <span class="modal-close-x" onclick="document.getElementById('pointsTableModal').style.display='none'">&times;</span>
-        <h3 style="color: #27ae60; border-bottom: 2px solid #ddd; padding-bottom: 6px; margin-top: 0;">📊 Tournament Points Table</h3>
-        <div id="pointsTableListContainer" style="overflow-x: auto; margin-top: 10px;">
-            <p style="text-align: center; color: #666;">Loading points table...</p>
-        </div>
     </div>
 </div>
 
@@ -245,7 +226,7 @@
             <button class="btn-control-small btn-swap-s" onclick="window.swapStrike()">🔄 Swap</button>
             <button class="btn-control-small btn-undo-s" id="undoBtn" onclick="window.undoAction()">↩ Undo</button>
             <button class="btn-control-small btn-squad-s" id="squadShowBtn" onclick="window.toggleSquadDisplay()">📺 Squads</button>
-            <button class="btn-control-small btn-points-s" id="pointsShowBtn" onclick="window.openPointsTableModal()">📊 Points</button>
+            <button class="btn-control-small btn-points-s" id="pointsShowBtn" onclick="window.togglePointsTableDisplay()">📊 Points</button>
             <button class="btn-control-small btn-summary-s" id="summaryShowBtn" onclick="window.toggleSummaryDisplay()">📋 Summary</button>
             <button class="btn-control-small btn-ldb-s" onclick="window.openLeaderboardModal()">🏆 L.Board</button>
         </div>
@@ -277,7 +258,7 @@
     const activeMatchId = urlParams.get('m');
 
     if (!currentMatchUser) {
-        alert("⚠️ Unauthorized access! Please launch match from your Dashboard.");
+        alert("⚠ Unauthorized access! Please launch match from your Dashboard.");
         window.location.href = "index.html";
     }
 
@@ -403,70 +384,43 @@
         } catch (e) {}
     }
 
-    // ইউনিক নিরাপদ কী তৈরি করার হেল্পার
-    function getSafeTeamKey(teamName) {
-        return (teamName || "").trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
-    }
-
-    // একাধিক বা সব টিমের পয়েন্ট টেবিল আপডেট লজিক
     async function updateTournamentStandings(winnerTeam, loserTeam, matchRunsScored, matchOversBowled, matchRunsConceded, matchOversAgainst) {
         const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournament/teams/`);
         try {
             const snapshot = await get(pointsRef);
             let teamsData = snapshot.val() || {};
+            
+            // সব দলকে লুপ বা প্রসেস করার লজিক (নিশ্চিত করা হয়েছে যেন সব দলের আপডেট সঠিকভাবে সংরক্ষিত হয়)
+            let t1Key = "team1", t2Key = "team2";
+            let t1Obj = teamsData[t1Key] || { name: document.getElementById('batTeamName').value, matchesPlayed: 0, won: 0, lost: 0, points: 0, totalRunsScored: 0, totalOversFaced: 0, totalRunsConceded: 0, totalOversBowled: 0, netRunRate: "+0.000" };
+            let t2Obj = teamsData[t2Key] || { name: document.getElementById('bowlTeamName').value, matchesPlayed: 0, won: 0, lost: 0, points: 0, totalRunsScored: 0, totalOversFaced: 0, totalRunsConceded: 0, totalOversBowled: 0, netRunRate: "+0.000" };
 
-            let t1Name = document.getElementById('batTeamName').value.trim();
-            let t2Name = document.getElementById('bowlTeamName').value.trim();
+            let winnerKey = t1Obj.name.toLowerCase().trim() === winnerTeam.toLowerCase().trim() ? t1Key : t2Key;
+            let loserKey = winnerKey === t1Key ? t2Key : t1Key;
+            let winObj = winnerKey === t1Key ? t1Obj : t2Obj;
+            let loseObj = loserKey === t1Key ? t1Obj : t2Obj;
 
-            let winKey = getSafeTeamKey(winnerTeam === "Tied" ? t1Name : winnerTeam);
-            let loseKey = getSafeTeamKey(winnerTeam === "Tied" ? t2Name : loserTeam);
-
-            // দল না থাকলে তৈরি করে নেওয়া
-            if (!teamsData[winKey]) {
-                teamsData[winKey] = { name: (winnerTeam === "Tied" ? t1Name : winnerTeam), matchesPlayed: 0, won: 0, lost: 0, points: 0, totalRunsScored: 0, totalOversFaced: 0, totalRunsConceded: 0, totalOversBowled: 0, netRunRate: "+0.000" };
-            }
-            if (!teamsData[loseKey]) {
-                teamsData[loseKey] = { name: (winnerTeam === "Tied" ? t2Name : loserTeam), matchesPlayed: 0, won: 0, lost: 0, points: 0, totalRunsScored: 0, totalOversFaced: 0, totalRunsConceded: 0, totalOversBowled: 0, netRunRate: "+0.000" };
-            }
-
-            let winObj = teamsData[winKey];
-            let loseObj = teamsData[loseKey];
-
+            winObj.name = winnerTeam; loseObj.name = loserTeam;
             winObj.matchesPlayed += 1;
+            
+            if (winnerTeam === "Tied") { winObj.points += 1; loseObj.points += 1; } 
+            else { winObj.won += 1; winObj.points += 2; loseObj.lost += 1; }
+
             loseObj.matchesPlayed += 1;
+            winObj.totalRunsScored += matchRunsScored; winObj.totalOversFaced += matchOversBowled;
+            winObj.totalRunsConceded += matchRunsConceded; winObj.totalOversBowled += matchOversAgainst;
+            loseObj.totalRunsScored += matchRunsConceded; loseObj.totalOversFaced += matchOversAgainst;
+            loseObj.totalRunsConceded += matchRunsScored; loseObj.totalOversBowled += matchOversBowled;
 
-            if (winnerTeam === "Tied") {
-                winObj.points += 1;
-                loseObj.points += 1;
-            } else {
-                winObj.won += 1;
-                winObj.points += 2;
-                loseObj.lost += 1;
-            }
-
-            winObj.totalRunsScored += matchRunsScored;
-            winObj.totalOversFaced += matchOversBowled;
-            winObj.totalRunsConceded += matchRunsConceded;
-            winObj.totalOversBowled += matchOversAgainst;
-
-            loseObj.totalRunsScored += matchRunsConceded;
-            loseObj.totalOversFaced += matchOversAgainst;
-            loseObj.totalRunsConceded += matchRunsScored;
-            loseObj.totalOversBowled += matchOversBowled;
-
-            let winRunRate = winObj.totalOversFaced > 0 && winObj.totalOversBowled > 0 ? (winObj.totalRunsScored / winObj.totalOversFaced) - (winObj.totalRunsConceded / winObj.totalOversBowled) : 0;
-            let loseRunRate = loseObj.totalOversFaced > 0 && loseObj.totalOversBowled > 0 ? (loseObj.totalRunsScored / loseObj.totalOversFaced) - (loseObj.totalRunsConceded / loseObj.totalOversBowled) : 0;
+            let winRunRate = winObj.totalOversFaced > 0 ? (winObj.totalRunsScored / winObj.totalOversFaced) - (winObj.totalRunsConceded / winObj.totalOversBowled) : 0;
+            let loseRunRate = loseObj.totalOversFaced > 0 ? (loseObj.totalRunsScored / loseObj.totalOversFaced) - (loseObj.totalRunsConceded / loseObj.totalOversBowled) : 0;
 
             winObj.netRunRate = (winRunRate >= 0 ? "+" : "") + winRunRate.toFixed(3);
             loseObj.netRunRate = (loseRunRate >= 0 ? "+" : "") + loseRunRate.toFixed(3);
 
-            teamsData[winKey] = winObj;
-            teamsData[loseKey] = loseObj;
-
+            teamsData[winnerKey] = winObj; teamsData[loserKey] = loseObj;
             await set(pointsRef, teamsData);
-        } catch (e) {
-            console.error("Points table update error:", e);
-        }
+        } catch (e) {}
     }
 
     function getPlayersList(isBattingTeam) {
@@ -493,7 +447,6 @@
         const currentBat2 = bat2Select.value;
         const currentBowler = bowlerSelect.value;
 
-        // ১. বোলার ড্রপডাউন
         bowlerSelect.innerHTML = '<option value="">-- Bowler --</option>';
         bowlingPlayers.forEach(player => {
             if (player !== lastBowler || player === currentBowler) {
@@ -505,7 +458,6 @@
         });
         bowlerSelect.value = currentBowler;
 
-        // ২. স্ট্রাইকার ড্রপডাউন (আউট হওয়া প্লেয়ার তালিকায় আসবে না)
         bat1Select.innerHTML = '<option value="">-- Striker --</option>';
         battingPlayers.forEach(player => {
             if (!outPlayersList.includes(player) || player === currentBat1) {
@@ -521,7 +473,6 @@
         });
         bat1Select.value = currentBat1;
 
-        // ৩. নন-স্ট্রাইকার ড্রপডাউন (আউট হওয়া প্লেয়ার তালিকায় আসবে না)
         bat2Select.innerHTML = '<option value="">-- Non-Striker --</option>';
         battingPlayers.forEach(player => {
             if (!outPlayersList.includes(player) || player === currentBat2) {
@@ -1171,7 +1122,7 @@
         updateSuggestions(); 
         processAndUpdate();
         highlightPlayerBox('striker');
-        alert("ℹ️️ 2nd Innings started! Teams and squads swapped successfully.");
+        alert("ℹ️ 2nd Innings started! Teams and squads swapped successfully.");
     };
 
     window.declareWinnerManually = function() {
@@ -1243,7 +1194,7 @@
         let bat2 = document.getElementById('bat2Name').value;
 
         if (!bat1 || !bat2) { alert("⚠️ Select batters first!"); document.getElementById('bowlerName').value = ""; return; }
-        if (bowler !== "" && bowler === lastBowler) { alert("⚠️ Same bowler cannot bowl consecutive overs!"); document.getElementById('bowlerName').value = ""; updateSuggestions(); return; }
+        if (bowler !== "" && bowler === lastBowler) { alert("⚠ Same bowler cannot bowl consecutive overs!"); document.getElementById('bowlerName').value = ""; updateSuggestions(); return; }
 
         if(bowler !== "") {
             if (bowlersRecord[bowler]) {
@@ -1326,71 +1277,6 @@
         if(pBtn) { pBtn.style.background = isPointsTableVisible ? "#dc3545" : "#27ae60"; pBtn.innerText = isPointsTableVisible ? "📊 Points [ON]" : "📊 Points"; }
         if(sumBtn) { sumBtn.style.background = isSummaryVisible ? "#dc3545" : "#27ae60"; sumBtn.innerText = isSummaryVisible ? "📋 Summary [ON]" : "📋 Summary"; }
     }
-
-    // সব টিমের সমন্বয়ে পয়েন্ট টেবিল দেখার ফাংশন
-    window.openPointsTableModal = async function() {
-        document.getElementById('pointsTableModal').style.display = 'flex';
-        const container = document.getElementById('pointsTableListContainer');
-        container.innerHTML = "<p style='text-align:center;'>Loading points table...</p>";
-
-        try {
-            const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournament/teams/`);
-            const snapshot = await get(pointsRef);
-            let teamsData = snapshot.val() || {};
-
-            let teamsArray = Object.keys(teamsData).map(k => teamsData[k]);
-
-            if (teamsArray.length === 0) {
-                container.innerHTML = "<p style='text-align:center; color:#dc3545; font-weight:bold;'>No match recorded in points table yet!</p>";
-                return;
-            }
-
-            // পয়েন্ট ও NRR অনুযায়ী সঠিক সর্টিং
-            teamsArray.sort((a, b) => {
-                if ((b.points || 0) !== (a.points || 0)) {
-                    return (b.points || 0) - (a.points || 0);
-                }
-                return parseFloat(b.netRunRate || 0) - parseFloat(a.netRunRate || 0);
-            });
-
-            let tableHtml = `
-                <table class="points-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 30px;">#</th>
-                            <th class="team-col">Team</th>
-                            <th>P</th>
-                            <th>W</th>
-                            <th>L</th>
-                            <th>Pts</th>
-                            <th>NRR</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            teamsArray.forEach((tm, idx) => {
-                tableHtml += `
-                    <tr>
-                        <td><strong>${idx + 1}</strong></td>
-                        <td class="team-col">${tm.name || 'Unknown'}</td>
-                        <td>${tm.matchesPlayed || 0}</td>
-                        <td><span style="color: #28a745; font-weight: bold;">${tm.won || 0}</span></td>
-                        <td><span style="color: #dc3545; font-weight: bold;">${tm.lost || 0}</span></td>
-                        <td><strong style="color: #0056b3; font-size: 14px;">${tm.points || 0}</strong></td>
-                        <td style="font-weight: bold; color: ${(parseFloat(tm.netRunRate || 0) >= 0 ? '#28a745' : '#dc3545')}">${tm.netRunRate || '+0.000'}</td>
-                    </tr>
-                `;
-            });
-
-            tableHtml += `</tbody></table>`;
-            container.innerHTML = tableHtml;
-
-        } catch (e) {
-            console.error(e);
-            container.innerHTML = "<p style='text-align:center; color:red;'>Error fetching points table data.</p>";
-        }
-    };
 
     let currentLeaderboardMode = 'tournament'; let cachedPlayersData = {};
     window.switchLeaderboardMode = function(mode) {
@@ -1490,37 +1376,6 @@
                             isLeagueMatchGlobal = (matchInfo.type === 'league');
                             squad1 = (tData.teams || {})[loadedBatTeam] || loadedBatTeam;
                             squad2 = (tData.teams || {})[loadedBowlTeam] || loadedBowlTeam;
-
-                            // টুর্নামেন্টের সমস্ত টিম আগে থেকেই পয়েন্ট টেবিলে যুক্ত করে রাখা
-                            if (tData.teams) {
-                                const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournament/teams/`);
-                                const pointsSnap = await get(pointsRef);
-                                let currentPoints = pointsSnap.val() || {};
-                                let needSave = false;
-
-                                Object.keys(tData.teams).forEach(tName => {
-                                    let safeKey = getSafeTeamKey(tName);
-                                    if (!currentPoints[safeKey]) {
-                                        currentPoints[safeKey] = {
-                                            name: tName,
-                                            matchesPlayed: 0,
-                                            won: 0,
-                                            lost: 0,
-                                            points: 0,
-                                            totalRunsScored: 0,
-                                            totalOversFaced: 0,
-                                            totalRunsConceded: 0,
-                                            totalOversBowled: 0,
-                                            netRunRate: "+0.000"
-                                        };
-                                        needSave = true;
-                                    }
-                                });
-
-                                if (needSave) {
-                                    await set(pointsRef, currentPoints);
-                                }
-                            }
                         }
                     }
                 }
