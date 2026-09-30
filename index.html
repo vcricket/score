@@ -344,12 +344,12 @@
             • Official PhonePe No: <b style="font-size: 13px; color: #1e3c72;">7980735754</b><br>
             
             <a href="upi://pay?pa=7980735754@ybl&pn=Cricket%20Scoreboard&am=50&cu=INR&tn=1%20Match%20Credit" class="upi-btn">
-               ⚡ Pay ₹50 via UPI (PhonePe / GPay / Paytm)
+                ⚡ Pay ₹50 via UPI (PhonePe / GPay / Paytm)
             </a>
 
             <small style="display:block; margin-top:8px; color: #555;">After payment, send screenshot on WhatsApp:</small>
             <a href="https://wa.me/917980735754?text=Hello,%20I%20have%20paid%20%E2%82%B950%20via%20UPI%20for%201%20match%20credit." target="_blank" class="whatsapp-btn">
-               💬 Send Screenshot on WhatsApp
+                💬 Send Screenshot on WhatsApp
             </a>
         </div>
 
@@ -564,7 +564,6 @@
         renderActiveTournamentUI();
     };
 
-    // টিম ১ এবং টিম ২ ড্রপডাউনে মিউচুয়াল এক্সক্লুসিভ ফিল্টারিং
     window.onScheduleTeamSelectChange = () => {
         if (!activeTournamentId || !tournamentsData[activeTournamentId]) return;
         const teams = tournamentsData[activeTournamentId].teams || {};
@@ -576,7 +575,6 @@
         const selectedT1 = t1Select.value;
         const selectedT2 = t2Select.value;
 
-        // টিম ১ ড্রপডাউন রিফ্রেশ (টিম ২ এ সিলেক্ট হওয়া টিম বাদ দিয়ে)
         t1Select.innerHTML = '<option value="">-- Team 1 --</option>';
         teamNames.forEach(team => {
             if (team !== selectedT2) {
@@ -588,7 +586,6 @@
             }
         });
 
-        // টিম ২ ড্রপডাউন রিফ্রেশ (টিম ১ এ সিলেক্ট হওয়া টিম বাদ দিয়ে)
         t2Select.innerHTML = '<option value="">-- Team 2 --</option>';
         teamNames.forEach(team => {
             if (team !== selectedT1) {
@@ -620,7 +617,6 @@
         const teamNames = Object.keys(teams);
         document.getElementById('savedTeamsList').innerText = teamNames.length > 0 ? teamNames.join(', ') : 'None';
 
-        // ড্রপডাউন ফিল্টারিং ইনিশিয়ালাইজেশন
         window.onScheduleTeamSelectChange();
 
         const matchesContainer = document.getElementById('scheduledMatchesList');
@@ -684,6 +680,7 @@
         }
     }
 
+    // আপডেটেড saveTeamSquad ফাংশন: টিম সেভ হওয়ার সাথে সাথে পয়েন্ট টেবিলে জিরো পয়েন্ট নিয়ে যুক্ত হবে
     window.saveTeamSquad = async () => {
         const text = document.getElementById('squadText').value.trim();
         if (!text) return alert("Please enter team name and squad!");
@@ -691,9 +688,38 @@
         const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
         const teamName = lines[0];
 
+        // ১. স্কোয়াড সেভ করা
         await set(ref(db, `users/${currentUser.uid}/tournaments/${activeTournamentId}/teams/${teamName}`), text);
+
+        // ২. লাইভ পয়েন্ট টেবিলের স্ট্যান্ডিংসে দলটিকে জিরো পয়েন্টসহ যুক্ত করা (যাতে ম্যাচ না খেললেও নাম থাকে)
+        const teamPointsRef = ref(db, `live_matches/${currentUsername}/tournament/teams/`);
+        const snapshot = await get(teamPointsRef);
+        let teamsData = snapshot.val() || {};
+
+        // চেক করা দলটি ইতিমধ্যে পয়েন্ট টেবিলে আছে কি না
+        let exists = false;
+        for (let k in teamsData) {
+            if (teamsData[k].name && teamsData[k].name.toLowerCase() === teamName.toLowerCase()) {
+                exists = true;
+                break;
+            }
+        }
+
+        if (!exists) {
+            let newKey = 'team_' + Date.now();
+            teamsData[newKey] = {
+                name: teamName,
+                matchesPlayed: 0,
+                won: 0,
+                lost: 0,
+                points: 0,
+                netRunRate: "+0.000"
+            };
+            await set(teamPointsRef, teamsData);
+        }
+
         document.getElementById('squadText').value = '';
-        alert(`✅ Team '${teamName}' saved to tournament!`);
+        alert(`✅ Team '${teamName}' saved to tournament and points table!`);
     };
 
     window.scheduleNewMatch = async () => {
