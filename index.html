@@ -547,7 +547,6 @@
         }
     };
 
-    // গ্লোবাল টিম লাইব্রেরিতে টিম সেভ করা
     window.saveGlobalTeam = async () => {
         const text = document.getElementById('globalSquadText').value.trim();
         if (!text) return alert("Please enter team name and squad!");
@@ -632,7 +631,6 @@
         renderActiveTournamentUI();
     };
 
-    // লাইব্রেরি থেকে টুর্নামেন্টে টিম যোগ করা
     window.addTeamToTournament = async () => {
         if (!activeTournamentId) return alert("Please select a tournament first!");
         const teamName = document.getElementById('libraryTeamSelect').value;
@@ -640,33 +638,21 @@
 
         const teamSquadText = globalTeamsLibrary[teamName];
 
-        // ১. টুর্নামেন্টের নিজস্ব স্কোয়াড লিস্টে টিম সেভ করা
         await set(ref(db, `users/${currentUser.uid}/tournaments/${activeTournamentId}/teams/${teamName}`), teamSquadText);
 
-        // ২. পয়েন্ট টেবিলের স্ট্যান্ডিংসে দলটিকে জিরো পয়েন্টসহ যুক্ত করা
-        const teamPointsRef = ref(db, `live_matches/${currentUsername}/tournament/teams/`);
-        const snapshot = await get(teamPointsRef);
-        let teamsData = snapshot.val() || {};
-
-        let exists = false;
-        for (let k in teamsData) {
-            if (teamsData[k].name && teamsData[k].name.toLowerCase() === teamName.toLowerCase()) {
-                exists = true;
-                break;
-            }
-        }
-
-        if (!exists) {
-            let newKey = 'team_' + Date.now();
-            teamsData[newKey] = {
-                name: teamName,
+        const cleanKey = teamName.trim().toLowerCase().replace(/[\s.#$\[\]]/g, "_");
+        const teamRef = ref(db, `live_matches/${currentUsername}/tournament/teams/${cleanKey}`);
+        
+        const snapshot = await get(teamRef);
+        if (!snapshot.exists()) {
+            await set(teamRef, {
+                name: teamName.trim(),
                 matchesPlayed: 0,
                 won: 0,
                 lost: 0,
                 points: 0,
                 netRunRate: "+0.000"
-            };
-            await set(teamPointsRef, teamsData);
+            });
         }
 
         alert(`✅ Team '${teamName}' added to tournament successfully!`);
