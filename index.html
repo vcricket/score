@@ -309,11 +309,11 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                 <div>
                     <label style="font-size: 12px; font-weight: bold;">Team 1 (Batting):</label>
-                    <select id="scheduleTeam1"></select>
+                    <select id="scheduleTeam1" onchange="onScheduleTeamSelectChange()"></select>
                 </div>
                 <div>
                     <label style="font-size: 12px; font-weight: bold;">Team 2 (Bowling):</label>
-                    <select id="scheduleTeam2"></select>
+                    <select id="scheduleTeam2" onchange="onScheduleTeamSelectChange()"></select>
                 </div>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px;">
@@ -564,6 +564,43 @@
         renderActiveTournamentUI();
     };
 
+    // টিম ১ এবং টিম ২ ড্রপডাউনে মিউচুয়াল এক্সক্লুসিভ ফিল্টারিং
+    window.onScheduleTeamSelectChange = () => {
+        if (!activeTournamentId || !tournamentsData[activeTournamentId]) return;
+        const teams = tournamentsData[activeTournamentId].teams || {};
+        const teamNames = Object.keys(teams);
+
+        const t1Select = document.getElementById('scheduleTeam1');
+        const t2Select = document.getElementById('scheduleTeam2');
+
+        const selectedT1 = t1Select.value;
+        const selectedT2 = t2Select.value;
+
+        // টিম ১ ড্রপডাউন রিফ্রেশ (টিম ২ এ সিলেক্ট হওয়া টিম বাদ দিয়ে)
+        t1Select.innerHTML = '<option value="">-- Team 1 --</option>';
+        teamNames.forEach(team => {
+            if (team !== selectedT2) {
+                const opt = document.createElement('option');
+                opt.value = team;
+                opt.innerText = team;
+                if (team === selectedT1) opt.selected = true;
+                t1Select.appendChild(opt);
+            }
+        });
+
+        // টিম ২ ড্রপডাউন রিফ্রেশ (টিম ১ এ সিলেক্ট হওয়া টিম বাদ দিয়ে)
+        t2Select.innerHTML = '<option value="">-- Team 2 --</option>';
+        teamNames.forEach(team => {
+            if (team !== selectedT1) {
+                const opt = document.createElement('option');
+                opt.value = team;
+                opt.innerText = team;
+                if (team === selectedT2) opt.selected = true;
+                t2Select.appendChild(opt);
+            }
+        });
+    };
+
     function renderActiveTournamentUI() {
         const teamBox = document.getElementById('teamSectionBox');
         const matchBox = document.getElementById('matchSchedulerBox');
@@ -583,15 +620,8 @@
         const teamNames = Object.keys(teams);
         document.getElementById('savedTeamsList').innerText = teamNames.length > 0 ? teamNames.join(', ') : 'None';
 
-        const t1Select = document.getElementById('scheduleTeam1');
-        const t2Select = document.getElementById('scheduleTeam2');
-        t1Select.innerHTML = '<option value="">-- Team 1 --</option>';
-        t2Select.innerHTML = '<option value="">-- Team 2 --</option>';
-
-        teamNames.forEach(team => {
-            t1Select.innerHTML += `<option value="${team}">${team}</option>`;
-            t2Select.innerHTML += `<option value="${team}">${team}</option>`;
-        });
+        // ড্রপডাউন ফিল্টারিং ইনিশিয়ালাইজেশন
+        window.onScheduleTeamSelectChange();
 
         const matchesContainer = document.getElementById('scheduledMatchesList');
         matchesContainer.innerHTML = '';
@@ -808,6 +838,3 @@
 
 </body>
 </html>
-
-
-
