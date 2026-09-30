@@ -74,7 +74,7 @@
             width: auto; 
             white-space: nowrap;
         }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
         .welcome-gift {
             background: #e3f2fd;
             border: 1px dashed #2196f3;
@@ -300,7 +300,7 @@
         <p id="signup-message" class="msg" style="color: red;"></p>
     </div>
 
-    <!-- User Dashboard (হোমপেজ) -->
+    <!-- User Dashboard -->
     <div id="dashboard-section" class="hidden">
         <h2>Welcome, <span id="display-username" style="color: #ff9800;"></span>!</h2>
         
@@ -316,7 +316,7 @@
             </div>
         </div>
 
-        <!-- মূল হোমপেজ ভিউ (ব্যালেন্স, লিংক, গ্লোবাল টিম লাইব্রেরি এবং টুর্নামেন্ট বাটন লিস্ট) -->
+        <!-- মূল হোমপেজ ভিউ (এখানে শুধু গ্লোবাল টিম লাইব্রেরি এবং টুর্নামেন্ট লিস্ট থাকবে) -->
         <div id="homeMainView">
             <!-- 1. Global Team Library Section -->
             <div class="card-box" style="background: #f0f7ff; border-color: #b8daff;">
@@ -331,7 +331,7 @@
                 </div>
             </div>
 
-            <!-- 2. Tournaments List & Creator (টুর্নামেন্ট বাটন লিস্ট) -->
+            <!-- 2. Tournaments List & Creator -->
             <div class="card-box">
                 <h3>🏆 Tournaments</h3>
                 <p style="font-size: 12px; color: #555; margin: 0 0 8px;">Click on any tournament to open it and manage matches:</p>
@@ -340,11 +340,36 @@
                 </div>
                 <button class="btn-action-small" style="background:#28a745; width: 100%; margin-top: 10px;" onclick="promptCreateTournament()">➕ Create New Tournament</button>
             </div>
+
+            <!-- Payment Recharge Box -->
+            <div class="payment-box">
+                <b>Recharge Guidelines:</b><br>
+                • 1 Match = 1 Credit = ₹50<br>
+                • Official PhonePe No: <b style="font-size: 13px; color: #1e3c72;">7980735754</b><br>
+                
+                <a href="upi://pay?pa=7980735754@ybl&pn=Cricket%20Scoreboard&am=50&cu=INR&tn=1%20Match%20Credit" class="upi-btn">
+                    ⚡ Pay ₹50 via UPI (PhonePe / GPay / Paytm)
+                </a>
+
+                <small style="display:block; margin-top:8px; color: #555;">After payment, send screenshot on WhatsApp:</small>
+                <a href="https://wa.me/917980735754?text=Hello,%20I%20have%20paid%20%E2%82%B950%20via%20UPI%20for%201%20match%20credit." target="_blank" class="whatsapp-btn">
+                    💬 Send Screenshot on WhatsApp
+                </a>
+            </div>
+
+            <!-- Danger Zone -->
+            <div style="background: #fff5f5; border: 1px dashed #feb2b2; padding: 12px; border-radius: 8px; margin-top: 15px; text-align: left;">
+                <b style="color: #c53030; font-size: 13px;">⚠️ Danger Zone:</b>
+                <p style="font-size: 11px; color: #742a2a; margin: 4px 0 8px;">Delete all your tournaments, teams, squads, and match fixtures permanently.</p>
+                <button style="background: #e53e3e; color: white; padding: 8px 12px; font-size: 12px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; width: 100%; margin: 0;" onclick="resetAllUserData()">🗑️ Reset All Data & Tournaments</button>
+            </div>
+
+            <button class="btn-logout" style="margin-top: 15px;" onclick="logout()">Logout</button>
         </div>
 
-        <!-- নির্দিষ্ট টুর্নামেন্টের ভেতরের ভিউ (টুর্নামেন্ট বাটনে ক্লিক করলে এটি ওপেন হবে) -->
+        <!-- নির্দিষ্ট টুর্নামেন্টের ভেتরের ভিউ (এখানে শুধু ওই টুর্নামেন্টের ম্যাচ ও ফিক্সচার থাকবে) -->
         <div id="specificTournamentView" class="hidden" style="text-align: left;">
-            <button class="btn-action-small btn-back-tour" onclick="backToTournamentsList()">⬅️️ Back to Tournaments</button>
+            <button class="btn-action-small btn-back-tour" onclick="backToTournamentsList()">⬅ Back to Tournaments</button>
             <div style="clear: both;"></div>
             <h2 id="activeTournamentTitle" style="color: #0056b3; margin: 5px 0 15px 0; text-align: center;">Tournament Name</h2>
 
@@ -394,32 +419,10 @@
                     <p style="font-size: 12px; color: #888;">No matches scheduled for this tournament yet.</p>
                 </div>
             </div>
+
+            <button class="btn-logout" style="margin-top: 25px;" onclick="logout()">Logout</button>
         </div>
 
-        <!-- Payment Recharge Box -->
-        <div class="payment-box">
-            <b>Recharge Guidelines:</b><br>
-            • 1 Match = 1 Credit = ₹50<br>
-            • Official PhonePe No: <b style="font-size: 13px; color: #1e3c72;">7980735754</b><br>
-            
-            <a href="upi://pay?pa=7980735754@ybl&pn=Cricket%20Scoreboard&am=50&cu=INR&tn=1%20Match%20Credit" class="upi-btn">
-                ⚡ Pay ₹50 via UPI (PhonePe / GPay / Paytm)
-            </a>
-
-            <small style="display:block; margin-top:8px; color: #555;">After payment, send screenshot on WhatsApp:</small>
-            <a href="https://wa.me/917980735754?text=Hello,%20I%20have%20paid%20%E2%82%B950%20via%20UPI%20for%201%20match%20credit." target="_blank" class="whatsapp-btn">
-                💬 Send Screenshot on WhatsApp
-            </a>
-        </div>
-
-        <!-- Danger Zone -->
-        <div style="background: #fff5f5; border: 1px dashed #feb2b2; padding: 12px; border-radius: 8px; margin-top: 15px; text-align: left;">
-            <b style="color: #c53030; font-size: 13px;">⚠️ Danger Zone:</b>
-            <p style="font-size: 11px; color: #742a2a; margin: 4px 0 8px;">Delete all your tournaments, teams, squads, and match fixtures permanently.</p>
-            <button style="background: #e53e3e; color: white; padding: 8px 12px; font-size: 12px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; width: 100%; margin: 0;" onclick="resetAllUserData()">🗑️ Reset All Data & Tournaments</button>
-        </div>
-
-        <button class="btn-logout" style="margin-top: 15px;" onclick="logout()">Logout</button>
     </div>
 
 </div>
