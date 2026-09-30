@@ -1253,10 +1253,9 @@
         updateToggleButtonsUI(); currentEvent = ""; processAndUpdate(); 
     };
 
+    // আপডেট করা Points বাটন যা নতুন points.html পেজে নিয়ে যাবে
     window.togglePointsTableDisplay = function() { 
-        isPointsTableVisible = !isPointsTableVisible; 
-        if(isPointsTableVisible) { isSquadVisible = false; isSummaryVisible = false; } 
-        updateToggleButtonsUI(); currentEvent = ""; processAndUpdate(); 
+        window.open(`points.html?u=${currentMatchUser}`, '_blank');
     };
 
     window.toggleSummaryDisplay = function() { 
@@ -1273,7 +1272,7 @@
         const pBtn = document.getElementById('pointsShowBtn'); 
         const sumBtn = document.getElementById('summaryShowBtn');
         if(sBtn) { sBtn.style.background = isSquadVisible ? "#dc3545" : "#6f42c1"; sBtn.innerText = isSquadVisible ? "📺 Squads [ON]" : "📺 Squads"; }
-        if(pBtn) { pBtn.style.background = isPointsTableVisible ? "#dc3545" : "#27ae60"; pBtn.innerText = isPointsTableVisible ? "📊 Points [ON]" : "📊 Points"; }
+        if(pBtn) { pBtn.style.background = "#27ae60"; pBtn.innerText = "📊 Points"; }
         if(sumBtn) { sumBtn.style.background = isSummaryVisible ? "#dc3545" : "#27ae60"; sumBtn.innerText = isSummaryVisible ? "📋 Summary [ON]" : "📋 Summary"; }
     }
 
