@@ -432,6 +432,7 @@
         return lines.length > 1 ? lines.slice(1) : lines;
     }
 
+    // ড্রপডাউন সাজেশন আপডেট লজিক
     function updateSuggestions() {
         const battingPlayers = getPlayersList(true);
         const bowlingPlayers = getPlayersList(false);
@@ -445,7 +446,7 @@
         const currentBat2 = bat2Select.value;
         const currentBowler = bowlerSelect.value;
 
-        // বোলার ড্রপডাউন
+        // ১. বোলার ড্রপডাউন
         bowlerSelect.innerHTML = '<option value="">-- Select Bowler --</option>';
         bowlingPlayers.forEach(player => {
             if (player !== lastBowler || player === currentBowler) {
@@ -458,10 +459,14 @@
         });
         if (currentBowler) bowlerSelect.value = currentBowler;
 
-        // স্ট্রাইকার ড্রপডাউন
+        // ২. স্ট্রাইকার ড্রপডাউন (আউট হওয়া প্লেয়ার ও নন-স্ট্রাইকার বাদ থাকবে)
         bat1Select.innerHTML = '<option value="">-- Select Striker --</option>';
         battingPlayers.forEach(player => {
-            if (!outPlayersList.includes(player) || player === currentBat1) {
+            const isOut = outPlayersList.includes(player);
+            const isNonStriker = (player === currentBat2);
+            
+            // আউট না হলে এবং অপর প্রান্তে সিলেক্টেড না থাকলে অপশনে আসবে
+            if ((!isOut && !isNonStriker) || player === currentBat1) {
                 let opt = document.createElement('option');
                 opt.value = player;
                 opt.innerText = player;
@@ -469,16 +474,20 @@
                 bat1Select.appendChild(opt);
             }
         });
-        if (currentBat1 && !outPlayersList.includes(currentBat1)) {
+        if (currentBat1 && !outPlayersList.includes(currentBat1) && currentBat1 !== currentBat2) {
             bat1Select.value = currentBat1;
         } else {
             bat1Select.value = "";
         }
 
-        // নন-স্ট্রাইকার ড্রপডাউন
+        // ৩. নন-স্ট্রাইকার ড্রপডাউন (আউট হওয়া প্লেয়ার ও স্ট্রাইকার বাদ থাকবে)
         bat2Select.innerHTML = '<option value="">-- Select Non-Striker --</option>';
         battingPlayers.forEach(player => {
-            if (!outPlayersList.includes(player) || player === currentBat2) {
+            const isOut = outPlayersList.includes(player);
+            const isStriker = (player === currentBat1);
+
+            // আউট না হলে এবং অপর প্রান্তে সিলেক্টেড না থাকলে অপশনে আসবে
+            if ((!isOut && !isStriker) || player === currentBat2) {
                 let opt = document.createElement('option');
                 opt.value = player;
                 opt.innerText = player;
@@ -486,7 +495,7 @@
                 bat2Select.appendChild(opt);
             }
         });
-        if (currentBat2 && !outPlayersList.includes(currentBat2)) {
+        if (currentBat2 && !outPlayersList.includes(currentBat2) && currentBat2 !== currentBat1) {
             bat2Select.value = currentBat2;
         } else {
             bat2Select.value = "";
@@ -504,8 +513,10 @@
             } else {
                 document.getElementById('bat2Name').value = "";
             }
-            return;
         }
+        
+        // একজন প্লেয়ার সিলেক্ট হওয়ার সাথে সাথে অন্য ড্রপডাউন আপডেট হবে
+        updateSuggestions();
         processAndUpdate();
         autoClosePanel();
     };
@@ -661,6 +672,7 @@
 
             b1Select.value = b2N;
             b2Select.value = b1N;
+            updateSuggestions();
         }
     }
 
