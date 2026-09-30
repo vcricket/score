@@ -258,7 +258,7 @@
     const activeMatchId = urlParams.get('m');
 
     if (!currentMatchUser) {
-        alert("⚠️ Unauthorized access! Please launch match from your Dashboard.");
+        alert("⚠️️ Unauthorized access! Please launch match from your Dashboard.");
         window.location.href = "index.html";
     }
 
@@ -432,7 +432,6 @@
         return lines.length > 1 ? lines.slice(1) : lines;
     }
 
-    // ড্রপডাউন সাজেশন আপডেট লজিক
     function updateSuggestions() {
         const battingPlayers = getPlayersList(true);
         const bowlingPlayers = getPlayersList(false);
@@ -447,59 +446,50 @@
         const currentBowler = bowlerSelect.value;
 
         // ১. বোলার ড্রপডাউন
-        bowlerSelect.innerHTML = '<option value="">-- Select Bowler --</option>';
+        bowlerSelect.innerHTML = '<option value="">-- Bowler --</option>';
         bowlingPlayers.forEach(player => {
             if (player !== lastBowler || player === currentBowler) {
                 let opt = document.createElement('option');
                 opt.value = player;
                 opt.innerText = player;
-                if (player === currentBowler) opt.selected = true;
                 bowlerSelect.appendChild(opt);
             }
         });
-        if (currentBowler) bowlerSelect.value = currentBowler;
+        bowlerSelect.value = currentBowler;
 
-        // ২. স্ট্রাইকার ড্রপডাউন (আউট হওয়া প্লেয়ার ও নন-স্ট্রাইকার বাদ থাকবে)
-        bat1Select.innerHTML = '<option value="">-- Select Striker --</option>';
+        // ২. স্ট্রাইকার ড্রপডাউন (আউট হওয়া প্লেয়ার তালিকায় আসবে না)
+        bat1Select.innerHTML = '<option value="">-- Striker --</option>';
         battingPlayers.forEach(player => {
-            const isOut = outPlayersList.includes(player);
-            const isNonStriker = (player === currentBat2);
-            
-            // আউট না হলে এবং অপর প্রান্তে সিলেক্টেড না থাকলে অপশনে আসবে
-            if ((!isOut && !isNonStriker) || player === currentBat1) {
+            if (!outPlayersList.includes(player) || player === currentBat1) {
                 let opt = document.createElement('option');
                 opt.value = player;
                 opt.innerText = player;
-                if (player === currentBat1) opt.selected = true;
+                // নন-স্ট্রাইকার প্রান্তে থাকলে এই ড্রপডাউনে হাইড ও ডিসেবল থাকবে
+                if (player === currentBat2 && player !== "") {
+                    opt.disabled = true;
+                    opt.hidden = true;
+                }
                 bat1Select.appendChild(opt);
             }
         });
-        if (currentBat1 && !outPlayersList.includes(currentBat1) && currentBat1 !== currentBat2) {
-            bat1Select.value = currentBat1;
-        } else {
-            bat1Select.value = "";
-        }
+        bat1Select.value = currentBat1;
 
-        // ৩. নন-স্ট্রাইকার ড্রপডাউন (আউট হওয়া প্লেয়ার ও স্ট্রাইকার বাদ থাকবে)
-        bat2Select.innerHTML = '<option value="">-- Select Non-Striker --</option>';
+        // ৩. নন-স্ট্রাইকার ড্রপডাউন (আউট হওয়া প্লেয়ার তালিকায় আসবে না)
+        bat2Select.innerHTML = '<option value="">-- Non-Striker --</option>';
         battingPlayers.forEach(player => {
-            const isOut = outPlayersList.includes(player);
-            const isStriker = (player === currentBat1);
-
-            // আউট না হলে এবং অপর প্রান্তে সিলেক্টেড না থাকলে অপশনে আসবে
-            if ((!isOut && !isStriker) || player === currentBat2) {
+            if (!outPlayersList.includes(player) || player === currentBat2) {
                 let opt = document.createElement('option');
                 opt.value = player;
                 opt.innerText = player;
-                if (player === currentBat2) opt.selected = true;
+                // স্ট্রাইকার প্রান্তে থাকলে এই ড্রপডাউনে হাইড ও ডিসেবল থাকবে
+                if (player === currentBat1 && player !== "") {
+                    opt.disabled = true;
+                    opt.hidden = true;
+                }
                 bat2Select.appendChild(opt);
             }
         });
-        if (currentBat2 && !outPlayersList.includes(currentBat2) && currentBat2 !== currentBat1) {
-            bat2Select.value = currentBat2;
-        } else {
-            bat2Select.value = "";
-        }
+        bat2Select.value = currentBat2;
     }
 
     window.onPlayerSelectionChanged = function(changedSide) {
@@ -515,7 +505,6 @@
             }
         }
         
-        // একজন প্লেয়ার সিলেক্ট হওয়ার সাথে সাথে অন্য ড্রপডাউন আপডেট হবে
         updateSuggestions();
         processAndUpdate();
         autoClosePanel();
@@ -672,6 +661,7 @@
 
             b1Select.value = b2N;
             b2Select.value = b1N;
+
             updateSuggestions();
         }
     }
@@ -807,7 +797,7 @@
 
                 const bowlingPlayers = getPlayersList(false);
                 const bowlerSelect = document.getElementById('bowlerName');
-                bowlerSelect.innerHTML = '<option value="">-- Select Bowler --</option>';
+                bowlerSelect.innerHTML = '<option value="">-- Bowler --</option>';
                 bowlingPlayers.forEach(player => {
                     if (player !== lastBowler) {
                         let opt = document.createElement('option');
@@ -1207,7 +1197,7 @@
         let bat2 = document.getElementById('bat2Name').value;
 
         if (!bat1 || !bat2) { alert("⚠️ Select batters first!"); document.getElementById('bowlerName').value = ""; return; }
-        if (bowler !== "" && bowler === lastBowler) { alert("⚠️ Same bowler cannot bowl consecutive overs!"); document.getElementById('bowlerName').value = ""; updateSuggestions(); return; }
+        if (bowler !== "" && bowler === lastBowler) { alert("⚠️️ Same bowler cannot bowl consecutive overs!"); document.getElementById('bowlerName').value = ""; updateSuggestions(); return; }
 
         if(bowler !== "") {
             if (bowlersRecord[bowler]) {
