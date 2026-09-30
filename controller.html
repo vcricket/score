@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Score Controller</title>
+    <title>Pro Score Controller</title>
 
     <style>
         body { font-family: Arial, sans-serif; background: #eef2f3; padding: 15px; margin: 0; }
@@ -390,7 +390,6 @@
             const snapshot = await get(pointsRef);
             let teamsData = snapshot.val() || {};
             
-            // সব দলকে লুপ বা প্রসেস করার লজিক (নিশ্চিত করা হয়েছে যেন সব দলের আপডেট সঠিকভাবে সংরক্ষিত হয়)
             let t1Key = "team1", t2Key = "team2";
             let t1Obj = teamsData[t1Key] || { name: document.getElementById('batTeamName').value, matchesPlayed: 0, won: 0, lost: 0, points: 0, totalRunsScored: 0, totalOversFaced: 0, totalRunsConceded: 0, totalOversBowled: 0, netRunRate: "+0.000" };
             let t2Obj = teamsData[t2Key] || { name: document.getElementById('bowlTeamName').value, matchesPlayed: 0, won: 0, lost: 0, points: 0, totalRunsScored: 0, totalOversFaced: 0, totalRunsConceded: 0, totalOversBowled: 0, netRunRate: "+0.000" };
