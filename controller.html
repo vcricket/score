@@ -37,7 +37,7 @@
         .flex-btns { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-top: 10px; }
         @media(max-width: 650px) { .flex-btns { grid-template-columns: repeat(3, 1fr); } }
         .btn-control-small { padding: 8px 4px; font-size: 11px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; color: white; text-align: center; }
-        .btn-swap-s { background: #17a2b8; } .btn-undo-s { background: #fd7e14; } .btn-squad-s { background: #6f42c1; } .btn-summary-s { background: #27ae60; } .btn-ldb-s { background: #d35400; }
+        .btn-swap-s { background: #17a2b8; } .btn-undo-s { background: #fd7e14; } .btn-squad-s { background: #6f42c1; } .btn-points-s { background: #27ae60; } .btn-summary-s { background: #27ae60; } .btn-ldb-s { background: #d35400; }
         .teams-row { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 6px; }
         .btn-middle-swap { background: #6c5ce7; color: white; border: none; width: 45px; height: 42px; border-radius: 6px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .btn-main { width: 100%; padding: 12px; background: #28a745; color: white; border: none; font-size: 16px; font-weight: bold; border-radius: 5px; margin-top: 10px; }
@@ -175,7 +175,7 @@
             <div class="box" id="strikerBox" style="background: #fff;">
                 <h3 style="color: #b78103;">Striker 🏏</h3>
                 <label>Name</label> 
-                <select id="bat1Name" onchange="window.validatePlayers()"><option value="">-- Striker --</option></select>
+                <select id="bat1Name" onchange="window.onPlayerSelectionChanged('striker')"><option value="">-- Striker --</option></select>
                 <div class="small-flex">
                     <div style="flex: 1;"><label>Runs</label> <input type="number" id="bat1Runs" value="0" onchange="window.processAndUpdate()"></div>
                     <div style="flex: 1;"><label>Balls</label> <input type="number" id="bat1Balls" value="0" onchange="window.processAndUpdate()"></div>
@@ -185,7 +185,7 @@
             <div class="box" id="nonStrikerBox" style="background: #fff;">
                 <h3>Non-Striker</h3>
                 <label>Name</label> 
-                <select id="bat2Name" onchange="window.validatePlayers()"><option value="">-- Non-Striker --</option></select>
+                <select id="bat2Name" onchange="window.onPlayerSelectionChanged('nonStriker')"><option value="">-- Non-Striker --</option></select>
                 <div class="small-flex">
                     <div style="flex: 1;"><label>Runs</label> <input type="number" id="bat2Runs" value="0" onchange="window.processAndUpdate()"></div>
                     <div style="flex: 1;"><label>Balls</label> <input type="number" id="bat2Balls" value="0" onchange="window.processAndUpdate()"></div>
@@ -226,6 +226,7 @@
             <button class="btn-control-small btn-swap-s" onclick="window.swapStrike()">🔄 Swap</button>
             <button class="btn-control-small btn-undo-s" id="undoBtn" onclick="window.undoAction()">↩ Undo</button>
             <button class="btn-control-small btn-squad-s" id="squadShowBtn" onclick="window.toggleSquadDisplay()">📺 Squads</button>
+            <button class="btn-control-small btn-points-s" id="pointsShowBtn" onclick="window.togglePointsTableDisplay()">📊 Points</button>
             <button class="btn-control-small btn-summary-s" id="summaryShowBtn" onclick="window.toggleSummaryDisplay()">📋 Summary</button>
             <button class="btn-control-small btn-ldb-s" onclick="window.openLeaderboardModal()">🏆 L.Board</button>
         </div>
@@ -263,13 +264,24 @@
 
     let isLeagueMatchGlobal = true;
     let tournamentPointsUpdated = false;
-    let isSquadVisible = false; let isSummaryVisible = false;
-    let currentOverBalls = []; let legalBallsInCurrentOver = 0; let outPlayersList = [];
-    let historyStack = []; let currentEvent = ""; let overHistoryList = [];
-    let autoInningsSwitched = false; let matchEnded = false; let bowlerSelectionPending = false;
+    let isSquadVisible = false; 
+    let isPointsTableVisible = false; 
+    let isSummaryVisible = false;
+    let currentOverBalls = []; 
+    let legalBallsInCurrentOver = 0; 
+    let outPlayersList = [];
+    let historyStack = []; 
+    let currentEvent = ""; 
+    let overHistoryList = [];
+    let autoInningsSwitched = false; 
+    let matchEnded = false; 
+    let bowlerSelectionPending = false;
     
-    let lastBowler = ""; let activeBowler = ""; let bowlersRecord = {}; 
-    let firstInningsRunsStored = 0; let firstInningsOversStored = "0.0";
+    let lastBowler = ""; 
+    let activeBowler = ""; 
+    let bowlersRecord = {}; 
+    let firstInningsRunsStored = 0; 
+    let firstInningsOversStored = "0.0";
     let detailedStats = {};
     let scheduledMatchOvers = null;
 
@@ -459,6 +471,8 @@
         });
         if (currentBat1 && !outPlayersList.includes(currentBat1)) {
             bat1Select.value = currentBat1;
+        } else {
+            bat1Select.value = "";
         }
 
         // নন-স্ট্রাইকার ড্রপডাউন
@@ -474,8 +488,27 @@
         });
         if (currentBat2 && !outPlayersList.includes(currentBat2)) {
             bat2Select.value = currentBat2;
+        } else {
+            bat2Select.value = "";
         }
     }
+
+    window.onPlayerSelectionChanged = function(changedSide) {
+        const b1 = document.getElementById('bat1Name').value;
+        const b2 = document.getElementById('bat2Name').value;
+
+        if (b1 !== "" && b2 !== "" && b1 === b2) {
+            alert("⚠️ Same player cannot be in both striker and non-striker positions!");
+            if (changedSide === 'striker') {
+                document.getElementById('bat1Name').value = "";
+            } else {
+                document.getElementById('bat2Name').value = "";
+            }
+            return;
+        }
+        processAndUpdate();
+        autoClosePanel();
+    };
 
     function processAndUpdate() {
         if(activeBowler !== "") bowlersRecord[activeBowler] = { wickets: getVal('bWickets'), runs: getVal('bRuns'), overs: document.getElementById('bowlerOvers').value };
@@ -522,7 +555,9 @@
             squad1Data: localStorage.getItem(`tempSelectedBatTeamSquad_${currentMatchUser}`) || "", 
             squad2Data: localStorage.getItem(`tempSelectedBowlTeamSquad_${currentMatchUser}`) || "", 
             lastBowler: lastBowler, activeBowler: activeBowler, bowlersRecord: bowlersRecord, 
-            showSquadsOnScreen: isSquadVisible, showSummaryOnScreen: isSummaryVisible,
+            showSquadsOnScreen: isSquadVisible, 
+            showPointsTableOnScreen: isPointsTableVisible, 
+            showSummaryOnScreen: isSummaryVisible,
             currentOverBalls: currentOverBalls, outPlayers: outPlayersList, overHistory: overHistoryList,
             firstInningsRuns: firstInningsRunsStored, firstInningsOvers: firstInningsOversStored,
             triggerEvent: evtToTrigger, triggerId: evtId || Date.now(), 
@@ -547,7 +582,7 @@
         if(matchEnded) { alert("⚠️ Match has ended! Return to dashboard."); return false; }
         let bat1 = document.getElementById('bat1Name').value; let bat2 = document.getElementById('bat2Name').value; let bowler = document.getElementById('bowlerName').value;
         if (!bat1 || !bat2) { alert("⚠️ Selecting both batters is mandatory!"); document.getElementById('playerPanel').open = true; return false; }
-        if (!bowler) { alert("⚠️️ Selecting the current bowler is mandatory!"); document.getElementById('playerPanel').open = true; return false; }
+        if (!bowler) { alert("⚠️ Selecting the current bowler is mandatory!"); document.getElementById('playerPanel').open = true; return false; }
         if (bowlerSelectionPending) { alert("⚠️ Over finished! Select a new bowler."); highlightPlayerBox('bowler'); return false; }
         return true;
     }
@@ -609,10 +644,12 @@
     function incrementOver(oversStr) { let p = String(oversStr).split('.'); let o = parseInt(p[0])||0, b = parseInt(p[1])||0; b++; if (b >= 6) { o++; b = 0; } return `${o}.${b}`; }
     
     function swapStrikeInternal() {
-        let b1N = document.getElementById('bat1Name').value;
+        let b1Select = document.getElementById('bat1Name');
+        let b2Select = document.getElementById('bat2Name');
+        let b1N = b1Select.value;
+        let b2N = b2Select.value;
         let b1R = getVal('bat1Runs');
         let b1B = getVal('bat1Balls');
-        let b2N = document.getElementById('bat2Name').value;
         let b2R = getVal('bat2Runs');
         let b2B = getVal('bat2Balls');
         
@@ -622,9 +659,8 @@
             setVal('bat2Runs', b1R); 
             setVal('bat2Balls', b1B);
 
-            document.getElementById('bat1Name').value = b2N;
-            document.getElementById('bat2Name').value = b1N;
-            updateSuggestions();
+            b1Select.value = b2N;
+            b2Select.value = b1N;
         }
     }
 
@@ -649,7 +685,6 @@
     function convertOversToBalls(oversStr) { let parts = String(oversStr).split('.'); return (parseInt(parts[0]) * 6) + parseInt(parts[1]||0); }
     function convertBallsToOversStr(t) { return `${Math.floor(t / 6)}.${t % 6}`; }
 
-    // প্রতিটি বলে তাৎক্ষণিক রান চেজ চেক (শতভাগ বুলেটপ্রুফ গাণিতিক লজিক)
     function checkInstantTargetChase() {
         let innings = document.getElementById('innings').value;
         if (innings !== "2" || matchEnded) return false;
@@ -660,7 +695,6 @@
         let bTeam = document.getElementById('batTeamName').value;
         let bwTeam = document.getElementById('bowlTeamName').value;
 
-        // গাণিতিকভাবে টার্গেট বের করা
         let targetNum = 9999;
         let targetMsg = document.getElementById('targetMsg').value;
         if (firstInningsRunsStored > 0) {
@@ -670,7 +704,6 @@
             if (match) targetNum = parseInt(match[1]);
         }
 
-        // টার্গেট পূরণ হয়ে গেলে সাথে সাথে খেলা শেষ
         if (runs >= targetNum && targetNum > 0 && targetNum < 9999) {
             matchEnded = true;
             let winnerText = `${bTeam} Won by ${10 - wickets} Wickets! 🎉`;
@@ -760,7 +793,18 @@
                 
                 swapStrikeInternal();
 
-                updateSuggestions();
+                const bowlingPlayers = getPlayersList(false);
+                const bowlerSelect = document.getElementById('bowlerName');
+                bowlerSelect.innerHTML = '<option value="">-- Select Bowler --</option>';
+                bowlingPlayers.forEach(player => {
+                    if (player !== lastBowler) {
+                        let opt = document.createElement('option');
+                        opt.value = player;
+                        opt.innerText = player;
+                        bowlerSelect.appendChild(opt);
+                    }
+                });
+
                 processAndUpdate();
                 highlightPlayerBox('bowler');
             } else { 
@@ -820,6 +864,11 @@
             
             if (data.innings) document.getElementById('innings').value = data.innings;
             document.getElementById('targetMsg').value = data.target || "1st Innings is going on...";
+            
+            isSquadVisible = data.showSquadsOnScreen || false;
+            isPointsTableVisible = data.showPointsTableOnScreen || false;
+            isSummaryVisible = data.showSummaryOnScreen || false;
+            updateToggleButtonsUI();
         }
     }
 
@@ -846,7 +895,6 @@
         if (runs === 4) currentEvent = "FOUR"; else if (runs === 6) currentEvent = "SIX"; else currentEvent = "";
         currentOverBalls.push(bLabel); legalBallsInCurrentOver++;
         
-        // প্রতিটি বলে টার্গেট চেজ যাচাই
         if (checkInstantTargetChase()) return;
 
         if(currentEvent !== "") processAndUpdate(); 
@@ -873,7 +921,6 @@
             currentOverBalls.push(rInput > 0 ? `WD+${rInput}` : "WD");
         }
 
-        // এক্সট্রা বল হলেও টার্গেট চেজ যাচাই
         if (checkInstantTargetChase()) return;
 
         if(currentEvent !== "") processAndUpdate(); 
@@ -888,7 +935,7 @@
 
         setVal('runs', getVal('runs') + rInput); setVal('bat1Balls', getVal('bat1Balls') + 1);
         let nOv = incrementOver(document.getElementById('overs').value);
-        setVal('overs', nOv); setVal('bowlerOvers', incrementOver(document.getElementById('bowlerOvers').value));
+        setVal('bowlerOvers', incrementOver(document.getElementById('bowlerOvers').value));
         if (rInput === 1 || rInput === 3) swapStrikeInternal();
         currentOverBalls.push(`LB${rInput}`); legalBallsInCurrentOver++; currentEvent = ""; 
 
@@ -1159,12 +1206,6 @@
         processAndUpdate(); autoClosePanel();
     };
 
-    window.validatePlayers = function() {
-        const b1 = document.getElementById('bat1Name').value; const b2 = document.getElementById('bat2Name').value;
-        if (b1 !== "" && b2 !== "" && b1 === b2) { alert("⚠️️ Same player cannot be in both positions!"); document.getElementById('bat2Name').value = ""; }
-        updateSuggestions(); processAndUpdate(); autoClosePanel();
-    };
-
     window.swapTeams = function() {
         if(matchEnded) return;
         saveState();
@@ -1208,14 +1249,33 @@
         } else { alert("⚠️ No undo history!"); }
     };
 
-    window.toggleSquadDisplay = function() { isSquadVisible = !isSquadVisible; if(isSquadVisible) { isSummaryVisible = false; } updateToggleButtonsUI(); currentEvent = ""; processAndUpdate(); };
-    window.toggleSummaryDisplay = function() { isSummaryVisible = !isSummaryVisible; if(isSummaryVisible) { isSquadVisible = false; } updateToggleButtonsUI(); currentEvent = ""; processAndUpdate(); };
+    window.toggleSquadDisplay = function() { 
+        isSquadVisible = !isSquadVisible; 
+        if(isSquadVisible) { isPointsTableVisible = false; isSummaryVisible = false; } 
+        updateToggleButtonsUI(); currentEvent = ""; processAndUpdate(); 
+    };
+
+    window.togglePointsTableDisplay = function() { 
+        isPointsTableVisible = !isPointsTableVisible; 
+        if(isPointsTableVisible) { isSquadVisible = false; isSummaryVisible = false; } 
+        updateToggleButtonsUI(); currentEvent = ""; processAndUpdate(); 
+    };
+
+    window.toggleSummaryDisplay = function() { 
+        isSummaryVisible = !isSummaryVisible; 
+        if(isSummaryVisible) { isSquadVisible = false; isPointsTableVisible = false; } 
+        updateToggleButtonsUI(); currentEvent = ""; processAndUpdate(); 
+    };
+
     window.updateTargetMessage = updateTargetMessage;
     window.processAndUpdate = processAndUpdate;
 
     function updateToggleButtonsUI() {
-        const sBtn = document.getElementById('squadShowBtn'); const sumBtn = document.getElementById('summaryShowBtn');
+        const sBtn = document.getElementById('squadShowBtn'); 
+        const pBtn = document.getElementById('pointsShowBtn'); 
+        const sumBtn = document.getElementById('summaryShowBtn');
         if(sBtn) { sBtn.style.background = isSquadVisible ? "#dc3545" : "#6f42c1"; sBtn.innerText = isSquadVisible ? "📺 Squads [ON]" : "📺 Squads"; }
+        if(pBtn) { pBtn.style.background = isPointsTableVisible ? "#dc3545" : "#27ae60"; pBtn.innerText = isPointsTableVisible ? "📊 Points [ON]" : "📊 Points"; }
         if(sumBtn) { sumBtn.style.background = isSummaryVisible ? "#dc3545" : "#27ae60"; sumBtn.innerText = isSummaryVisible ? "📋 Summary [ON]" : "📋 Summary"; }
     }
 
