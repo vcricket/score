@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard - Tournament & Match Manager</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 15px;
+        }
+        .container { 
+            background: #ffffff; 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+            width: 100%; 
+            max-width: 600px; 
+            text-align: center; 
+        }
+        h2 { color: #1e3c72; margin-top: 0; margin-bottom: 15px; font-size: 22px; }
+        h3 { color: #2a5298; margin: 15px 0 10px; font-size: 16px; text-align: left; border-bottom: 2px solid #eef2f3; padding-bottom: 5px; }
+        input, select, textarea { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 6px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 6px; 
+            font-size: 14px;
+        }
+        input:focus, select:focus, textarea:focus { border-color: #2a5298; outline: none; }
+        
+        .password-container { position: relative; width: 100%; }
+        .password-container input { padding-right: 40px; }
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            user-select: none;
+            font-size: 18px;
+            color: #777;
+        }
+
+        button { 
+            width: 100%; 
+            padding: 11px; 
+            margin: 8px 0; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 15px; 
+            font-weight: bold;
+            color: #fff; 
+            transition: 0.3s;
+        }
+        .btn-login { background-color: #28a745; }
+        .btn-signup { background-color: #007bff; }
+        .btn-logout { background-color: #4a5568; }
+        .btn-action-small { background-color: #007bff; padding: 8px 12px; font-size: 13px; width: auto; }
+        .btn-copy { 
+            background-color: #17a2b8; 
+            padding: 8px 14px; 
+            font-size: 14px; 
+            margin: 0; 
+            width: auto; 
+            white-space: nowrap;
+        }
+        .hidden { display: none; }
+        .welcome-gift {
+            background: #e3f2fd;
+            border: 1px dashed #2196f3;
+            color: #0d47a1;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+        .credit-box { 
+            background: #e8f5e9;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 17px; 
+            font-weight: bold; 
+            color: #2e7d32; 
+            margin: 12px 0; 
+            border: 1px solid #c8e6c9;
+        }
+        .link-box { 
+            background: #f8f9fa; 
+            padding: 12px; 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+            border: 1px dashed #ced4da;
+            text-align: left;
+        }
+        .link-input-group { display: flex; gap: 8px; margin-top: 6px; }
+        .link-input-group input {
+            margin: 0;
+            padding: 8px 10px;
+            font-size: 13px;
+            background: #ffffff;
+            cursor: pointer;
+            color: #007bff;
+            font-weight: 500;
+        }
+        .payment-box { 
+            background: #fff3cd; 
+            padding: 14px; 
+            border-radius: 8px; 
+            margin-top: 15px; 
+            font-size: 13px; 
+            color: #856404; 
+            border: 1px solid #ffeeba;
+            text-align: left;
+            line-height: 1.5;
+        }
+        .upi-btn {
+            display: block;
+            background: linear-gradient(45deg, #5f259f, #3f156d);
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 13px;
+            text-align: center;
+        }
+        .whatsapp-btn {
+            display: inline-block;
+            background-color: #25d366;
+            color: white;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 8px;
+            font-size: 13px;
+            text-align: center;
+            width: 100%;
+        }
+        .toggle-text { 
+            color: #007bff; 
+            cursor: pointer; 
+            font-size: 13px; 
+            text-decoration: underline; 
+            margin-top: 10px; 
+            display: inline-block;
+        }
+        .msg { font-size: 13px; margin-top: 6px; }
+
+        .card-box {
+            background: #fdfdfd;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .match-item {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+        .match-item.completed-card {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+            cursor: not-allowed;
+            user-select: none;
+        }
+        .match-badge {
+            font-size: 11px;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .badge-pending { background: #e0f2fe; color: #0369a1; }
+        .badge-live { background: #dcfce7; color: #15803d; }
+        .badge-completed { background: #fee2e2; color: #b91c1c; }
+        
+        .btn-launch {
+            background: #ff9800;
+            color: white;
+            padding: 7px 14px;
+            font-size: 12px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 0;
+            width: auto;
+        }
+        .btn-launch:hover { background: #e68a00; }
+        .badge-locked {
+            background: #64748b;
+            color: #ffffff;
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            letter-spacing: 0.3px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- Login Form -->
+    <div id="login-section">
+        <h2>Sign In</h2>
+        <input type="email" id="login-email" placeholder="Enter your email" required>
+        
+        <div class="password-container">
+            <input type="password" id="login-password" placeholder="Enter password" required>
+            <span class="toggle-password" onclick="togglePasswordVisibility('login-password', this)">👁</span>
+        </div>
+
+        <button class="btn-login" onclick="login()">Login</button>
+        <br>
+        <span class="toggle-text" style="color: #666; font-size: 13px;" onclick="resetPassword()">Forgot Password?</span>
+        <br>
+        <span class="toggle-text" onclick="toggleAuth('signup')">Don't have an account? Sign Up</span>
+        <p id="login-message" class="msg"></p>
+    </div>
+
+    <!-- Sign-Up Form -->
+    <div id="signup-section" class="hidden">
+        <h2>Create Account</h2>
+        <div class="welcome-gift">🎁 Sign up now and get 1 match credit FREE!</div>
+        <input type="text" id="signup-username" placeholder="Short Username (e.g. rakib)" maxlength="15" required>
+        <input type="email" id="signup-email" placeholder="Enter your email" required>
+        
+        <div class="password-container">
+            <input type="password" id="signup-password" placeholder="Create password" required>
+            <span class="toggle-password" onclick="togglePasswordVisibility('signup-password', this)">👁</span>
+        </div>
+
+        <button class="btn-signup" onclick="signup()">Register</button>
+        <br>
+        <span class="toggle-text" onclick="toggleAuth('login')">Already have an account? Sign In</span>
+        <p id="signup-message" class="msg" style="color: red;"></p>
+    </div>
+
+    <!-- User Dashboard -->
+    <div id="dashboard-section" class="hidden">
+        <h2>Welcome, <span id="display-username" style="color: #ff9800;"></span>!</h2>
+        
+        <div class="credit-box">
+            Available Balance: <span id="user-credits">0</span> Match Credit(s)
+        </div>
+
+        <div class="link-box">
+            <b style="font-size: 13px; color: #333;">Your Public Viewer Link:</b>
+            <div class="link-input-group">
+                <input type="text" id="viewer-link-input" readonly onclick="this.select()" placeholder="Generating link...">
+                <button class="btn-copy" onclick="copyLink()">📋 Copy</button>
+            </div>
+        </div>
+
+        <!-- 1. Tournament Selector & Creator -->
+        <div class="card-box">
+            <h3>🏆 Step 1: Manage Tournaments</h3>
+            <label style="font-size: 12px; font-weight: bold; color: #555;">Active Tournament:</label>
+            <div style="display: flex; gap: 8px;">
+                <select id="tournamentSelect" onchange="onTournamentChange()">
+                    <option value="">-- Select or Create Tournament --</option>
+                </select>
+                <button class="btn-action-small" onclick="promptCreateTournament()">➕ New</button>
+            </div>
+        </div>
+
+        <!-- 2. Teams & Squads -->
+        <div class="card-box" id="teamSectionBox" style="display: none;">
+            <h3>👥 Step 2: Add Teams & Squads</h3>
+            <p style="font-size: 12px; color: #666; margin: 0 0 6px;">Add team squads before match day (First line team name, then player names):</p>
+            <textarea id="squadText" rows="4" placeholder="King XI&#10;Player 1&#10;Player 2 (wk)&#10;Player 3"></textarea>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-action-small" style="background:#28a745; width: 100%;" onclick="saveTeamSquad()">💾 Save Team to Tournament</button>
+            </div>
+            <div style="margin-top: 8px; font-size: 12px; color: #444;">
+                <b>Saved Teams:</b> <span id="savedTeamsList">None</span>
+            </div>
+        </div>
+
+        <!-- 3. Pre-Schedule Match & Launch -->
+        <div class="card-box" id="matchSchedulerBox" style="display: none;">
+            <h3>📅 Step 3: Schedule & Launch Match</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div>
+                    <label style="font-size: 12px; font-weight: bold;">Team 1 (Batting):</label>
+                    <select id="scheduleTeam1"></select>
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight: bold;">Team 2 (Bowling):</label>
+                    <select id="scheduleTeam2"></select>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px;">
+                <div>
+                    <label style="font-size: 12px; font-weight: bold;">Overs:</label>
+                    <input type="number" id="scheduleOvers" value="10" min="1">
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight: bold;">Match Type:</label>
+                    <select id="scheduleType">
+                        <option value="league">League</option>
+                        <option value="knockout">Knockout</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn-action-small" style="background: #007bff; width: 100%; margin-top: 8px;" onclick="scheduleNewMatch()">➕ Add to Fixture</button>
+
+            <h4 style="margin: 12px 0 6px; font-size: 14px; color: #333;">Scheduled Fixtures:</h4>
+            <div id="scheduledMatchesList">
+                <p style="font-size: 12px; color: #888;">No matches scheduled yet.</p>
+            </div>
+        </div>
+
+        <!-- Payment Recharge Box -->
+        <div class="payment-box">
+            <b>Recharge Guidelines:</b><br>
+            • 1 Match = 1 Credit = ₹50<br>
+            • Official UPI ID: <b style="font-size: 13px; color: #1e3c72;">7980735754@ybl</b><br>
+            
+            <a href="upi://pay?pa=7980735754@ybl&pn=Cricket%20Scoreboard&am=50&cu=INR&tn=1%20Match%20Credit" class="upi-btn">
+               ⚡ Pay ₹50 via UPI (PhonePe / GPay / Paytm)
+            </a>
+
+            <small style="display:block; margin-top:8px; color: #555;">After payment, send screenshot on WhatsApp:</small>
+            <a href="https://wa.me/917980735754?text=Hello,%20I%20have%20paid%20%E2%82%B950%20via%20UPI%20for%201%20match%20credit." target="_blank" class="whatsapp-btn">
+               💬 Send Screenshot on WhatsApp
+            </a>
+        </div>
+
+        <!-- Danger Zone -->
+        <div style="background: #fff5f5; border: 1px dashed #feb2b2; padding: 12px; border-radius: 8px; margin-top: 15px; text-align: left;">
+            <b style="color: #c53030; font-size: 13px;">⚠️ Danger Zone:</b>
+            <p style="font-size: 11px; color: #742a2a; margin: 4px 0 8px;">Delete all your tournaments, squads, and match fixtures permanently.</p>
+            <button style="background: #e53e3e; color: white; padding: 8px 12px; font-size: 12px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; width: 100%; margin: 0;" onclick="resetAllUserData()">🗑️ Reset All Data & Tournaments</button>
+        </div>
+
+        <button class="btn-logout" style="margin-top: 15px;" onclick="logout()">Logout</button>
+    </div>
+
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+    import { 
+        getAuth, 
+        createUserWithEmailAndPassword, 
+        signInWithEmailAndPassword, 
+        sendPasswordResetEmail,
+        onAuthStateChanged, 
+        signOut, 
+        setPersistence, 
+        browserLocalPersistence 
+    } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+    import { getDatabase, ref, get, update, set, onValue } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
+        authDomain: "cricket-score-d187a.firebaseapp.com",
+        databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
+        projectId: "cricket-score-d187a",
+        storageBucket: "cricket-score-d187a.firebasestorage.app",
+        messagingSenderId: "782741896785",
+        appId: "1:782741896785:web:78ab5ffe8c6a43ba928270",
+        measurementId: "G-PHXZ72EC94"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    let currentUser = null;
+    let currentCredits = 0;
+    let currentUsername = "";
+    let activeTournamentId = "";
+    let tournamentsData = {};
+
+    window.togglePasswordVisibility = (inputId, iconElement) => {
+        const passwordInput = document.getElementById(inputId);
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            iconElement.innerText = "🙈";
+        } else {
+            passwordInput.type = "password";
+            iconElement.innerText = "👁";
+        }
+    };
+
+    window.toggleAuth = (view) => {
+        document.getElementById('login-message').innerText = "";
+        document.getElementById('signup-message').innerText = "";
+        if(view === 'signup') {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('signup-section').classList.remove('hidden');
+        } else {
+            document.getElementById('signup-section').classList.add('hidden');
+            document.getElementById('login-section').classList.remove('hidden');
+        }
+    };
+
+    window.signup = async () => {
+        const username = document.getElementById('signup-username').value.trim().toLowerCase();
+        const email = document.getElementById('signup-email').value.trim();
+        const password = document.getElementById('signup-password').value;
+        const msg = document.getElementById('signup-message');
+
+        if (!username || !email || !password) {
+            msg.style.color = "red";
+            return msg.innerText = "Please fill in all fields.";
+        }
+
+        if (!/^[a-z0-9]+$/.test(username)) {
+            msg.style.color = "red";
+            return msg.innerText = "Username must contain only lowercase letters and numbers.";
+        }
+
+        try {
+            const usernameRef = ref(db, 'usernames/' + username);
+            const snapshot = await get(usernameRef);
+            if (snapshot.exists()) {
+                msg.style.color = "red";
+                return msg.innerText = "Username already taken! Choose another.";
+            }
+
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            await set(ref(db, 'usernames/' + username), user.uid);
+            await set(ref(db, 'users/' + user.uid), { 
+                email: email, 
+                username: username, 
+                credits: 1 
+            });
+
+            msg.style.color = "green";
+            msg.innerText = "Account created! 1 Free Credit added.";
+        } catch (error) {
+            msg.style.color = "red";
+            msg.innerText = error.message;
+        }
+    };
+
+    window.login = () => {
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        const msg = document.getElementById('login-message');
+
+        if (!email || !password) {
+            msg.style.color = "red";
+            return msg.innerText = "Please provide email and password.";
+        }
+
+        setPersistence(auth, browserLocalPersistence)
+            .then(() => signInWithEmailAndPassword(auth, email, password))
+            .catch(() => {
+                msg.style.color = "red";
+                msg.innerText = "Invalid email or password.";
+            });
+    };
+
+    window.resetPassword = async () => {
+        const email = document.getElementById('login-email').value.trim();
+        const msg = document.getElementById('login-message');
+
+        if (!email) {
+            msg.style.color = "red";
+            return msg.innerText = "Please enter your email above to reset password.";
+        }
+
+        try {
+            await sendPasswordResetEmail(auth, email);
+            msg.style.color = "green";
+            msg.innerText = "Password reset link sent! Check your email inbox/spam.";
+        } catch (error) {
+            msg.style.color = "red";
+            if (error.code === 'auth/user-not-found') {
+                msg.innerText = "No account found with this email.";
+            } else {
+                msg.innerText = error.message;
+            }
+        }
+    };
+
+    window.logout = () => { signOut(auth); };
+
+    window.copyLink = () => {
+        const inputField = document.getElementById('viewer-link-input');
+        if (!inputField.value) return alert("No link available!");
+
+        inputField.select();
+        inputField.setSelectionRange(0, 99999);
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(inputField.value).then(() => alert("Viewer link copied!"));
+        } else {
+            document.execCommand('copy');
+            alert("Viewer link copied!");
+        }
+    };
+
+    window.promptCreateTournament = async () => {
+        const name = prompt("Enter Tournament Name (e.g. Winter Cup 2026):");
+        if (!name || !name.trim()) return;
+        
+        const tourId = 't_' + Date.now();
+        await set(ref(db, `users/${currentUser.uid}/tournaments/${tourId}`), {
+            name: name.trim(),
+            createdAt: Date.now()
+        });
+        alert(`🏆 Tournament '${name}' created!`);
+    };
+
+    function listenUserTournaments() {
+        const tourRef = ref(db, `users/${currentUser.uid}/tournaments`);
+        onValue(tourRef, (snapshot) => {
+            tournamentsData = snapshot.val() || {};
+            const select = document.getElementById('tournamentSelect');
+            select.innerHTML = '<option value="">-- Select or Create Tournament --</option>';
+            
+            for (let tId in tournamentsData) {
+                const opt = document.createElement('option');
+                opt.value = tId;
+                opt.innerText = tournamentsData[tId].name || 'Unnamed Tournament';
+                select.appendChild(opt);
+            }
+
+            if (activeTournamentId && tournamentsData[activeTournamentId]) {
+                select.value = activeTournamentId;
+            } else if (Object.keys(tournamentsData).length > 0) {
+                select.value = Object.keys(tournamentsData)[0];
+                activeTournamentId = select.value;
+            }
+            renderActiveTournamentUI();
+        });
+    }
+
+    window.onTournamentChange = () => {
+        activeTournamentId = document.getElementById('tournamentSelect').value;
+        renderActiveTournamentUI();
+    };
+
+    function renderActiveTournamentUI() {
+        const teamBox = document.getElementById('teamSectionBox');
+        const matchBox = document.getElementById('matchSchedulerBox');
+
+        if (!activeTournamentId || !tournamentsData[activeTournamentId]) {
+            teamBox.style.display = 'none';
+            matchBox.style.display = 'none';
+            return;
+        }
+
+        teamBox.style.display = 'block';
+        matchBox.style.display = 'block';
+
+        const tData = tournamentsData[activeTournamentId];
+        const teams = tData.teams || {};
+        
+        const teamNames = Object.keys(teams);
+        document.getElementById('savedTeamsList').innerText = teamNames.length > 0 ? teamNames.join(', ') : 'None';
+
+        const t1Select = document.getElementById('scheduleTeam1');
+        const t2Select = document.getElementById('scheduleTeam2');
+        t1Select.innerHTML = '<option value="">-- Team 1 --</option>';
+        t2Select.innerHTML = '<option value="">-- Team 2 --</option>';
+
+        teamNames.forEach(team => {
+            t1Select.innerHTML += `<option value="${team}">${team}</option>`;
+            t2Select.innerHTML += `<option value="${team}">${team}</option>`;
+        });
+
+        const matchesContainer = document.getElementById('scheduledMatchesList');
+        matchesContainer.innerHTML = '';
+        const matches = tData.matches || {};
+
+        if (Object.keys(matches).length === 0) {
+            matchesContainer.innerHTML = '<p style="font-size: 12px; color: #888;">No matches scheduled yet.</p>';
+            return;
+        }
+
+        for (let mId in matches) {
+            const m = matches[mId];
+            const div = document.createElement('div');
+            const isCompleted = (m.status === 'completed');
+            
+            div.className = isCompleted ? 'match-item completed-card' : 'match-item';
+            
+            let statusBadge = `<span class="match-badge badge-pending">Upcoming</span>`;
+            if (m.status === 'live') statusBadge = `<span class="match-badge badge-live">Live</span>`;
+            if (isCompleted) statusBadge = `<span class="match-badge badge-completed">Ended</span>`;
+
+            let t1Text = m.team1;
+            let t2Text = m.team2;
+            let resultBanner = "";
+
+            if (isCompleted) {
+                const winTeam = (m.winner || "").toLowerCase().trim();
+                const t1Lower = m.team1.toLowerCase().trim();
+                const t2Lower = m.team2.toLowerCase().trim();
+
+                if (winTeam === "tied") {
+                    resultBanner = `<div style="font-size: 11px; font-weight: bold; color: #d97706; margin-bottom: 2px;">🤝 Match Tied</div>`;
+                } else if (winTeam === t1Lower || t1Lower.includes(winTeam)) {
+                    t1Text = `<span style="color:#15803d;">${m.team1} ✅</span>`;
+                    resultBanner = `<div style="font-size: 11px; font-weight: bold; color: #15803d; margin-bottom: 2px;">🏆 ${m.resultText || m.team1 + ' Won'}</div>`;
+                } else if (winTeam === t2Lower || t2Lower.includes(winTeam)) {
+                    t2Text = `<span style="color:#15803d;">${m.team2} ✅</span>`;
+                    resultBanner = `<div style="font-size: 11px; font-weight: bold; color: #15803d; margin-bottom: 2px;">🏆 ${m.resultText || m.team2 + ' Won'}</div>`;
+                } else if (m.resultText) {
+                    resultBanner = `<div style="font-size: 11px; font-weight: bold; color: #0284c7; margin-bottom: 2px;">🏆 ${m.resultText}</div>`;
+                }
+            }
+
+            let actionArea = "";
+            if (isCompleted) {
+                actionArea = `<span class="badge-locked" title="Match ended. Cannot be launched again.">🔒 Completed</span>`;
+            } else {
+                actionArea = `<button class="btn-launch" onclick="launchScheduledMatch('${mId}')">▶️ Launch (1 Credit)</button>`;
+            }
+
+            div.innerHTML = `
+                <div style="flex: 1; padding-right: 10px;">
+                    ${resultBanner}
+                    <div style="font-weight: bold; font-size: 13px; color: #1e293b;">${t1Text} vs ${t2Text}</div>
+                    <div style="font-size: 11px; color: #64748b; margin-top: 2px;">${m.overs} Overs | ${m.type.toUpperCase()} | ${statusBadge}</div>
+                </div>
+                ${actionArea}
+            `;
+            matchesContainer.appendChild(div);
+        }
+    }
+
+    window.saveTeamSquad = async () => {
+        const text = document.getElementById('squadText').value.trim();
+        if (!text) return alert("Please enter team name and squad!");
+
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const teamName = lines[0];
+
+        await set(ref(db, `users/${currentUser.uid}/tournaments/${activeTournamentId}/teams/${teamName}`), text);
+        document.getElementById('squadText').value = '';
+        alert(`✅ Team '${teamName}' saved to tournament!`);
+    };
+
+    window.scheduleNewMatch = async () => {
+        const t1 = document.getElementById('scheduleTeam1').value;
+        const t2 = document.getElementById('scheduleTeam2').value;
+        const overs = parseInt(document.getElementById('scheduleOvers').value) || 10;
+        const type = document.getElementById('scheduleType').value;
+
+        if (!t1 || !t2) return alert("Select both teams!");
+        if (t1 === t2) return alert("Same team cannot play against itself!");
+
+        const matchId = 'm_' + Date.now();
+        await set(ref(db, `users/${currentUser.uid}/tournaments/${activeTournamentId}/matches/${matchId}`), {
+            team1: t1,
+            team2: t2,
+            overs: overs,
+            type: type,
+            status: 'pending',
+            createdAt: Date.now()
+        });
+
+        alert("✅ Match fixture added successfully!");
+    };
+
+    window.launchScheduledMatch = async (matchId) => {
+        const match = tournamentsData[activeTournamentId].matches[matchId];
+
+        if (match.status === 'completed') {
+            return alert("⛔ This match is completed and permanently locked!");
+        }
+
+        if (currentCredits < 1) {
+            return alert("⚠️ Insufficient match credits! Please make payment via UPI and contact admin.");
+        }
+
+        const confirmed = confirm(`Start match "${match.team1} vs ${match.team2}"? 1 Match Credit will be deducted.`);
+        if (!confirmed) return;
+
+        try {
+            await update(ref(db, 'users/' + currentUser.uid), { 
+                credits: currentCredits - 1 
+            });
+
+            await update(ref(db, `users/${currentUser.uid}/tournaments/${activeTournamentId}/matches/${matchId}`), {
+                status: 'live'
+            });
+
+            const team1Squad = tournamentsData[activeTournamentId].teams[match.team1] || match.team1;
+            const team2Squad = tournamentsData[activeTournamentId].teams[match.team2] || match.team2;
+
+            await update(ref(db, `live_matches/${currentUsername}/score`), {
+                batTeamName: match.team1,
+                bowlTeamName: match.team2,
+                totalOvers: match.overs,
+                isLeagueMatch: (match.type === 'league'),
+                squad1Data: team1Squad,
+                squad2Data: team2Squad,
+                runs: 0,
+                wickets: 0,
+                overs: "0.0",
+                target: "1st Innings is going on...",
+                innings: "1",
+                status: "active",
+                updatedAt: Date.now()
+            });
+
+            window.location.href = `controller.html?u=${currentUsername}&t=${activeTournamentId}&m=${matchId}`;
+        } catch (error) {
+            alert("Error launching match: " + error.message);
+        }
+    };
+
+    window.resetAllUserData = async () => {
+        const confirm1 = confirm("⚠️ DANGER: Do you really want to delete ALL your tournaments, teams, squads, and match fixtures?");
+        if (!confirm1) return;
+
+        const confirm2 = prompt("Type 'DELETE' in capital letters to confirm wiping out your entire setup:");
+        if (confirm2 !== "DELETE") {
+            return alert("Action cancelled. Data is safe.");
+        }
+
+        try {
+            await set(ref(db, `users/${currentUser.uid}/tournaments`), null);
+
+            await set(ref(db, `live_matches/${currentUsername}`), {
+                score: {
+                    batTeamName: "Team 1",
+                    bowlTeamName: "Team 2",
+                    runs: 0,
+                    wickets: 0,
+                    overs: "0.0",
+                    totalOvers: 10,
+                    target: "Match not started",
+                    innings: "1"
+                }
+            });
+
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                if (key && key.includes(currentUsername)) {
+                    localStorage.removeItem(key);
+                }
+            }
+
+            alert("🗑️ All your tournaments and matches have been wiped successfully!");
+            location.reload();
+        } catch (error) {
+            alert("Error resetting data: " + error.message);
+        }
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('signup-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('hidden');
+
+            const userRef = ref(db, 'users/' + user.uid);
+            onValue(userRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    currentCredits = userData.credits !== undefined ? userData.credits : 0;
+                    currentUsername = userData.username || "";
+
+                    document.getElementById('user-credits').innerText = currentCredits;
+                    document.getElementById('display-username').innerText = currentUsername;
+
+                    let baseUrl = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
+                    document.getElementById('viewer-link-input').value = `${baseUrl}/viewer.html?u=${currentUsername}`;
+                }
+            });
+
+            listenUserTournaments();
+        } else {
+            currentUser = null;
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('login-section').classList.remove('hidden');
+        }
+    });
+</script>
+
+</body>
+</html>
+
+
+
