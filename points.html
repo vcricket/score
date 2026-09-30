@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Points Table</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f3; padding: 20px; margin: 0; }
+        .container { max-width: 850px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f1f1f1; padding-bottom: 15px; }
+        h2 { color: #0056b3; margin: 0; font-size: 22px; }
+        .btn-back { display: inline-block; padding: 8px 14px; background: #6c757d; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px; transition: background 0.2s; }
+        .btn-back:hover { background: #5a6268; }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; }
+        th, td { padding: 14px 12px; text-align: center; border-bottom: 1px solid #e9ecef; font-size: 15px; }
+        th { background: #007bff; color: white; font-weight: 600; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; }
+        tr:hover { background: #f8f9fa; }
+        .team-name { text-align: left; font-weight: bold; color: #333; }
+        .pts-bold { font-weight: bold; color: #28a745; font-size: 16px; }
+        .loading-text { text-align: center; color: #666; padding: 20px; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-area">
+        <h2>📊 Tournament Points Table</h2>
+        <a href="index.html" class="btn-back">🏠 Dashboard</a>
+    </div>
+    
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th style="text-align: left;">Team Name</th>
+                    <th>P</th>
+                    <th>W</th>
+                    <th>L</th>
+                    <th>Pts</th>
+                    <th>NRR</th>
+                </tr>
+            </thead>
+            <tbody id="pointsTableBody">
+                <tr><td colspan="6" class="loading-text">Loading points table...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
+        authDomain: "cricket-score-d187a.firebaseapp.com",
+        databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
+        projectId: "cricket-score-d187a",
+        storageBucket: "cricket-score-d187a.firebasestorage.app",
+        messagingSenderId: "782741896785",
+        appId: "1:782741896785:web:78ab5ffe8c6a43ba928270"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentMatchUser = urlParams.get('u');
+
+    async function loadPointsTable() {
+        const tableBody = document.getElementById('pointsTableBody');
+        if (!currentMatchUser) {
+            tableBody.innerHTML = `<tr><td colspan="6" style="color:red;">User context missing!</td></tr>`;
+            return;
+        }
+
+        try {
+            const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournament/teams/`);
+            const snapshot = await get(pointsRef);
+            let teamsData = snapshot.val() || {};
+
+            tableBody.innerHTML = "";
+            let teamsArray = Object.keys(teamsData).map(key => teamsData[key]);
+
+            if (teamsArray.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="loading-text">No teams found in tournament standings yet.</td></tr>`;
+                return;
+            }
+
+            // পয়েন্ট এবং নেট রানরেটের ভিত্তিতে দলগুলোকে সাজানো (Sorting)
+            teamsArray.sort((a, b) => (b.points || 0) - (a.points || 0) || parseFloat(b.netRunRate || 0) - parseFloat(a.netRunRate || 0));
+
+            teamsArray.forEach((team, index) => {
+                let row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="team-name">${index + 1}. ${team.name || 'Team'}</td>
+                    <td>${team.matchesPlayed || 0}</td>
+                    <td>${team.won || 0}</td>
+                    <td>${team.lost || 0}</td>
+                    <td class="pts-bold">${team.points || 0}</td>
+                    <td>${team.netRunRate || '+0.000'}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        } catch (error) {
+            console.error("Error loading points:", error);
+            tableBody.innerHTML = `<tr><td colspan="6" style="color:red;">Failed to load points table.</td></tr>`;
+        }
+    }
+
+    loadPointsTable();
+</script>
+
+</body>
+</html>
