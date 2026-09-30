@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scoreboard - Global Team & Tournament Manager</title>
+    <title>Scoreboard - Tournament & Match Manager</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -230,6 +230,39 @@
             margin: 3px;
             color: #333;
         }
+        /* টুর্নামেন্ট বাটন স্টাইল */
+        .tournament-btn {
+            background: #f8fafc;
+            border: 2px solid #cbd5e1;
+            color: #1e3c72;
+            padding: 12px 15px;
+            margin: 6px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        .tournament-btn:hover {
+            background: #e2e8f0;
+            border-color: #94a3b8;
+        }
+        .tournament-btn.active {
+            background: #1e3c72;
+            color: white;
+            border-color: #1e3c72;
+        }
+        .btn-back-tour {
+            background: #64748b;
+            padding: 6px 12px;
+            font-size: 12px;
+            width: auto;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -291,72 +324,74 @@
         <!-- 1. Global Team Library Section -->
         <div class="card-box" style="background: #f0f7ff; border-color: #b8daff;">
             <h3 style="color: #0056b3;">👥 Step 1: Global Team & Squad Library</h3>
-            <p style="font-size: 12px; color: #555; margin: 0 0 6px;">Create and save your teams here once. (First line: Team Name, next lines: Player names)</p>
-            <textarea id="globalSquadText" rows="4" placeholder="Kolkata Tigers&#10;Player 1&#10;Player 2 (wk)&#10;Player 3"></textarea>
+            <p style="font-size: 12px; color: #555; margin: 0 0 6px;">Create and save your teams here once.</p>
+            <textarea id="globalSquadText" rows="3" placeholder="Kolkata Tigers&#10;Player 1&#10;Player 2 (wk)"></textarea>
             <button class="btn-action-small" style="background:#0056b3; width: 100%;" onclick="saveGlobalTeam()">💾 Save Team to Library</button>
             
-            <div style="margin-top: 10px; font-size: 12px; color: #333;">
+            <div style="margin-top: 8px; font-size: 12px; color: #333;">
                 <b>Saved Teams in Library:</b><br>
-                <div id="globalTeamsList" style="margin-top: 5px;">None</div>
+                <div id="globalTeamsList" style="margin-top: 4px;">None</div>
             </div>
         </div>
 
-        <!-- 2. Tournament Selector & Creator -->
+        <!-- 2. Tournament Button List & Creator -->
         <div class="card-box">
-            <h3>🏆 Step 2: Manage Tournaments</h3>
-            <label style="font-size: 12px; font-weight: bold; color: #555;">Active Tournament:</label>
-            <div style="display: flex; gap: 8px;">
-                <select id="tournamentSelect" onchange="onTournamentChange()">
-                    <option value="">-- Select or Create Tournament --</option>
-                </select>
-                <button class="btn-action-small" onclick="promptCreateTournament()">➕ New Tournament</button>
+            <h3>🏆 Step 2: Tournaments</h3>
+            <div id="tournamentsListContainer">
+                <p style="font-size: 12px; color: #888;">No tournaments created yet.</p>
             </div>
+            <button class="btn-action-small" style="background:#28a745; width: 100%; margin-top: 10px;" onclick="promptCreateTournament()">➕ Create New Tournament</button>
         </div>
 
-        <!-- 3. Assign Teams to Active Tournament -->
-        <div class="card-box" id="tournamentTeamBox" style="display: none;">
-            <h3>📋 Step 3: Add Teams to Tournament</h3>
-            <p style="font-size: 12px; color: #666; margin: 0 0 6px;">Select from your saved global teams to include in this tournament:</p>
-            <div style="display: flex; gap: 8px;">
-                <select id="libraryTeamSelect"></select>
-                <button class="btn-action-small" style="background:#28a745; width: auto;" onclick="addTeamToTournament()">➕ Add Team</button>
-            </div>
-            <div style="margin-top: 8px; font-size: 12px; color: #444;">
-                <b>Teams in this Tournament:</b> <span id="tournamentTeamsList">None</span>
-            </div>
-        </div>
+        <!-- 3. Specific Tournament Management View (Hidden until a tournament button is clicked) -->
+        <div id="specificTournamentView" class="hidden">
+            <button class="btn-action-small btn-back-tour" onclick="backToTournamentsList()">⬅️ Back to Tournaments List</button>
+            <h2 id="activeTournamentTitle" style="color: #0056b3; margin: 10px 0;">Tournament Name</h2>
 
-        <!-- 4. Pre-Schedule Match & Launch -->
-        <div class="card-box" id="matchSchedulerBox" style="display: none;">
-            <h3>📅 Step 4: Schedule & Launch Match</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <div>
-                    <label style="font-size: 12px; font-weight: bold;">Team 1 (Batting):</label>
-                    <select id="scheduleTeam1" onchange="onScheduleTeamSelectChange()"></select>
+            <!-- Add Teams to This Tournament -->
+            <div class="card-box">
+                <h3>📋 Add Teams to This Tournament</h3>
+                <div style="display: flex; gap: 8px;">
+                    <select id="libraryTeamSelect"></select>
+                    <button class="btn-action-small" style="background:#28a745; width: auto;" onclick="addTeamToTournament()">➕ Add</button>
                 </div>
-                <div>
-                    <label style="font-size: 12px; font-weight: bold;">Team 2 (Bowling):</label>
-                    <select id="scheduleTeam2" onchange="onScheduleTeamSelectChange()"></select>
+                <div style="margin-top: 8px; font-size: 12px; color: #444;">
+                    <b>Teams Included:</b> <span id="tournamentTeamsList">None</span>
                 </div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px;">
-                <div>
-                    <label style="font-size: 12px; font-weight: bold;">Overs:</label>
-                    <input type="number" id="scheduleOvers" value="10" min="1">
-                </div>
-                <div>
-                    <label style="font-size: 12px; font-weight: bold;">Match Type:</label>
-                    <select id="scheduleType">
-                        <option value="league">League</option>
-                        <option value="knockout">Knockout</option>
-                    </select>
-                </div>
-            </div>
-            <button class="btn-action-small" style="background: #007bff; width: 100%; margin-top: 8px;" onclick="scheduleNewMatch()">➕ Add to Fixture</button>
 
-            <h4 style="margin: 12px 0 6px; font-size: 14px; color: #333;">Scheduled Fixtures for Selected Tournament:</h4>
-            <div id="scheduledMatchesList">
-                <p style="font-size: 12px; color: #888;">No matches scheduled for this tournament yet.</p>
+            <!-- Schedule & Launch Matches -->
+            <div class="card-box">
+                <h3>📅 Schedule & Launch Matches</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: bold;">Team 1:</label>
+                        <select id="scheduleTeam1" onchange="onScheduleTeamSelectChange()"></select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: bold;">Team 2:</label>
+                        <select id="scheduleTeam2" onchange="onScheduleTeamSelectChange()"></select>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: bold;">Overs:</label>
+                        <input type="number" id="scheduleOvers" value="10" min="1">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: bold;">Match Type:</label>
+                        <select id="scheduleType">
+                            <option value="league">League</option>
+                            <option value="knockout">Knockout</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn-action-small" style="background: #007bff; width: 100%; margin-top: 8px;" onclick="scheduleNewMatch()">➕ Add Match Fixture</button>
+
+                <h4 style="margin: 12px 0 6px; font-size: 14px; color: #333;">Match Fixtures:</h4>
+                <div id="scheduledMatchesList">
+                    <p style="font-size: 12px; color: #888;">No matches scheduled yet.</p>
+                </div>
             </div>
         </div>
 
@@ -379,7 +414,7 @@
         <!-- Danger Zone -->
         <div style="background: #fff5f5; border: 1px dashed #feb2b2; padding: 12px; border-radius: 8px; margin-top: 15px; text-align: left;">
             <b style="color: #c53030; font-size: 13px;">⚠️ Danger Zone:</b>
-            <p style="font-size: 11px; color: #742a2a; margin: 4px 0 8px;">Delete all your tournaments, squads, and match fixtures permanently.</p>
+            <p style="font-size: 11px; color: #742a2a; margin: 4px 0 8px;">Delete all your tournaments, teams, squads, and match fixtures permanently.</p>
             <button style="background: #e53e3e; color: white; padding: 8px 12px; font-size: 12px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; width: 100%; margin: 0;" onclick="resetAllUserData()">🗑️ Reset All Data & Tournaments</button>
         </div>
 
@@ -598,37 +633,51 @@
             name: name.trim(),
             createdAt: Date.now()
         });
-        activeTournamentId = tourId;
         alert(`🏆 Tournament '${name}' created successfully!`);
+        openTournament(tourId, name.trim());
     };
 
     function listenUserTournaments() {
         const tourRef = ref(db, `users/${currentUser.uid}/tournaments`);
         onValue(tourRef, (snapshot) => {
             tournamentsData = snapshot.val() || {};
-            const select = document.getElementById('tournamentSelect');
-            select.innerHTML = '<option value="">-- Select or Create Tournament --</option>';
-            
-            for (let tId in tournamentsData) {
-                const opt = document.createElement('option');
-                opt.value = tId;
-                opt.innerText = tournamentsData[tId].name || 'Unnamed Tournament';
-                select.appendChild(opt);
+            const container = document.getElementById('tournamentsListContainer');
+            container.innerHTML = '';
+
+            const tourIds = Object.keys(tournamentsData);
+            if (tourIds.length === 0) {
+                container.innerHTML = '<p style="font-size: 12px; color: #888;">No tournaments created yet.</p>';
+                return;
             }
 
+            tourIds.forEach(tId => {
+                const tObj = tournamentsData[tId];
+                const btn = document.createElement('button');
+                btn.className = `tournament-btn ${activeTournamentId === tId ? 'active' : ''}`;
+                btn.innerHTML = `<span>🏆 ${tObj.name || 'Unnamed Tournament'}</span> <span>➔</span>`;
+                btn.onclick = () => openTournament(tId, tObj.name);
+                container.appendChild(btn);
+            });
+
             if (activeTournamentId && tournamentsData[activeTournamentId]) {
-                select.value = activeTournamentId;
-            } else if (Object.keys(tournamentsData).length > 0) {
-                select.value = Object.keys(tournamentsData)[0];
-                activeTournamentId = select.value;
+                renderActiveTournamentUI();
             }
-            renderActiveTournamentUI();
         });
     }
 
-    window.onTournamentChange = () => {
-        activeTournamentId = document.getElementById('tournamentSelect').value;
+    window.openTournament = (tId, tName) => {
+        activeTournamentId = tId;
+        document.getElementById('activeTournamentTitle').innerText = tName;
+        document.getElementById('tournamentsListContainer').parentElement.style.display = 'none'; // টুর্নামেন্ট লিস্ট লুকিয়ে ফেলা
+        document.getElementById('specificTournamentView').classList.remove('hidden'); // নির্দিষ্ট টুর্নামেন্ট ভিউ ওপেন করা
         renderActiveTournamentUI();
+    };
+
+    window.backToTournamentsList = () => {
+        activeTournamentId = "";
+        document.getElementById('specificTournamentView').classList.add('hidden');
+        document.getElementById('tournamentsListContainer').parentElement.style.display = 'block';
+        listenUserTournaments();
     };
 
     window.addTeamToTournament = async () => {
@@ -693,17 +742,7 @@
     };
 
     function renderActiveTournamentUI() {
-        const teamBox = document.getElementById('tournamentTeamBox');
-        const matchBox = document.getElementById('matchSchedulerBox');
-
-        if (!activeTournamentId || !tournamentsData[activeTournamentId]) {
-            teamBox.style.display = 'none';
-            matchBox.style.display = 'none';
-            return;
-        }
-
-        teamBox.style.display = 'block';
-        matchBox.style.display = 'block';
+        if (!activeTournamentId || !tournamentsData[activeTournamentId]) return;
 
         const tData = tournamentsData[activeTournamentId];
         const teams = tData.teams || {};
