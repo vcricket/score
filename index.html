@@ -302,22 +302,23 @@
 
     <!-- User Dashboard -->
     <div id="dashboard-section" class="hidden">
-        <h2>Welcome, <span id="display-username" style="color: #ff9800;"></span>!</h2>
         
-        <div class="credit-box">
-            Available Balance: <span id="user-credits">0</span> Match Credit(s)
-        </div>
-
-        <div class="link-box">
-            <b style="font-size: 13px; color: #333;">Your Public Viewer Link:</b>
-            <div class="link-input-group">
-                <input type="text" id="viewer-link-input" readonly onclick="this.select()" placeholder="Generating link...">
-                <button class="btn-copy" onclick="copyLink()">📋 Copy</button>
-            </div>
-        </div>
-
-        <!-- মূল হোমপেজ ভিউ (এখানে শুধু গ্লোবাল টিম লাইব্রেরি এবং টুর্নামেন্ট লিস্ট থাকবে) -->
+        <!-- মূল হোমপেজ ভিউ (এখানে ওয়েলকাম, ব্যালেন্স, ভিউয়ার লিংক, গ্লোবাল টিম লাইব্রেরি এবং টুর্নামেন্ট বাটন থাকবে) -->
         <div id="homeMainView">
+            <h2>Welcome, <span id="display-username" style="color: #ff9800;"></span>!</h2>
+            
+            <div class="credit-box">
+                Available Balance: <span id="user-credits">0</span> Match Credit(s)
+            </div>
+
+            <div class="link-box">
+                <b style="font-size: 13px; color: #333;">Your Public Viewer Link:</b>
+                <div class="link-input-group">
+                    <input type="text" id="viewer-link-input" readonly onclick="this.select()" placeholder="Generating link...">
+                    <button class="btn-copy" onclick="copyLink()">📋 Copy</button>
+                </div>
+            </div>
+
             <!-- 1. Global Team Library Section -->
             <div class="card-box" style="background: #f0f7ff; border-color: #b8daff;">
                 <h3 style="color: #0056b3;">👥 Global Team & Squad Library</h3>
@@ -367,7 +368,7 @@
             <button class="btn-logout" style="margin-top: 15px;" onclick="logout()">Logout</button>
         </div>
 
-        <!-- নির্দিষ্ট টুর্নামেন্টের ভেتরের ভিউ (এখানে শুধু ওই টুর্নামেন্টের ম্যাচ ও ফিক্সচার থাকবে) -->
+        <!-- নির্দিষ্ট টুর্নামেন্টের ভেতরের ভিউ (এখানে কোনো ব্যালেন্স, ভিউয়ার লিংক বা হোমপেজের কিছু থাকবে না, শুধু টুর্নামেন্টের ম্যাচ ও টিম থাকবে) -->
         <div id="specificTournamentView" class="hidden" style="text-align: left;">
             <button class="btn-action-small btn-back-tour" onclick="backToTournamentsList()">⬅ Back to Tournaments</button>
             <div style="clear: both;"></div>
