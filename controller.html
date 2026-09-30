@@ -34,7 +34,7 @@
         .btn-action:active { transform: scale(0.95); }
         .btn-4 { background: #28a745; } .btn-6 { background: #007bff; } .btn-w { background: #dc3545; }
         .btn-lbw { background: #e84118; } .btn-wd, .btn-nb { background: #ffc107; color: black; } .btn-lb { background: #6f42c1; } .btn-ro { background: #85144b; }
-        .flex-btns { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-top: 10px; }
+        .flex-btns { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 10px; }
         @media(max-width: 650px) { .flex-btns { grid-template-columns: repeat(3, 1fr); } }
         .btn-control-small { padding: 8px 4px; font-size: 11px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; color: white; text-align: center; }
         .btn-swap-s { background: #17a2b8; } .btn-undo-s { background: #fd7e14; } .btn-squad-s { background: #6f42c1; } .btn-points-s { background: #27ae60; } .btn-summary-s { background: #27ae60; } .btn-ldb-s { background: #d35400; }
@@ -228,7 +228,6 @@
             <button class="btn-control-small btn-squad-s" id="squadShowBtn" onclick="window.toggleSquadDisplay()">📺 Squads</button>
             <button class="btn-control-small btn-points-s" id="pointsShowBtn" onclick="window.togglePointsTableDisplay()">📊 Points</button>
             <button class="btn-control-small btn-summary-s" id="summaryShowBtn" onclick="window.toggleSummaryDisplay()">📋 Summary</button>
-            <button class="btn-control-small btn-ldb-s" onclick="window.openLeaderboardModal()">🏆 L.Board</button>
         </div>
     </div>
 
@@ -1253,9 +1252,10 @@
         updateToggleButtonsUI(); currentEvent = ""; processAndUpdate(); 
     };
 
-    // আপডেট করা Points বাটন যা নতুন points.html পেজে নিয়ে যাবে
     window.togglePointsTableDisplay = function() { 
-        window.open(`points.html?u=${currentMatchUser}`, '_blank');
+        isPointsTableVisible = !isPointsTableVisible; 
+        if(isPointsTableVisible) { isSquadVisible = false; isSummaryVisible = false; } 
+        updateToggleButtonsUI(); currentEvent = ""; processAndUpdate(); 
     };
 
     window.toggleSummaryDisplay = function() { 
@@ -1272,7 +1272,7 @@
         const pBtn = document.getElementById('pointsShowBtn'); 
         const sumBtn = document.getElementById('summaryShowBtn');
         if(sBtn) { sBtn.style.background = isSquadVisible ? "#dc3545" : "#6f42c1"; sBtn.innerText = isSquadVisible ? "📺 Squads [ON]" : "📺 Squads"; }
-        if(pBtn) { pBtn.style.background = "#27ae60"; pBtn.innerText = "📊 Points"; }
+        if(pBtn) { pBtn.style.background = isPointsTableVisible ? "#dc3545" : "#27ae60"; pBtn.innerText = isPointsTableVisible ? "📊 Points [ON]" : "📊 Points"; }
         if(sumBtn) { sumBtn.style.background = isSummaryVisible ? "#dc3545" : "#27ae60"; sumBtn.innerText = isSummaryVisible ? "📋 Summary [ON]" : "📋 Summary"; }
     }
 
