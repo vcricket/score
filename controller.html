@@ -285,12 +285,23 @@
     let detailedStats = {};
     let scheduledMatchOvers = null;
 
-    // ব্যাক বাটনে ক্লিক করলে সঠিক টুর্নামেন্ট পেজে ফিরে যাওয়ার ফিক্সড লজিক
-    window.returnToTournamentImmediately = function() {
+    // ব্যাক বাটনে ক্লিক করলে সঠিকভাবে নির্দিষ্ট টুর্নামেন্ট পেজে ফিরে যাওয়ার লজিক
+    window.returnToTournamentImmediately = async function() {
         localStorage.removeItem(`localCricketLive_${currentMatchUser}`);
         localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}`);
-        if (activeTournamentId && activeTournamentId !== "null" && activeTournamentId !== "undefined") {
-            window.location.href = `index.html?t=${activeTournamentId}`;
+        
+        let targetTourId = activeTournamentId;
+        if (!targetTourId || targetTourId === "null" || targetTourId === "undefined") {
+            try {
+                const snapshot = await get(ref(db, `live_matches/${currentMatchUser}/score/tournamentId`));
+                if (snapshot.exists()) {
+                    targetTourId = snapshot.val();
+                }
+            } catch (err) {}
+        }
+
+        if (targetTourId && targetTourId !== "null" && targetTourId !== "undefined") {
+            window.location.href = `index.html?t=${targetTourId}`;
         } else {
             window.location.href = "index.html";
         }
