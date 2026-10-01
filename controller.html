@@ -15,7 +15,7 @@
         .sub-header-item select, .sub-header-item input[type="number"] { padding: 4px 6px; font-size: 13px; font-weight: bold; border: 1px solid #ccc; border-radius: 4px; width: 60px; background: #fff; }
         .btn-sub-action { padding: 5px 12px; font-size: 12px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; color: white; }
         .btn-winner-sub { background: #f39c12; } .btn-dash { background: #6c757d; }
-        .box { background: #f9f9f9; padding: 14px; border: 1px solid #ddd; border-radius: 8px; transition: border 0.2s ease, box-shadow 0.2s ease; }
+        .box { background: #f9f9f9; padding: 14px; border: 1px solid #ddd; border-radius: 8px; }
         h3 { margin-top: 0; margin-bottom: 8px; color: #0056b3; font-size: 16px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
         label { font-weight: bold; display: block; margin-top: 8px; font-size: 14px; color: #444; }
         input, select, textarea { width: 100%; padding: 8px 10px; margin-top: 4px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; font-weight: bold;}
@@ -258,7 +258,7 @@
     const activeMatchId = urlParams.get('m');
 
     if (!currentMatchUser) {
-        alert("⚠ Unauthorized access! Please launch match from your Dashboard.");
+        alert("⚠️ Unauthorized access! Please launch match from your Dashboard.");
         window.location.href = "index.html";
     }
 
@@ -285,7 +285,6 @@
     let detailedStats = {};
     let scheduledMatchOvers = null;
 
-    // ব্যাক বাটনে ক্লিক করলে সঠিক টুর্নামেন্ট পেজে ফিরে যাওয়া
     window.returnToTournamentImmediately = function() {
         localStorage.removeItem(`localCricketLive_${currentMatchUser}`);
         localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}`);
@@ -1203,7 +1202,7 @@
         let bat1 = document.getElementById('bat1Name').value;
         let bat2 = document.getElementById('bat2Name').value;
 
-        if (!bat1 || !bat2) { alert("⚠️️ Select batters first!"); document.getElementById('bowlerName').value = ""; return; }
+        if (!bat1 || !bat2) { alert("⚠ Select batters first!"); document.getElementById('bowlerName').value = ""; return; }
         if (bowler !== "" && bowler === lastBowler) { alert("⚠ Same bowler cannot bowl consecutive overs!"); document.getElementById('bowlerName').value = ""; updateSuggestions(); return; }
 
         if(bowler !== "") {
