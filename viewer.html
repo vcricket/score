@@ -143,7 +143,7 @@
         </div>
     </div>
 
-    <!-- Points Table Overlay (ম্যাচ খেলা হোক বা না হোক টুর্নামেন্টের সমস্ত দলের নাম শূন্য পয়েন্টসহ দেখানোর ব্যবস্থা) -->
+    <!-- Points Table Overlay -->
     <div id="pointsTableOverlay" class="points-overlay">
         <div class="points-container">
             <div class="points-header" id="pointsHeaderTitle">📊 Tournament Points Table</div>
@@ -218,7 +218,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+        import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
@@ -394,18 +394,46 @@
             return { crr, rrr };
         }
 
-        // নির্দিষ্ট টুর্নামেন্টের ডাইনামিক পয়েন্ট টেবিল ফেচ এবং রেন্ডার করার লজিক (ম্যাচ না থাকলেও সমস্ত দলের নাম শূন্য পয়েন্টসহ দেখানোর ব্যবস্থা)
-        function fetchTournamentPointsTable(tournamentId) {
+        // ডাইনামিক পয়েন্ট টেবিল ফেচ এবং রেন্ডার করার লজিক (ম্যাচ না থাকলেও টুর্নামেন্টের সমস্ত দলের নাম শূন্য পয়েন্টসহ দেখানোর ব্যবস্থা)
+        async function fetchTournamentPointsTable(tournamentId) {
             if (!currentMatchUser || !tournamentId) return;
             
             const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${tournamentId}/teams`);
-            onValue(pointsRef, (snapshot) => {
-                const teams = snapshot.val(); 
+            
+            onValue(pointsRef, async (snapshot) => {
+                let teams = snapshot.val(); 
                 const tbody = document.getElementById('pointsTablePopupBody'); 
                 tbody.innerHTML = '';
                 
-                if(!teams) { 
-                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#888;">No points table data found for this tournament.</td></tr>`; 
+                // যদি পয়েন্ট টেবিল পাথে ডেটা না থাকে, তবে সরাসরি ইউজারের টুর্নামেন্ট টিম লিস্ট থেকে ফেচ করে জিরো পয়েন্ট দিয়ে টেবিল বানাবে
+                if (!teams) {
+                    try {
+                        const userSnap = await get(ref(db, 'usernames/' + currentMatchUser));
+                        if (userSnap.exists()) {
+                            const uid = userSnap.val();
+                            const tourTeamsSnap = await get(ref(db, `users/${uid}/tournaments/${tournamentId}/teams`));
+                            const tourTeams = tourTeamsSnap.val() || {};
+                            
+                            teams = {};
+                            Object.keys(tourTeams).forEach((teamName) => {
+                                let cleanKey = teamName.trim().toLowerCase().replace(/[\s.#$\[\]]/g, "_");
+                                teams[cleanKey] = {
+                                    name: teamName.trim(),
+                                    matchesPlayed: 0,
+                                    won: 0,
+                                    lost: 0,
+                                    points: 0,
+                                    netRunRate: "+0.000"
+                                };
+                            });
+                        }
+                    } catch (e) {
+                        console.error("Error fetching fallback tournament teams:", e);
+                    }
+                }
+
+                if(!teams || Object.keys(teams).length === 0) { 
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#888;">No teams added to this tournament yet.</td></tr>`; 
                     return; 
                 }
 
