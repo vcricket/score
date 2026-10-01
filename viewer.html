@@ -143,10 +143,10 @@
         </div>
     </div>
 
-    <!-- Points Table Overlay -->
+    <!-- Points Table Overlay (ডাইনামিক নির্দিষ্ট টুর্নামেন্টভিত্তিক ফিল্টারিং সহ) -->
     <div id="pointsTableOverlay" class="points-overlay">
         <div class="points-container">
-            <div class="points-header">📊 Tournament Points Table</div>
+            <div class="points-header" id="pointsHeaderTitle">📊 Tournament Points Table</div>
             <table class="points-table">
                 <thead><tr><th>Pos</th><th style="text-align:left; padding-left:12px;">Team</th><th>Played</th><th>Won</th><th>Lost</th><th>NRR</th><th>Points</th></tr></thead>
                 <tbody id="pointsTablePopupBody"><tr><td colspan="7" style="text-align:center; color:#888;">Loading data...</td></tr></tbody>
@@ -240,6 +240,7 @@
         let lastTriggerId = 0;
         let eventQueue = [];
         let isEventPlaying = false;
+        let currentActiveTournamentId = null; // বর্তমান ম্যাচের টুর্নামেন্ট আইডি ট্র্যাক করার জন্য
 
         function enqueueEvent(eventData) {
             eventQueue.push(eventData);
@@ -393,20 +394,21 @@
             return { crr, rrr };
         }
 
-        // সমস্ত টিমের পয়েন্ট টেবিল ডাইনামিক্যালি ফেচ এবং রেন্ডার করার লজিক
-        if (currentMatchUser) {
-            const tournamentRef = ref(db, `live_matches/${currentMatchUser}/tournament/teams`);
-            onValue(tournamentRef, (snapshot) => {
+        // নির্দিষ্ট টুর্নামেন্টের ডাইনামিক পয়েন্ট টেবিল ফেচ এবং রেন্ডার করার লজিক
+        function fetchTournamentPointsTable(tournamentId) {
+            if (!currentMatchUser || !tournamentId) return;
+            
+            const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${tournamentId}/teams`);
+            onValue(pointsRef, (snapshot) => {
                 const teams = snapshot.val(); 
                 const tbody = document.getElementById('pointsTablePopupBody'); 
                 tbody.innerHTML = '';
                 
                 if(!teams) { 
-                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#888;">No points table data found.</td></tr>`; 
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#888;">No points table data found for this tournament.</td></tr>`; 
                     return; 
                 }
 
-                // অবজেক্ট থেকে অ্যারেতে রূপান্তর এবং পয়েন্ট ও রানরেট অনুযায়ী সর্টিং
                 let teamsArray = Object.keys(teams).map(key => teams[key]);
                 teamsArray.sort((a, b) => {
                     if ((b.points || 0) !== (a.points || 0)) {
@@ -435,6 +437,12 @@
             if (!data) return;
             const squadScreen = document.getElementById('squadPresentation'); const pointsScreen = document.getElementById('pointsTableOverlay');
             const summaryScreen = document.getElementById('matchSummaryOverlay'); const mainBoard = document.getElementById('mainScoreboard');
+
+            // বর্তমান ম্যাচের টুর্নামেন্ট আইডি আপডেট করা এবং পয়েন্ট টেবিল লোড করা
+            if (data.tournamentId && data.tournamentId !== currentActiveTournamentId) {
+                currentActiveTournamentId = data.tournamentId;
+                fetchTournamentPointsTable(currentActiveTournamentId);
+            }
 
             if(data.showSquadsOnScreen) {
                 squadScreen.classList.add('active'); mainBoard.classList.add('hidden');
