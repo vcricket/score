@@ -285,10 +285,11 @@
     let detailedStats = {};
     let scheduledMatchOvers = null;
 
+    // ব্যাক বাটনে ক্লিক করলে সঠিক টুর্নামেন্ট পেজে ফিরে যাওয়ার ফিক্সড লজিক
     window.returnToTournamentImmediately = function() {
         localStorage.removeItem(`localCricketLive_${currentMatchUser}`);
         localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}`);
-        if (activeTournamentId) {
+        if (activeTournamentId && activeTournamentId !== "null" && activeTournamentId !== "undefined") {
             window.location.href = `index.html?t=${activeTournamentId}`;
         } else {
             window.location.href = "index.html";
