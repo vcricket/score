@@ -143,7 +143,7 @@
         </div>
     </div>
 
-    <!-- Points Table Overlay (ম্যাচ না থাকলেও টুর্নামেন্টের সমস্ত দলের নাম শূন্য পয়েন্টসহ দেখানোর ব্যবস্থা সহ) -->
+    <!-- Points Table Overlay (ম্যাচ খেলা হোক বা না হোক টুর্নামেন্টের সমস্ত দলের নাম শূন্য পয়েন্টসহ দেখানোর ব্যবস্থা) -->
     <div id="pointsTableOverlay" class="points-overlay">
         <div class="points-container">
             <div class="points-header" id="pointsHeaderTitle">📊 Tournament Points Table</div>
@@ -394,7 +394,7 @@
             return { crr, rrr };
         }
 
-        // নির্দিষ্ট টুর্নামেন্টের ডাইনামিক পয়েন্ট টেবিল ফেচ এবং রেন্ডার করার লজিক (ম্যাচ না থাকলেও সমস্ত দলের নাম শূন্য পয়েন্টসহ দেখানোর ব্যবস্থা)
+        // নির্দিষ্ট টুর্নামেন্টের ডাইনামিক পয়েন্ট টেবিল ফেচ এবং রেন্ডার করার লজিক (ম্যাচ না থাকলেও সমস্ত দলের নাম শূন্য পয়েন্টসহ দেখানোর ব্যবস্থা)
         function fetchTournamentPointsTable(tournamentId) {
             if (!currentMatchUser || !tournamentId) return;
             
