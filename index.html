@@ -228,7 +228,6 @@
             margin: 3px;
             color: #333;
         }
-        /* টুর্নামেন্ট বাটন স্টাইল */
         .tournament-btn {
             background: #f8fafc;
             border: 2px solid #cbd5e1;
@@ -303,7 +302,7 @@
     <!-- User Dashboard -->
     <div id="dashboard-section" class="hidden">
         
-        <!-- মূল হোমপেজ ভিউ (এখানে ওয়েলকাম, ব্যালেন্স, ভিউয়ার লিংক, গ্লোবাল টিম লাইব্রেরি এবং টুর্নামেন্ট বাটন থাকবে) -->
+        <!-- মূল হোমপেজ ভিউ -->
         <div id="homeMainView">
             <h2>Welcome, <span id="display-username" style="color: #ff9800;"></span>!</h2>
             
@@ -319,7 +318,7 @@
                 </div>
             </div>
 
-            <!-- 1. Global Team Library Section -->
+            <!-- Global Team Library Section -->
             <div class="card-box" style="background: #f0f7ff; border-color: #b8daff;">
                 <h3 style="color: #0056b3;">👥 Global Team & Squad Library</h3>
                 <p style="font-size: 12px; color: #555; margin: 0 0 6px;">Create and save your teams here once.</p>
@@ -332,7 +331,7 @@
                 </div>
             </div>
 
-            <!-- 2. Tournaments List & Creator -->
+            <!-- Tournaments List & Creator -->
             <div class="card-box">
                 <h3>🏆 Tournaments</h3>
                 <p style="font-size: 12px; color: #555; margin: 0 0 8px;">Click on any tournament to open it and manage matches:</p>
@@ -368,7 +367,7 @@
             <button class="btn-logout" style="margin-top: 15px;" onclick="logout()">Logout</button>
         </div>
 
-        <!-- নির্দিষ্ট টুর্নামেন্টের ভেতরের ভিউ (এখানে কোনো ব্যালেন্স, ভিউয়ার লিংক বা হোমপেজের কিছু থাকবে না, শুধু টুর্নামেন্টের ম্যাচ ও টিম থাকবে) -->
+        <!-- নির্দিষ্ট টুর্নামেন্টের ভেতরের ভিউ -->
         <div id="specificTournamentView" class="hidden" style="text-align: left;">
             <button class="btn-action-small btn-back-tour" onclick="backToTournamentsList()">⬅ Back to Tournaments</button>
             <div style="clear: both;"></div>
@@ -695,7 +694,7 @@
         await set(ref(db, `users/${currentUser.uid}/tournaments/${activeTournamentId}/teams/${teamName}`), teamSquadText);
 
         const cleanKey = teamName.trim().toLowerCase().replace(/[\s.#$\[\]]/g, "_");
-        const teamRef = ref(db, `live_matches/${currentUsername}/tournament/teams/${cleanKey}`);
+        const teamRef = ref(db, `live_matches/${currentUsername}/tournaments_data/${activeTournamentId}/teams/${cleanKey}`);
         
         const snapshot = await get(teamRef);
         if (!snapshot.exists()) {
@@ -873,6 +872,7 @@
                 isLeagueMatch: (match.type === 'league'),
                 squad1Data: team1Squad,
                 squad2Data: team2Squad,
+                tournamentId: activeTournamentId,
                 runs: 0,
                 wickets: 0,
                 overs: "0.0",
