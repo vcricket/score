@@ -169,75 +169,6 @@
             margin-bottom: 15px;
             text-align: left;
         }
-        .match-item {
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s ease;
-        }
-        .match-item.completed-card {
-            background: #f8fafc;
-            border-color: #e2e8f0;
-        }
-        .match-badge {
-            font-size: 11px;
-            padding: 2px 7px;
-            border-radius: 4px;
-            font-weight: bold;
-            display: inline-block;
-        }
-        .badge-pending { background: #e0f2fe; color: #0369a1; }
-        .badge-live { background: #dcfce7; color: #15803d; }
-        .badge-completed { background: #fee2e2; color: #b91c1c; }
-        
-        .btn-launch {
-            background: #ff9800;
-            color: white;
-            padding: 7px 14px;
-            font-size: 12px;
-            border-radius: 5px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            margin: 0;
-            width: auto;
-        }
-        .btn-launch:hover { background: #e68a00; }
-        
-        .btn-delete-match {
-            background: #e53e3e;
-            color: white;
-            padding: 7px 10px;
-            font-size: 12px;
-            border-radius: 5px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            margin-left: 6px;
-            width: auto;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .btn-delete-match:hover { background: #c53030; }
-
-        .badge-locked {
-            background: #64748b;
-            color: #ffffff;
-            padding: 6px 12px;
-            font-size: 12px;
-            border-radius: 5px;
-            font-weight: bold;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            letter-spacing: 0.3px;
-        }
         .team-tag {
             display: inline-block;
             background: #e2e8f0;
@@ -247,35 +178,6 @@
             font-weight: bold;
             margin: 3px;
             color: #333;
-        }
-        .tournament-btn {
-            background: #f8fafc;
-            border: 2px solid #cbd5e1;
-            color: #1e3c72;
-            padding: 12px 15px;
-            margin: 6px 0;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            text-align: left;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s;
-            width: 100%;
-        }
-        .tournament-btn:hover {
-            background: #e2e8f0;
-            border-color: #94a3b8;
-        }
-        .btn-back-tour {
-            background: #64748b;
-            padding: 8px 14px;
-            font-size: 13px;
-            width: auto;
-            margin-bottom: 15px;
-            float: left;
         }
     </style>
 </head>
@@ -333,6 +235,7 @@
                 Available Balance: <span id="user-credits">0</span> Match Credit(s)
             </div>
 
+            <!-- ভিউয়ার লিংক সেকশন -->
             <div class="link-box">
                 <b style="font-size: 13px; color: #333;">Your Public Viewer Link:</b>
                 <div class="link-input-group">
@@ -354,16 +257,6 @@
                 </div>
             </div>
 
-            <!-- Tournaments List & Creator -->
-            <div class="card-box">
-                <h3>🏆 Tournaments</h3>
-                <p style="font-size: 12px; color: #555; margin: 0 0 8px;">Click on any tournament to open it and manage matches:</p>
-                <div id="tournamentsListContainer">
-                    <p style="font-size: 12px; color: #888;">No tournaments created yet.</p>
-                </div>
-                <button class="btn-action-small" style="background:#28a745; width: 100%; margin-top: 10px;" onclick="promptCreateTournament()">➕ Create New Tournament</button>
-            </div>
-
             <!-- Payment Recharge Box -->
             <div class="payment-box">
                 <b>Recharge Guidelines:</b><br>
@@ -383,65 +276,11 @@
             <!-- Danger Zone -->
             <div style="background: #fff5f5; border: 1px dashed #feb2b2; padding: 12px; border-radius: 8px; margin-top: 15px; text-align: left;">
                 <b style="color: #c53030; font-size: 13px;">⚠️ Danger Zone:</b>
-                <p style="font-size: 11px; color: #742a2a; margin: 4px 0 8px;">Delete all your tournaments, teams, squads, and match fixtures permanently.</p>
-                <button style="background: #e53e3e; color: white; padding: 8px 12px; font-size: 12px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; width: 100%; margin: 0;" onclick="resetAllUserData()">🗑️ Reset All Data & Tournaments</button>
+                <p style="font-size: 11px; color: #742a2a; margin: 4px 0 8px;">Delete all your data, teams, and squads permanently.</p>
+                <button style="background: #e53e3e; color: white; padding: 8px 12px; font-size: 12px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; width: 100%; margin: 0;" onclick="resetAllUserData()">🗑️ Reset All Data</button>
             </div>
 
             <button class="btn-logout" style="margin-top: 15px;" onclick="logout()">Logout</button>
-        </div>
-
-        <!-- নির্দিষ্ট টুর্নামেন্টের ভেতরের ভিউ (এখানে কোনো লগআউট বাটন নেই) -->
-        <div id="specificTournamentView" class="hidden" style="text-align: left;">
-            <button class="btn-action-small btn-back-tour" onclick="backToTournamentsList()">⬅ Back</button>
-            <div style="clear: both;"></div>
-            <h2 id="activeTournamentTitle" style="color: #0056b3; margin: 5px 0 15px 0; text-align: center;">Tournament Name</h2>
-
-            <!-- Add Teams to This Tournament -->
-            <div class="card-box">
-                <h3>📋 Add Teams to Tournament</h3>
-                <p style="font-size: 12px; color: #666; margin: 0 0 6px;">Pick teams from your library to add to this tournament:</p>
-                <div style="display: flex; gap: 8px;">
-                    <select id="libraryTeamSelect"></select>
-                    <button class="btn-action-small" style="background:#28a745; width: auto;" onclick="addTeamToTournament()">➕ Add Team</button>
-                </div>
-                <div style="margin-top: 8px; font-size: 12px; color: #444;">
-                    <b>Teams in this Tournament:</b> <span id="tournamentTeamsList">None</span>
-                </div>
-            </div>
-
-            <!-- Schedule & Launch Matches -->
-            <div class="card-box">
-                <h3>📅 Schedule & Launch Matches</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                    <div>
-                        <label style="font-size: 12px; font-weight: bold;">Team 1 (Batting):</label>
-                        <select id="scheduleTeam1" onchange="onScheduleTeamSelectChange()"></select>
-                    </div>
-                    <div>
-                        <label style="font-size: 12px; font-weight: bold;">Team 2 (Bowling):</label>
-                        <select id="scheduleTeam2" onchange="onScheduleTeamSelectChange()"></select>
-                    </div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px;">
-                    <div>
-                        <label style="font-size: 12px; font-weight: bold;">Overs:</label>
-                        <input type="number" id="scheduleOvers" value="10" min="1">
-                    </div>
-                    <div>
-                        <label style="font-size: 12px; font-weight: bold;">Match Type:</label>
-                        <select id="scheduleType">
-                            <option value="league">League</option>
-                            <option value="knockout">Knockout</option>
-                        </select>
-                    </div>
-                </div>
-                <button class="btn-action-small" style="background: #007bff; width: 100%; margin-top: 8px;" onclick="scheduleNewMatch()">➕ Add Match to Fixture</button>
-
-                <h4 style="margin: 12px 0 6px; font-size: 14px; color: #333;">Match Fixtures (Scheduled & Completed):</h4>
-                <div id="scheduledMatchesList">
-                    <p style="font-size: 12px; color: #888;">No matches scheduled for this tournament yet.</p>
-                </div>
-            </div>
         </div>
 
     </div>
@@ -480,8 +319,6 @@
     let currentUser = null;
     let currentCredits = 0;
     let currentUsername = "";
-    let activeTournamentId = "";
-    let tournamentsData = {};
     let globalTeamsLibrary = {};
 
     window.togglePasswordVisibility = (inputId, iconElement) => {
@@ -624,10 +461,8 @@
         onValue(teamsRef, (snapshot) => {
             globalTeamsLibrary = snapshot.val() || {};
             const listContainer = document.getElementById('globalTeamsList');
-            const librarySelect = document.getElementById('libraryTeamSelect');
             
             listContainer.innerHTML = '';
-            librarySelect.innerHTML = '<option value="">-- Select Team from Library --</option>';
 
             const teamNames = Object.keys(globalTeamsLibrary);
             if (teamNames.length === 0) {
@@ -640,344 +475,22 @@
                 tag.className = 'team-tag';
                 tag.innerText = tName;
                 listContainer.appendChild(tag);
-
-                const opt = document.createElement('option');
-                opt.value = tName;
-                opt.innerText = tName;
-                librarySelect.appendChild(opt);
             });
         });
     }
-
-    window.promptCreateTournament = async () => {
-        const name = prompt("Enter Tournament Name (e.g. Winter Cup 2026):");
-        if (!name || !name.trim()) return;
-        
-        const tourId = 't_' + Date.now();
-        await set(ref(db, `users/${currentUser.uid}/tournaments/${tourId}`), {
-            name: name.trim(),
-            createdAt: Date.now()
-        });
-        alert(`🏆 Tournament '${name}' created successfully!`);
-        openTournament(tourId, name.trim());
-    };
-
-    function listenUserTournaments() {
-        const tourRef = ref(db, `users/${currentUser.uid}/tournaments`);
-        onValue(tourRef, (snapshot) => {
-            tournamentsData = snapshot.val() || {};
-            const container = document.getElementById('tournamentsListContainer');
-            container.innerHTML = '';
-
-            const tourIds = Object.keys(tournamentsData);
-            if (tourIds.length === 0) {
-                container.innerHTML = '<p style="font-size: 12px; color: #888;">No tournaments created yet.</p>';
-                return;
-            }
-
-            tourIds.forEach(tId => {
-                const tObj = tournamentsData[tId];
-                const btn = document.createElement('button');
-                btn.className = 'tournament-btn';
-                btn.innerHTML = `<span>🏆 ${tObj.name || 'Unnamed Tournament'}</span> <span>➔</span>`;
-                btn.onclick = () => openTournament(tId, tObj.name);
-                container.appendChild(btn);
-            });
-
-            if (activeTournamentId && tournamentsData[activeTournamentId]) {
-                renderActiveTournamentUI();
-            }
-        });
-    }
-
-    window.openTournament = (tId, tName) => {
-        activeTournamentId = tId;
-        document.getElementById('activeTournamentTitle').innerText = tName;
-        document.getElementById('homeMainView').classList.add('hidden');
-        document.getElementById('specificTournamentView').classList.remove('hidden');
-        renderActiveTournamentUI();
-    };
-
-    window.backToTournamentsList = () => {
-        activeTournamentId = "";
-        document.getElementById('specificTournamentView').classList.add('hidden');
-        document.getElementById('homeMainView').classList.remove('hidden');
-        listenUserTournaments();
-    };
-
-    window.addTeamToTournament = async () => {
-        if (!activeTournamentId) return alert("Please select a tournament first!");
-        const teamName = document.getElementById('libraryTeamSelect').value;
-        if (!teamName) return alert("Please select a team from your library!");
-
-        const teamSquadText = globalTeamsLibrary[teamName];
-
-        await set(ref(db, `users/${currentUser.uid}/tournaments/${activeTournamentId}/teams/${teamName}`), teamSquadText);
-
-        const cleanKey = teamName.trim().toLowerCase().replace(/[\s.#$\[\]]/g, "_");
-        const teamRef = ref(db, `live_matches/${currentUsername}/tournaments_data/${activeTournamentId}/teams/${cleanKey}`);
-        
-        const snapshot = await get(teamRef);
-        if (!snapshot.exists()) {
-            await set(teamRef, {
-                name: teamName.trim(),
-                matchesPlayed: 0,
-                won: 0,
-                lost: 0,
-                points: 0,
-                netRunRate: "+0.000"
-            });
-        }
-
-        alert(`✅ Team '${teamName}' added to tournament successfully!`);
-    };
-
-    window.onScheduleTeamSelectChange = () => {
-        if (!activeTournamentId || !tournamentsData[activeTournamentId]) return;
-        const teams = tournamentsData[activeTournamentId].teams || {};
-        const teamNames = Object.keys(teams);
-
-        const t1Select = document.getElementById('scheduleTeam1');
-        const t2Select = document.getElementById('scheduleTeam2');
-
-        const selectedT1 = t1Select.value;
-        const selectedT2 = t2Select.value;
-
-        t1Select.innerHTML = '<option value="">-- Team 1 --</option>';
-        teamNames.forEach(team => {
-            if (team !== selectedT2) {
-                const opt = document.createElement('option');
-                opt.value = team;
-                opt.innerText = team;
-                if (team === selectedT1) opt.selected = true;
-                t1Select.appendChild(opt);
-            }
-        });
-
-        t2Select.innerHTML = '<option value="">-- Team 2 --</option>';
-        teamNames.forEach(team => {
-            if (team !== selectedT1) {
-                const opt = document.createElement('option');
-                opt.value = team;
-                opt.innerText = team;
-                if (team === selectedT2) opt.selected = true;
-                t2Select.appendChild(opt);
-            }
-        });
-    };
-
-    function renderActiveTournamentUI() {
-        if (!activeTournamentId || !tournamentsData[activeTournamentId]) return;
-
-        const tData = tournamentsData[activeTournamentId];
-        const teams = tData.teams || {};
-        
-        const teamNames = Object.keys(teams);
-        document.getElementById('tournamentTeamsList').innerText = teamNames.length > 0 ? teamNames.join(', ') : 'None';
-
-        window.onScheduleTeamSelectChange();
-
-        const matchesContainer = document.getElementById('scheduledMatchesList');
-        matchesContainer.innerHTML = '';
-        const matches = tData.matches || {};
-
-        if (Object.keys(matches).length === 0) {
-            matchesContainer.innerHTML = '<p style="font-size: 12px; color: #888;">No matches scheduled for this tournament yet.</p>';
-            return;
-        }
-
-        for (let mId in matches) {
-            const m = matches[mId];
-            const div = document.createElement('div');
-            const isCompleted = (m.status === 'completed');
-            
-            div.className = isCompleted ? 'match-item completed-card' : 'match-item';
-            
-            let statusBadge = `<span class="match-badge badge-pending">Upcoming</span>`;
-            if (m.status === 'live') statusBadge = `<span class="match-badge badge-live">Live</span>`;
-            if (isCompleted) statusBadge = `<span class="match-badge badge-completed">Ended</span>`;
-
-            let t1Text = m.team1;
-            let t2Text = m.team2;
-            let resultBanner = "";
-
-            if (isCompleted) {
-                const winTeam = (m.winner || "").toLowerCase().trim();
-                const t1Lower = m.team1.toLowerCase().trim();
-                const t2Lower = m.team2.toLowerCase().trim();
-
-                if (winTeam === "tied") {
-                    resultBanner = `<div style="font-size: 11px; font-weight: bold; color: #d97706; margin-bottom: 2px;">🤝 Match Tied</div>`;
-                } else if (winTeam === t1Lower || t1Lower.includes(winTeam)) {
-                    t1Text = `<span style="color:#15803d;">${m.team1} ✅</span>`;
-                    resultBanner = `<div style="font-size: 11px; font-weight: bold; color: #15803d; margin-bottom: 2px;">🏆 ${m.resultText || m.team1 + ' Won'}</div>`;
-                } else if (winTeam === t2Lower || t2Lower.includes(winTeam)) {
-                    t2Text = `<span style="color:#15803d;">${m.team2} ✅</span>`;
-                    resultBanner = `<div style="font-size: 11px; font-weight: bold; color: #15803d; margin-bottom: 2px;">🏆 ${m.resultText || m.team2 + ' Won'}</div>`;
-                } else if (m.resultText) {
-                    resultBanner = `<div style="font-size: 11px; font-weight: bold; color: #0284c7; margin-bottom: 2px;">🏆 ${m.resultText}</div>`;
-                }
-            }
-
-            let actionArea = "";
-            if (isCompleted) {
-                actionArea = `
-                    <span class="badge-locked" title="Match ended. Locked permanently.">🔒 Completed</span>
-                    <button class="btn-delete-match" onclick="deleteScheduledMatch('${mId}')" title="Delete Match">🗑️</button>
-                `;
-            } else {
-                actionArea = `
-                    <button class="btn-launch" onclick="launchScheduledMatch('${mId}')">▶️ Launch (1 Credit)</button>
-                    <button class="btn-delete-match" onclick="deleteScheduledMatch('${mId}')" title="Delete Match">🗑️</button>
-                `;
-            }
-
-            div.innerHTML = `
-                <div style="flex: 1; padding-right: 10px;">
-                    ${resultBanner}
-                    <div style="font-weight: bold; font-size: 13px; color: #1e293b;">${t1Text} vs ${t2Text}</div>
-                    <div style="font-size: 11px; color: #64748b; margin-top: 2px;">${m.overs} Overs | ${m.type.toUpperCase()} | ${statusBadge}</div>
-                </div>
-                <div style="display: flex; align-items: center;">
-                    ${actionArea}
-                </div>
-            `;
-            matchesContainer.appendChild(div);
-        }
-    }
-
-    window.deleteScheduledMatch = async (matchId) => {
-        const confirmed = confirm("Are you sure you want to delete this match fixture?");
-        if (!confirmed) return;
-
-        try {
-            await set(ref(db, `users/${currentUser.uid}/tournaments/${activeTournamentId}/matches/${matchId}`), null);
-            alert("🗑️ Match deleted successfully!");
-        } catch (error) {
-            alert("Error deleting match: " + error.message);
-        }
-    };
-
-    window.scheduleNewMatch = async () => {
-        const t1 = document.getElementById('scheduleTeam1').value;
-        const t2 = document.getElementById('scheduleTeam2').value;
-        const overs = parseInt(document.getElementById('scheduleOvers').value) || 10;
-        const type = document.getElementById('scheduleType').value;
-
-        if (!t1 || !t2) return alert("Select both teams!");
-        if (t1 === t2) return alert("Same team cannot play against itself!");
-
-        const matchId = 'm_' + Date.now();
-        await set(ref(db, `users/${currentUser.uid}/tournaments/${activeTournamentId}/matches/${matchId}`), {
-            team1: t1,
-            team2: t2,
-            overs: overs,
-            type: type,
-            status: 'pending',
-            createdAt: Date.now()
-        });
-
-        alert("✅ Match fixture added to active tournament successfully!");
-    };
-
-    window.launchScheduledMatch = async (matchId) => {
-        const match = tournamentsData[activeTournamentId].matches[matchId];
-
-        if (!match) return alert("Match not found!");
-
-        if (match.status === 'completed') {
-            return alert("⛔ This match is completed and permanently locked!");
-        }
-
-        const isAlreadyLive = (match.status === 'live');
-
-        if (!isAlreadyLive) {
-            if (currentCredits < 1) {
-                return alert("⚠️ Insufficient match credits! Please make payment via UPI and contact admin.");
-            }
-
-            const confirmed = confirm(`Start match "${match.team1} vs ${match.team2}"? 1 Match Credit will be deducted.`);
-            if (!confirmed) return;
-
-            try {
-                await update(ref(db, 'users/' + currentUser.uid), { 
-                    credits: currentCredits - 1 
-                });
-            } catch (error) {
-                return alert("Error deducting credit: " + error.message);
-            }
-        }
-
-        try {
-            await update(ref(db, `users/${currentUser.uid}/tournaments/${activeTournamentId}/matches/${matchId}`), {
-                status: 'live'
-            });
-
-            const team1Squad = tournamentsData[activeTournamentId].teams[match.team1] || match.team1;
-            const team2Squad = tournamentsData[activeTournamentId].teams[match.team2] || match.team2;
-
-            const liveScoreRef = ref(db, `live_matches/${currentUsername}/score`);
-            const liveSnap = await get(liveScoreRef);
-
-            if (!liveSnap.exists() || isAlreadyLive === false) {
-                await update(liveScoreRef, {
-                    batTeamName: match.team1,
-                    bowlTeamName: match.team2,
-                    totalOvers: match.overs,
-                    isLeagueMatch: (match.type === 'league'),
-                    squad1Data: team1Squad,
-                    squad2Data: team2Squad,
-                    tournamentId: activeTournamentId,
-                    runs: 0,
-                    wickets: 0,
-                    overs: "0.0",
-                    target: "1st Innings is going on...",
-                    innings: "1",
-                    status: "active",
-                    updatedAt: Date.now()
-                });
-            }
-
-            window.location.href = `controller.html?u=${currentUsername}&t=${activeTournamentId}&m=${matchId}`;
-        } catch (error) {
-            alert("Error launching match: " + error.message);
-        }
-    };
 
     window.resetAllUserData = async () => {
-        const confirm1 = confirm("⚠️ DANGER: Do you really want to delete ALL your tournaments, teams, squads, and match fixtures?");
+        const confirm1 = confirm("⚠️ DANGER: Do you really want to delete ALL your teams and squads?");
         if (!confirm1) return;
 
-        const confirm2 = prompt("Type 'DELETE' in capital letters to confirm wiping out your entire setup:");
+        const confirm2 = prompt("Type 'DELETE' in capital letters to confirm wiping out your data:");
         if (confirm2 !== "DELETE") {
             return alert("Action cancelled. Data is safe.");
         }
 
         try {
-            await set(ref(db, `users/${currentUser.uid}/tournaments`), null);
             await set(ref(db, `users/${currentUser.uid}/global_teams`), null);
-
-            await set(ref(db, `live_matches/${currentUsername}`), {
-                score: {
-                    batTeamName: "Team 1",
-                    bowlTeamName: "Team 2",
-                    runs: 0,
-                    wickets: 0,
-                    overs: "0.0",
-                    totalOvers: 10,
-                    target: "Match not started",
-                    innings: "1"
-                }
-            });
-
-            for (let i = localStorage.length - 1; i >= 0; i--) {
-                const key = localStorage.key(i);
-                if (key && key.includes(currentUsername)) {
-                    localStorage.removeItem(key);
-                }
-            }
-
-            alert("🗑️ All your tournaments and global teams have been wiped successfully!");
+            alert("🗑️ All your global teams have been wiped successfully!");
             location.reload();
         } catch (error) {
             alert("Error resetting data: " + error.message);
@@ -1001,7 +514,6 @@
                     document.getElementById('user-credits').innerText = currentCredits;
                     document.getElementById('display-username').innerText = currentUsername;
                     
-                    // প্রফাইল পেজে ইউজারনেম পাস করার জন্য লিংক সেট করা হলো
                     document.getElementById('myProfileLink').href = `profile.html?u=${currentUsername}`;
 
                     let baseUrl = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
@@ -1010,7 +522,6 @@
             });
 
             listenGlobalTeams();
-            listenUserTournaments();
         } else {
             currentUser = null;
             document.getElementById('dashboard-section').classList.add('hidden');
