@@ -1386,23 +1386,23 @@
             isLeagueMatchGlobal = (urlType.toLowerCase() === 'league');
         }
 
-        // ১. সুনির্দিষ্টভাবে ইউআরএল থেকে টিম ১ ও টিম ২ এর নাম রিসিভ করা (কোনোভাবেই যেন স্কোয়াড না ধরে)
-        if (urlTeam1 && !urlTeam1.includes('\n') && urlTeam1.trim() !== "") {
-            loadedBatTeam = decodeURIComponent(urlTeam1);
+        // ১. নিশ্চিত করা হচ্ছে যেন urlTeam1 বা urlTeam2 থেকে সরাসরি টিমের নামই নেওয়া হয় (স্কোয়াড নয়)
+        if (urlTeam1 && typeof urlTeam1 === 'string' && !urlTeam1.includes('\n')) {
+            loadedBatTeam = decodeURIComponent(urlTeam1).trim();
         }
-        if (urlTeam2 && !urlTeam2.includes('\n') && urlTeam2.trim() !== "") {
-            loadedBowlTeam = decodeURIComponent(urlTeam2);
+        if (urlTeam2 && typeof urlTeam2 === 'string' && !urlTeam2.includes('\n')) {
+            loadedBowlTeam = decodeURIComponent(urlTeam2).trim();
         }
 
-        // ২. ফায়ারবেসের লাইভ স্কোর নোড থেকে রানিং বা সেভ করা স্কোর রিকভার করা
+        // ২. ফায়ারবেসের লাইভ স্কোর থেকে রানিং বা সেভ করা স্কোর রিকভার করা
         let liveScoreLoaded = false;
         try {
             const liveSnap = await get(ref(db, `live_matches/${currentMatchUser}/score`));
             if (liveSnap.exists()) {
                 const mData = liveSnap.val();
                 if (mData.batTeamName && mData.bowlTeamName) {
-                    if (mData.batTeamName.trim() !== "") loadedBatTeam = mData.batTeamName;
-                    if (mData.bowlTeamName.trim() !== "") loadedBowlTeam = mData.bowlTeamName;
+                    if (mData.batTeamName.trim() !== "" && !mData.batTeamName.includes('\n')) loadedBatTeam = mData.batTeamName.trim();
+                    if (mData.bowlTeamName.trim() !== "" && !mData.bowlTeamName.includes('\n')) loadedBowlTeam = mData.bowlTeamName.trim();
                     squad1 = mData.squad1Data || "";
                     squad2 = mData.squad2Data || "";
                     if (mData.totalOvers) scheduledMatchOvers = mData.totalOvers;
@@ -1414,7 +1414,7 @@
             console.error("Error reading live score state:", e);
         }
 
-        // ৩. যদি লাইভ স্কোর না থাকে, তবে টুর্নামেন্টের শিডিউল বা ডাটাবেজ থেকে আসল টিম নেম ও স্কোয়াড লোড করবে
+        // ৩. লাইভ স্কোর না থাকলে টুর্নামেন্ট ডাটাবেজ থেকে ম্যাচ শিডিউল অনুযায়ী টিম নেম ও স্কোয়াড লোড করা
         if ((!liveScoreLoaded || !loadedBatTeam || !loadedBowlTeam) && activeTournamentId && activeMatchId) {
             try {
                 const userSnap = await get(ref(db, 'usernames/' + currentMatchUser));
@@ -1425,8 +1425,8 @@
                         const tData = tourSnap.val();
                         const matchInfo = (tData.matches || {})[activeMatchId];
                         if (matchInfo) {
-                            if (matchInfo.team1 && matchInfo.team1.trim() !== "") loadedBatTeam = matchInfo.team1;
-                            if (matchInfo.team2 && matchInfo.team2.trim() !== "") loadedBowlTeam = matchInfo.team2;
+                            if (matchInfo.team1 && matchInfo.team1.trim() !== "") loadedBatTeam = matchInfo.team1.trim();
+                            if (matchInfo.team2 && matchInfo.team2.trim() !== "") loadedBowlTeam = matchInfo.team2.trim();
                             if (!scheduledMatchOvers && matchInfo.overs) scheduledMatchOvers = matchInfo.overs;
                             isLeagueMatchGlobal = (matchInfo.type === 'league');
                         }
@@ -1444,7 +1444,7 @@
             }
         }
 
-        // টুর্নামেন্ট টিম ডাটাবেজ থেকে স্কোয়াড কুয়েরি করার সঠিক পদ্ধতি
+        // স্কোয়াড আলাদাভাবে ফেচ করা
         if (activeTournamentId && (!squad1 || !squad2)) {
             try {
                 const userSnap = await get(ref(db, 'usernames/' + currentMatchUser));
@@ -1464,9 +1464,13 @@
             } catch(e) {}
         }
 
-        // ৪. টিমের ইনপুট বক্সে সুনির্দিষ্টভাবে শুধু টিমের নামই সেট করা হলো (কোনো প্লেয়ার নেম বা স্কোয়াড নয়)
-        if (loadedBatTeam) document.getElementById('batTeamName').value = loadedBatTeam;
-        if (loadedBowlTeam) document.getElementById('bowlTeamName').value = loadedBowlTeam;
+        // ৪. ফাইনাল চেক: টিমের ইনপুট বক্সে শুধুমাত্র টিমের নামই বসানো নিশ্চিত করা হচ্ছে
+        if (loadedBatTeam && loadedBatTeam !== "" && !loadedBatTeam.includes('\n')) {
+            document.getElementById('batTeamName').value = loadedBatTeam;
+        }
+        if (loadedBowlTeam && loadedBowlTeam !== "" && !loadedBowlTeam.includes('\n')) {
+            document.getElementById('bowlTeamName').value = loadedBowlTeam;
+        }
 
         localStorage.setItem(`tempSelectedBatTeamSquad_${currentMatchUser}`, squad1);
         localStorage.setItem(`tempSelectedBowlTeamSquad_${currentMatchUser}`, squad2);
@@ -1474,9 +1478,13 @@
 
         loadControllerState();
 
-        // পুনরায় নিশ্চিত করা হচ্ছে যেন টিম নেম ফিল্ড সবসময় অক্ষুণ্ণ থাকে
-        if (loadedBatTeam) document.getElementById('batTeamName').value = loadedBatTeam;
-        if (loadedBowlTeam) document.getElementById('bowlTeamName').value = loadedBowlTeam;
+        // রিকভার করার পরও টিম নেম ফিল্ডে যেন প্লেয়ারের নাম না বসে
+        if (loadedBatTeam && loadedBatTeam !== "" && !loadedBatTeam.includes('\n')) {
+            document.getElementById('batTeamName').value = loadedBatTeam;
+        }
+        if (loadedBowlTeam && loadedBowlTeam !== "" && !loadedBowlTeam.includes('\n')) {
+            document.getElementById('bowlTeamName').value = loadedBowlTeam;
+        }
         
         if (scheduledMatchOvers) {
             document.getElementById('totalOvers').value = scheduledMatchOvers;
