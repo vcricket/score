@@ -71,7 +71,7 @@
         <button class="btn" style="width: auto; padding: 10px 18px; margin: 0;" onclick="window.toggleEditMode()">Edit Profile</button>
     </div>
 
-    <!-- প্রোফাইল এডিট ফর্ম (গ্যালারি থেকে ছবি তোলার অপশনসহ) -->
+    <!-- প্রোফাইল এডিট ফর্ম -->
     <div class="box" id="profileEditBox" style="display: none;">
         <h3>✏️ Edit Profile Details</h3>
         <label>Your Name</label>
@@ -160,7 +160,7 @@
     let currentUsername = urlParams.get('u') || localStorage.getItem('proCricketUsername');
 
     if (!currentUsername) {
-        alert("⚠️ Unauthorized access! Please login from dashboard.");
+        alert("⚠️ Please login from dashboard first.");
         window.location.href = "index.html";
     }
 
@@ -171,25 +171,35 @@
 
     async function initProfileHub() {
         try {
+            // ১. usernames থেকে ইউজার আইডি (UID) খোঁজা
             const userRef = ref(db, 'usernames/' + currentUsername);
             const snap = await get(userRef);
+            
             if (snap.exists()) {
                 currentUserId = snap.val();
-                loadProfileData();
-                loadTournaments();
-                loadCareerStats();
             } else {
-                alert("User profile not found!");
-                window.location.href = "index.html";
+                // যদি usernames নোডে না থাকে, তবে localStorage বা ইউজারনেম দিয়ে fallback তৈরি
+                currentUserId = currentUsername;
             }
+
+            loadProfileData();
+            loadTournaments();
+            loadCareerStats();
         } catch (err) {
             console.error("Error initializing profile hub:", err);
+            // ফলব্যাক হিসেবে ইউজারনেম সেট করে দেওয়া
+            currentUserId = currentUsername;
+            loadProfileData();
+            loadTournaments();
+            loadCareerStats();
         }
     }
 
     async function loadProfileData() {
         try {
-            const profileSnap = await get(ref(db, `users/${currentUserId}/profile`));
+            const profileRef = ref(db, `users/${currentUserId}/profile`);
+            const profileSnap = await get(profileRef);
+            
             if (profileSnap.exists()) {
                 const data = profileSnap.val();
                 document.getElementById('displayName').innerText = data.name || currentUsername;
@@ -197,10 +207,16 @@
                     document.getElementById('displayAvatar').src = data.photo;
                 }
             } else {
+                // যদি প্রফাইল ডাটা না থাকে তবে ডিফল্ট তৈরি করে নেওয়া
+                await set(profileRef, {
+                    name: currentUsername,
+                    photo: ""
+                });
                 document.getElementById('displayName').innerText = currentUsername;
             }
         } catch (e) {
             console.error("Error loading profile details:", e);
+            document.getElementById('displayName').innerText = currentUsername;
         }
     }
 
@@ -267,7 +283,7 @@
 
         try {
             await remove(ref(db, `users/${currentUserId}/tournaments/${tourId}`));
-            alert("🗑️️ Tournament deleted successfully!");
+            alert("🗑 Tournament deleted successfully!");
             loadTournaments();
         } catch (err) {
             console.error("Error deleting tournament:", err);
