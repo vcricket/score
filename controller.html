@@ -254,8 +254,12 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const currentMatchUser = urlParams.get('u');
-    const activeTournamentId = urlParams.get('t');
+    let activeTournamentId = urlParams.get('t');
     const activeMatchId = urlParams.get('m');
+    const urlTeam1 = urlParams.get('t1');
+    const urlTeam2 = urlParams.get('t2');
+    const urlOvers = urlParams.get('overs');
+    const urlType = urlParams.get('type');
 
     if (!currentMatchUser) {
         alert("⚠️ Unauthorized access! Please launch match from your Dashboard.");
@@ -285,14 +289,13 @@
     let detailedStats = {};
     let scheduledMatchOvers = null;
 
-    // ব্যাক বাটনে ক্লিক করলে সঠিকভাবে নির্দিষ্ট টুর্নামেন্ট পেজে ফিরে যাওয়ার সঠিক ও নিশ্চিত লজিক
+    // হেডারের "Tournament" বা "Back" বাটনে ক্লিক করলে সঠিক টুর্নামেন্টে ফিরে যাওয়ার ফিক্সড ফাংশন
     window.returnToTournamentImmediately = async function() {
         localStorage.removeItem(`localCricketLive_${currentMatchUser}`);
         localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}`);
         
         let targetTourId = activeTournamentId;
 
-        // যদি ইউআরএলে টুর্নামেন্ট আইডি না থাকে, তবে ফায়ারবেস থেকে লাইভ স্কোর থেকে টুর্নামেন্ট আইডি রিড করবে
         if (!targetTourId || targetTourId === "null" || targetTourId === "undefined" || targetTourId === "") {
             try {
                 const snapshot = await get(ref(db, `live_matches/${currentMatchUser}/score/tournamentId`));
@@ -304,11 +307,10 @@
             }
         }
 
-        // যদি টুর্নামেন্ট আইডি পাওয়া যায়, তবে সরাসরি ওই টুর্নামেন্ট ড্যাশবোর্ডে নিয়ে যাবে
         if (targetTourId && targetTourId !== "null" && targetTourId !== "undefined") {
-            window.location.href = `index.html?t=${targetTourId}`;
+            window.location.href = `tournament.html?t=${targetTourId}&u=${currentMatchUser}`;
         } else {
-            window.location.href = "index.html";
+            window.location.href = `tournament.html?u=${currentMatchUser}`;
         }
     };
 
@@ -458,7 +460,7 @@
         if (!targetSquad) return [];
 
         let lines = targetSquad.split('\n').map(p => p.trim()).filter(p => p.length > 0);
-        return lines.length > 1 ? lines.slice(1) : lines;
+        return lines;
     }
 
     function updateSuggestions() {
@@ -1208,9 +1210,9 @@
         localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}`);
         alert(`🏆 Match Completed! Man of the Match: ${momName}. Returning to Tournament...`);
         if (activeTournamentId) {
-            window.location.href = `index.html?t=${activeTournamentId}`;
+            window.location.href = `tournament.html?t=${activeTournamentId}&u=${currentMatchUser}`;
         } else {
-            window.location.href = "index.html";
+            window.location.href = `tournament.html?u=${currentMatchUser}`;
         }
     };
 
@@ -1219,8 +1221,8 @@
         let bat1 = document.getElementById('bat1Name').value;
         let bat2 = document.getElementById('bat2Name').value;
 
-        if (!bat1 || !bat2) { alert("⚠ Select batters first!"); document.getElementById('bowlerName').value = ""; return; }
-        if (bowler !== "" && bowler === lastBowler) { alert("⚠ Same bowler cannot bowl consecutive overs!"); document.getElementById('bowlerName').value = ""; updateSuggestions(); return; }
+        if (!bat1 || !bat2) { alert("⚠️️ Select batters first!"); document.getElementById('bowlerName').value = ""; return; }
+        if (bowler !== "" && bowler === lastBowler) { alert("⚠️ Same bowler cannot bowl consecutive overs!"); document.getElementById('bowlerName').value = ""; updateSuggestions(); return; }
 
         if(bowler !== "") {
             if (bowlersRecord[bowler]) {
@@ -1375,12 +1377,17 @@
     };
 
     async function initPage() {
-        let loadedBatTeam = "";
-        let loadedBowlTeam = "";
+        let loadedBatTeam = urlTeam1 || "";
+        let loadedBowlTeam = urlTeam2 || "";
         let squad1 = "";
         let squad2 = "";
-        scheduledMatchOvers = null;
+        scheduledMatchOvers = urlOvers || null;
 
+        if (urlType) {
+            isLeagueMatchGlobal = (urlType.toLowerCase() === 'league');
+        }
+
+        // ফায়ারবেস বা টুর্নামেন্ট ডাটা থেকে টিম ও স্কোয়াড লোড করার ব্যবস্থা (যদি URL-এ না থাকে)
         if (activeTournamentId && activeMatchId) {
             try {
                 const userSnap = await get(ref(db, 'usernames/' + currentMatchUser));
@@ -1391,23 +1398,43 @@
                         const tData = tourSnap.val();
                         const matchInfo = (tData.matches || {})[activeMatchId];
                         if (matchInfo) {
-                            loadedBatTeam = matchInfo.team1 || "";
-                            loadedBowlTeam = matchInfo.team2 || "";
-                            
-                            if (matchInfo.overs) {
-                                scheduledMatchOvers = matchInfo.overs;
-                                document.getElementById('totalOvers').value = scheduledMatchOvers;
-                            }
-                            
+                            if (!loadedBatTeam) loadedBatTeam = matchInfo.team1 || "";
+                            if (!loadedBowlTeam) loadedBowlTeam = matchInfo.team2 || "";
+                            if (!scheduledMatchOvers && matchInfo.overs) scheduledMatchOvers = matchInfo.overs;
                             isLeagueMatchGlobal = (matchInfo.type === 'league');
-                            squad1 = (tData.teams || {})[loadedBatTeam] || loadedBatTeam;
-                            squad2 = (tData.teams || {})[loadedBowlTeam] || loadedBowlTeam;
+                        }
+                        const teamsMap = tData.teams || {};
+                        if (loadedBatTeam && teamsMap[loadedBatTeam]) {
+                            squad1 = (teamsMap[loadedBatTeam].players || []).join('\n');
+                        }
+                        if (loadedBowlTeam && teamsMap[loadedBowlTeam]) {
+                            squad2 = (teamsMap[loadedBowlTeam].players || []).join('\n');
                         }
                     }
                 }
             } catch (err) {
                 console.error("Error reading match info:", err);
             }
+        }
+
+        // টুর্নামেন্ট আইডি বা ইউজার ডেটা থেকে স্কোয়াড কুয়েরি করা যদি সরাসরি নাম দিয়ে থাকে
+        if (activeTournamentId && (!squad1 || !squad2)) {
+            try {
+                const userSnap = await get(ref(db, 'usernames/' + currentMatchUser));
+                if (userSnap.exists()) {
+                    const uid = userSnap.val();
+                    const teamsSnap = await get(ref(db, `users/${uid}/tournaments/${activeTournamentId}/teams`));
+                    if (teamsSnap.exists()) {
+                        const allTeams = teamsSnap.val();
+                        if (loadedBatTeam && allTeams[loadedBatTeam] && allTeams[loadedBatTeam].players) {
+                            squad1 = allTeams[loadedBatTeam].players.join('\n');
+                        }
+                        if (loadedBowlTeam && allTeams[loadedBowlTeam] && allTeams[loadedBowlTeam].players) {
+                            squad2 = allTeams[loadedBowlTeam].players.join('\n');
+                        }
+                    }
+                }
+            } catch(e) {}
         }
 
         if (!loadedBatTeam || !loadedBowlTeam) {
@@ -1419,9 +1446,9 @@
                     if (!loadedBowlTeam) loadedBowlTeam = mData.bowlTeamName || "";
                     if (!squad1) squad1 = mData.squad1Data || "";
                     if (!squad2) squad2 = mData.squad2Data || "";
+                    if (!activeTournamentId && mData.tournamentId) activeTournamentId = mData.tournamentId;
                     if (!scheduledMatchOvers && mData.totalOvers) {
                         scheduledMatchOvers = mData.totalOvers;
-                        document.getElementById('totalOvers').value = scheduledMatchOvers;
                     }
                     if (mData.firstInningsRuns !== undefined && mData.firstInningsRuns > 0) {
                         firstInningsRunsStored = mData.firstInningsRuns;
