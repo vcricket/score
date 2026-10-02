@@ -65,7 +65,7 @@
         .btn-signup { background-color: #007bff; }
         .btn-logout { background-color: #4a5568; }
         
-        /* বড় গোলাকার প্রোফাইল ও নিচে GO বাটন সেকশন */
+        /* বড় গোলাকার প্রোফাইল ও GO বাটন সেকশন */
         .dashboard-profile-container {
             margin: 15px 0;
             display: flex;
@@ -93,8 +93,6 @@
             height: 100%;
             object-fit: cover;
         }
-        
-        /* প্রোফাইল পিকচারের নিচের GO বাটন */
         .btn-profile-go {
             display: inline-block;
             background: #17a2b8;
@@ -251,8 +249,7 @@
     <div id="dashboard-section" class="hidden">
         
         <div id="homeMainView">
-            <!-- ওয়েলকাম ও ইউজারনেম সেকশন -->
-            <h2 style="text-align: center; margin-bottom: 5px;">Welcome, <span id="display-username" style="color: #ff9800;"></span>!</h2>
+            <h2 style="text-align: center; margin-bottom: 5px;">Welcome, <span id="display-username" style="color: #ff9800;">Loading...</span>!</h2>
             
             <div class="credit-box">
                 Available Balance: <span id="user-credits">0</span> Match Credit(s)
@@ -267,7 +264,7 @@
                 </div>
             </div>
 
-            <!-- বড় গোলাকার প্রোফাইল ছবি ও নিচে GO বাটন -->
+            <!-- বড় গোলাকার প্রোফাইল ছবি ও GO বাটন -->
             <div class="dashboard-profile-container">
                 <a id="myProfileLinkImg" href="profile.html" class="dashboard-profile-link" title="Click to open Profile Hub">
                     <img id="dashboardLargeAvatar" src="https://via.placeholder.com/110" alt="Profile Avatar" class="dashboard-large-avatar">
@@ -326,9 +323,6 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
-
-    let currentCredits = 0;
-    let currentUsername = "";
 
     window.togglePasswordVisibility = (inputId, iconElement) => {
         const passwordInput = document.getElementById(inputId);
@@ -461,37 +455,67 @@
         }
     };
 
-    function loadUserData(userId) {
+    async function loadUserData(userId) {
         const userRef = ref(db, 'users/' + userId);
-        onValue(userRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const userData = snapshot.val();
-                currentCredits = userData.credits !== undefined ? userData.credits : 0;
-                currentUsername = userData.username || "";
+        const snapshot = await get(userRef);
+        
+        let username = "";
+        let credits = 0;
 
-                localStorage.setItem('proCricketUsername', currentUsername);
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            username = userData.username || "";
+            credits = userData.credits !== undefined ? userData.credits : 0;
+        } else {
+            // যদি ডাটাবেজে ইউজার নোড মিসিং থাকে, লোকালস্টোরেজ থেকে ইউজারনেম নেওয়া
+            username = localStorage.getItem('proCricketUsername') || "user";
+        }
 
-                document.getElementById('user-credits').innerText = currentCredits;
-                document.getElementById('display-username').innerText = currentUsername;
-                
-                // ছবি এবং GO বাটন উভয়ের সাথেই সঠিক ইউজারনেমসহ প্রোফাইল লিংক সেট করা হলো
-                document.getElementById('myProfileLinkImg').href = `profile.html?u=${currentUsername}`;
-                document.getElementById('myProfileLinkBtn').href = `profile.html?u=${currentUsername}`;
+        localStorage.setItem('proCricketUsername', username);
 
-                let baseUrl = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
-                document.getElementById('viewer-link-input').value = `${baseUrl}/viewer.html?u=${currentUsername}`;
+        // UI-তে ভ্যালু সেট করা
+        document.getElementById('user-credits').innerText = credits;
+        document.getElementById('display-username').innerText = username;
+        
+        document.getElementById('myProfileLinkImg').href = `profile.html?u=${username}`;
+        document.getElementById('myProfileLinkBtn').href = `profile.html?u=${username}`;
+
+        let baseUrl = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
+        document.getElementById('viewer-link-input').value = `${baseUrl}/viewer.html?u=${username}`;
+
+        // রিয়েল-টাইম ব্যালেন্স আপডেট লিসেনার
+        onValue(userRef, (snap) => {
+            if (snap.exists() && snap.val().credits !== undefined) {
+                document.getElementById('user-credits').innerText = snap.val().credits;
             }
         });
 
+        // প্রোফাইল ছবি ও নাম লোড করা
         const profileRef = ref(db, `users/${userId}/profile`);
-        onValue(profileRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const profileData = snapshot.val();
+        onValue(profileRef, (snap) => {
+            if (snap.exists()) {
+                const profileData = snap.val();
+                if (profileData.name) {
+                    document.getElementById('display-username').innerText = profileData.name;
+                }
                 if (profileData.photo) {
                     document.getElementById('dashboardLargeAvatar').src = profileData.photo;
                 }
             }
         });
+    }
+
+    // পেজ লোড হওয়ার সাথে সাথে ক্যাশ চেক
+    const savedUser = localStorage.getItem('proCricketUsername');
+    if (savedUser) {
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('signup-section').classList.add('hidden');
+        document.getElementById('dashboard-section').classList.remove('hidden');
+        document.getElementById('display-username').innerText = savedUser;
+        let baseUrl = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
+        document.getElementById('viewer-link-input').value = `${baseUrl}/viewer.html?u=${savedUser}`;
+        document.getElementById('myProfileLinkImg').href = `profile.html?u=${savedUser}`;
+        document.getElementById('myProfileLinkBtn').href = `profile.html?u=${savedUser}`;
     }
 
     onAuthStateChanged(auth, async (user) => {
@@ -502,8 +526,10 @@
 
             loadUserData(user.uid);
         } else {
-            document.getElementById('dashboard-section').classList.add('hidden');
-            document.getElementById('login-section').classList.remove('hidden');
+            if (!localStorage.getItem('proCricketUsername')) {
+                document.getElementById('dashboard-section').classList.add('hidden');
+                document.getElementById('login-section').classList.remove('hidden');
+            }
         }
     });
 </script>
