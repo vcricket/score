@@ -32,7 +32,6 @@
 
         .completed-badge { background: #e2e8f0; color: #2d3748; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
         
-        /* সম্পূর্ণ কন্ট্রোল করার জন্য ডিফল্ট হিডেন ক্লাস */
         .page-section { display: none; }
     </style>
 </head>
@@ -71,14 +70,14 @@
             <a id="backToHubBtn" href="tournament.html" style="color: #0056b3; text-decoration: none; font-weight: bold; font-size: 14px;">⬅️ Back to Tournaments List</a>
         </div>
 
-        <!-- টিম ও স্কোয়াড ম্যানেজমেন্ট সেকশন -->
+        <!-- টিম ও স্কোয়াড ম্যানেজমেন্ট সেকশন (ক্যাপ্টেন ও উইকেটকিপার সিরিয়াল গাইডলাইনসহ) -->
         <div class="box" style="background: #f0f7ff; border-color: #b8daff;">
             <h3 style="color: #0056b3;">👥 Add Team & Player Squad</h3>
             <label>Team Name</label>
             <input type="text" id="teamNameInput" placeholder="e.g. Kolkata Tigers">
 
-            <label>Players List (Each player on a new line)</label>
-            <textarea id="squadInput" rows="4" placeholder="Player 1&#10;Player 2 (wk)&#10;Player 3 (c)"></textarea>
+            <label>Players List (Put Captain (c) first, then Wicketkeeper (wk), each on a new line)</label>
+            <textarea id="squadInput" rows="5" placeholder="Player 1 (c) - Captain&#10;Player 2 (wk) - Wicketkeeper&#10;Player 3&#10;Player 4"></textarea>
 
             <button class="btn" style="background: #0056b3;" onclick="window.saveTeamWithSquad()">💾 Save Team & Squad to Cloud</button>
             
@@ -88,7 +87,7 @@
             </ul>
         </div>
 
-        <!-- ম্যাচ শিডিউল ও লঞ্চ সেকশন -->
+        <!-- ম্যাচ শিডিউল, ওভার ও ফরম্যাট সিলেক্ট সেকশন -->
         <div class="box">
             <h3>⚔️ Create & Launch Match</h3>
             <label>Select Team 1</label>
@@ -96,6 +95,15 @@
 
             <label>Select Team 2</label>
             <select id="team2Select"><option value="">-- Select Team 2 --</option></select>
+
+            <label>Number of Overs</label>
+            <input type="number" id="matchOversInput" value="10" min="1" max="50" placeholder="e.g. 10">
+
+            <label>Match Type / Format</label>
+            <select id="matchTypeSelect">
+                <option value="League">League Match</option>
+                <option value="Knockout">Knockout / Final</option>
+            </select>
 
             <button class="btn" style="background: #007bff;" onclick="window.launchMatch()">🚀 Launch Match Controller</button>
         </div>
@@ -136,7 +144,6 @@
         window.location.href = "index.html";
     }
 
-    // হেডার ও ব্যাক লিংক সেটআপ
     document.getElementById('profileLinkBtn').href = `profile.html?u=${currentUsername}`;
     document.getElementById('dashboardLinkBtn').href = `index.html?u=${currentUsername}`;
     document.getElementById('backToHubBtn').href = `tournament.html?u=${currentUsername}`;
@@ -153,7 +160,6 @@
                 currentUserId = currentUsername;
             }
 
-            // সুনির্দিষ্ট লজিক: যদি টুর্নামেন্ট আইডি (t) না থাকে, তবে শুধু হাব ভিউ দেখাবে
             if (!tourId || tourId.trim() === "") {
                 document.getElementById('noTournamentView').style.display = 'block';
                 document.getElementById('activeTournamentView').style.display = 'none';
@@ -161,7 +167,6 @@
                 return;
             }
 
-            // যদি টুর্নামেন্ট আইডি থাকে, তবে শুধু নির্দিষ্ট প্যানেল দেখাবে
             document.getElementById('noTournamentView').style.display = 'none';
             document.getElementById('activeTournamentView').style.display = 'block';
 
@@ -181,7 +186,7 @@
     window.createTournament = async function() {
         const tName = document.getElementById('tourNameInput').value.trim();
         if (!tName) {
-            alert("⚠️ Please enter a tournament name!");
+            alert("⚠️️ Please enter a tournament name!");
             return;
         }
 
@@ -367,7 +372,7 @@
 
                     li.innerHTML = `
                         <div class="match-header">
-                            <span>🏏 ${match.team1} vs ${match.team2}</span>
+                            <span>🏏 ${match.team1} vs ${match.team2} (${match.overs || 10} Ov, ${match.type || 'League'})</span>
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 ${isCompleted ? '<span class="completed-badge">Completed</span>' : '<span style="color:#007bff; font-size:12px; font-weight:bold;">Running</span>'}
                                 <button class="btn-delete" onclick="window.deleteMatch('${matchId}')" title="Delete Match">🗑️</button>
@@ -403,10 +408,19 @@
     window.launchMatch = function() {
         const team1 = document.getElementById('team1Select').value;
         const team2 = document.getElementById('team2Select').value;
+        const overs = document.getElementById('matchOversInput').value || 10;
+        const matchType = document.getElementById('matchTypeSelect').value;
 
-        (team1 && team2 && team1 !== team2) 
-            ? window.location.href = `controller.html?t=${tourId}&u=${currentUsername}&t1=${encodeURIComponent(team1)}&t2=${encodeURIComponent(team2)}`
-            : alert("⚠️ Please select two different valid teams!");
+        if (!team1 || !team2) {
+            alert("⚠️ Please select both teams!");
+            return;
+        }
+        if (team1 === team2) {
+            alert("⚠️ Team 1 and Team 2 cannot be the same!");
+            return;
+        }
+
+        window.location.href = `controller.html?t=${tourId}&u=${currentUsername}&t1=${encodeURIComponent(team1)}&t2=${encodeURIComponent(team2)}&overs=${overs}&type=${encodeURIComponent(matchType)}`;
     };
 
     initTournamentHub();
