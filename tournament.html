@@ -46,7 +46,7 @@
         .btn-launch-match:hover { background: #0056b3; }
 
         .completed-badge { background: #e2e8f0; color: #2d3748; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .page-section { display: block; }
+        .page-section { display: none; }
     </style>
 </head>
 <body>
@@ -60,7 +60,7 @@
         </div>
     </div>
 
-    <!-- ১. টুর্নামেন্ট হাব ভিউ (যেখানে সব টুর্নামেন্টের লিস্ট ও ক্রিয়েট অপশন থাকবে) -->
+    <!-- ১. টুর্নামেন্ট হাব ভিউ -->
     <div id="noTournamentView" class="page-section">
         <div class="box">
             <h3>➕ Create New Tournament</h3>
@@ -77,8 +77,8 @@
         </div>
     </div>
 
-    <!-- ২. নির্দিষ্ট টুর্নামেন্ট প্যানেল (টিম, স্কোয়াড ও শিডিউল ম্যাচ লিস্ট) -->
-    <div id="activeTournamentView" class="page-section" style="display: none;">
+    <!-- ২. নির্দিষ্ট টুর্নামেন্ট প্যানেল -->
+    <div id="activeTournamentView" class="page-section">
         
         <div style="margin-bottom: 15px;">
             <a id="backToHubBtn" href="tournament.html" style="color: #0056b3; text-decoration: none; font-weight: bold; font-size: 14px;">⬅️ Back to Tournaments List</a>
@@ -164,31 +164,28 @@
     document.getElementById('dashboardLinkBtn').href = `index.html?u=${currentUsername}`;
     document.getElementById('backToHubBtn').href = `tournament.html?u=${currentUsername}`;
 
-    let currentUserId = currentUsername; // ডিফল্ট ইউজারনেম দিয়ে শুরু হবে
+    let currentUserId = "";
+    let globalTeamsData = {};
 
     async function initTournamentHub() {
         try {
-            // ফায়ারবেস থেকে সঠিক ইউজার আইডি ফেচ করা
             const userRef = ref(db, 'usernames/' + currentUsername);
             const snap = await get(userRef);
             if (snap.exists()) {
                 currentUserId = snap.val();
+            } else {
+                currentUserId = currentUsername;
             }
 
-            // হেডার লিংকগুলোতে ইউজারনেম পাস করা নিশ্চিত করা
-            document.getElementById('profileLinkBtn').href = `profile.html?u=${currentUsername}`;
-            document.getElementById('dashboardLinkBtn').href = `index.html?u=${currentUsername}`;
-            document.getElementById('backToHubBtn').href = `tournament.html?u=${currentUsername}`;
-
-            // যদি টুর্নামেন্ট আইডি (t) না থাকে, তবে হাবের টুর্নামেন্ট লিস্ট দেখাবে
-            if (!tourId || tourId.trim() === "" || tourId === "null" || tourId === "undefined") {
+            // যদি টুর্নামেন্ট আইডি (t) না থাকে, তবে হাব পেজ দেখাবে
+            if (!tourId || tourId.trim() === "" || tourId === "null") {
                 document.getElementById('noTournamentView').style.display = 'block';
                 document.getElementById('activeTournamentView').style.display = 'none';
                 loadAllTournaments();
                 return;
             }
 
-            // যদি টুর্নামেন্ট আইডি থাকে, তবে নির্দিষ্ট টুর্নামেন্টের প্যানেল দেখাবে
+            // যদি টুর্নামেন্ট আইডি থাকে, তবে নির্দিষ্ট টুর্নামেন্ট প্যানেল দেখাবে
             document.getElementById('noTournamentView').style.display = 'none';
             document.getElementById('activeTournamentView').style.display = 'block';
 
@@ -204,10 +201,6 @@
             loadMatchesList();
         } catch (err) {
             console.error("Error initializing tournament hub:", err);
-            // ফেইল করলেও যেন হাব ভিউ ওপেন থাকে
-            document.getElementById('noTournamentView').style.display = 'block';
-            document.getElementById('activeTournamentView').style.display = 'none';
-            loadAllTournaments();
         }
     }
 
@@ -234,7 +227,6 @@
 
     async function loadAllTournaments() {
         const container = document.getElementById('tournamentsListContainer');
-        if (!container) return;
         container.innerHTML = "<li style='text-align:center; color:#888; width: 100%;'>Loading tournaments...</li>";
 
         try {
@@ -344,7 +336,6 @@
 
     async function loadTeamsAndSquads() {
         const teamsContainer = document.getElementById('teamsListContainer');
-        if (!teamsContainer) return;
         teamsContainer.innerHTML = "";
 
         try {
@@ -365,7 +356,7 @@
                             playersHTML += `
                                 <div class="player-row">
                                     <span>👤 ${player}</span>
-                                    <button class="btn-edit-player" onclick="window.editPlayerName('${team.name}', ${idx}, '${player}')">✏️ Edit</button>
+                                    <button class="btn-edit-player" onclick="window.editPlayerName('${team.name}', ${idx}, '${player}')">✏️️ Edit</button>
                                 </div>
                             `;
                         });
@@ -401,7 +392,6 @@
     window.updateTeamDropdowns = function() {
         const team1Select = document.getElementById('team1Select');
         const team2Select = document.getElementById('team2Select');
-        if (!team1Select || !team2Select) return;
 
         const selectedTeam1 = team1Select.value;
         const selectedTeam2 = team2Select.value;
@@ -436,7 +426,6 @@
 
     async function loadMatchesList() {
         const matchesContainer = document.getElementById('matchesListContainer');
-        if (!matchesContainer) return;
         matchesContainer.innerHTML = "<li style='text-align:center; color:#888; width: 100%;'>Loading matches schedule...</li>";
 
         try {
@@ -481,6 +470,7 @@
         }
     }
 
+    // শিডিউল বা ম্যাচ সেভ করার ফাংশন (কোনো ক্রেডিট কাটবে না)
     window.scheduleMatch = async function() {
         const team1 = document.getElementById('team1Select').value;
         const team2 = document.getElementById('team2Select').value;
@@ -518,6 +508,7 @@
         }
     };
 
+    // নির্দিষ্ট ম্যাচের লঞ্চ বা রিজিউম করার ফাংশন (১ ক্রেডিট কাটবে যদি নতুন স্টার্ট হয়)
     window.launchOrResumeMatch = async function(matchId, t1, t2, overs, type) {
         try {
             const matchRef = ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${matchId}`);
@@ -567,7 +558,7 @@
         if (!confirm("⚠️ Are you sure you want to delete this match?")) return;
         try {
             await remove(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${matchId}`));
-            alert("🗑️️ Match deleted successfully!");
+            alert("🗑️ Match deleted successfully!");
             loadMatchesList();
         } catch (err) {
             alert("❌ Failed to delete match.");
