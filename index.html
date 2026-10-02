@@ -16,13 +16,13 @@
         .btn { width: 100%; padding: 12px; background: #28a745; color: white; border: none; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 15px; }
         .btn:hover { background: #218838; }
         
-        /* প্রোফাইল সেকশন স্টাইল */
+        /* প্রোফাইল কার্ড স্টাইল */
         .profile-box { display: flex; align-items: center; gap: 15px; background: #e8f4fd; border: 1px solid #b8daff; padding: 15px; border-radius: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-        .profile-avatar { width: 65px; height: 65px; border-radius: 50%; background: #ccc; object-fit: cover; border: 2px solid #0056b3; }
+        .profile-avatar { width: 65px; height: 65px; border-radius: 50%; background: #ccc; object-fit: cover; border: 2px solid #0056b3; flex-shrink: 0; }
         .profile-info { flex: 1; }
-        .profile-info h3 { margin: 0 0 3px 0; color: #0056b3; font-size: 18px; }
+        .profile-info h3 { margin: 0 0 3px 0; color: #0056b3; font-size: 18px; word-break: break-word; }
         .profile-info p { margin: 0; font-size: 13px; color: #555; }
-        .profile-btn-group { display: flex; gap: 8px; }
+        .profile-btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
         
         .btn-profile-link { background: #17a2b8; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; }
         .btn-profile-link:hover { background: #138496; }
@@ -42,34 +42,36 @@
 <div class="container">
     <div class="dashboard-header">
         <h2>🏆 Pro Cricket Dashboard</h2>
-        <a id="myProfileLink" href="profile.html" class="btn-profile-link">👤 My Profile & Stats</a>
+        <!-- প্রোফাইল পেজে যাওয়ার লিংক -->
+        <a id="myProfileLink" href="profile.html" class="btn-profile-link">👤 My Career Stats</a>
     </div>
 
-    <!-- ইউজার প্রোফাইল ও নাম-ছবি কার্ড -->
+    <!-- ইউজার প্রোফাইল কার্ড -->
     <div class="profile-box" id="userProfileCard">
         <img id="displayAvatar" src="https://via.placeholder.com/65" alt="Avatar" class="profile-avatar">
         <div class="profile-info">
             <h3 id="displayName">Loading User...</h3>
-            <p>Click Edit to change your name or photo</p>
+            <p>Click Edit Profile to update your name or photo</p>
         </div>
         <div class="profile-btn-group">
             <button class="btn" style="width: auto; padding: 8px 14px; margin: 0; background: #0056b3; font-size: 13px;" onclick="window.openProfileModal()">Edit Profile</button>
         </div>
     </div>
 
-    <!-- প্রোফাইল এডিট ফর্ম (লুকানো থাকবে) -->
+    <!-- প্রোফাইল এডিট ফর্ম -->
     <div class="box" id="profileEditBox" style="display: none;">
         <h3>✏️ Update Profile Details</h3>
         <label>Your Name</label>
         <input type="text" id="inputProfileName" placeholder="Enter your name">
-        <label>Profile Photo URL</label>
+        <label>Profile Picture URL</label>
         <input type="text" id="inputProfilePhoto" placeholder="Paste direct image link">
-        <div style="display: flex; gap: 10px;">
-            <button class="btn" style="background: #0056b3;" onclick="window.saveUserProfile()">Save Profile</button>
-            <button class="btn" style="background: #6c757d;" onclick="window.closeProfileModal()">Cancel</button>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button class="btn" style="background: #0056b3; margin-top: 0;" onclick="window.saveUserProfile()">Save Profile</button>
+            <button class="btn" style="background: #6c757d; margin-top: 0;" onclick="window.closeProfileModal()">Cancel</button>
         </div>
     </div>
 
+    <!-- টুর্নামেন্ট তৈরির বক্স -->
     <div class="box">
         <h3>Create New Tournament</h3>
         <label>Tournament Name</label>
@@ -77,6 +79,7 @@
         <button class="btn" onclick="window.createTournament()">Create Tournament</button>
     </div>
 
+    <!-- টুর্নামেন্ট লিস্ট বক্স -->
     <div class="box">
         <h3>Your Tournaments</h3>
         <ul id="tournamentsListContainer" class="tournament-list">
@@ -108,7 +111,7 @@
         localStorage.setItem('proCricketUsername', currentUsername);
     }
 
-    // প্রোফাইল পেজে ইউজারনেমসহ লিংক সেট করা
+    // প্রোফাইল লিংকের সাথে ইউজারনেম পাস করা
     document.getElementById('myProfileLink').href = `profile.html?u=${currentUsername}`;
 
     let currentUserId = "";
@@ -216,6 +219,7 @@
                     const tour = tours[tourId];
                     let li = document.createElement('li');
                     li.className = "tournament-item";
+                    // টুর্নামেন্টের নামের ওপর ক্লিক করলে tournament.html এ যাবে এবং ডানপাশে ডিলিট বাটন থাকবে
                     li.innerHTML = `
                         <a href="tournament.html?t=${tourId}&u=${currentUsername}">
                             <span>${tour.name || 'Unnamed Tournament'}</span>
