@@ -65,7 +65,7 @@
         .btn-signup { background-color: #007bff; }
         .btn-logout { background-color: #4a5568; }
         
-        /* বড় গোলাকার প্রোফাইল সেকশন (রিচার্জ গাইডলাইনের ঠিক ওপরে) */
+        /* বড় গোলাকার প্রোফাইল সেকশন */
         .dashboard-profile-container {
             margin: 15px 0;
             display: flex;
@@ -254,7 +254,7 @@
                 </div>
             </div>
 
-            <!-- বড় গোলাকার প্রোফাইল ছবি সেকশন (রিচার্জ গাইডলাইনের ঠিক ওপরে) -->
+            <!-- বড় গোলাকার প্রোফাইল ছবি সেকশন -->
             <div class="dashboard-profile-container">
                 <a id="myProfileLink" href="profile.html" class="dashboard-profile-link" title="Click to open Profile Hub">
                     <img id="dashboardLargeAvatar" src="https://via.placeholder.com/110" alt="Profile Avatar" class="dashboard-large-avatar">
@@ -428,7 +428,10 @@
         }
     };
 
-    window.logout = () => { signOut(auth); };
+    window.logout = () => { 
+        localStorage.removeItem('proCricketUsername');
+        signOut(auth); 
+    };
 
     window.copyLink = () => {
         const inputField = document.getElementById('viewer-link-input');
@@ -445,7 +448,26 @@
         }
     };
 
-    function listenUserProfileLarge(userId) {
+    function loadUserData(userId) {
+        const userRef = ref(db, 'users/' + userId);
+        onValue(userRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                currentCredits = userData.credits !== undefined ? userData.credits : 0;
+                currentUsername = userData.username || "";
+
+                localStorage.setItem('proCricketUsername', currentUsername);
+
+                document.getElementById('user-credits').innerText = currentCredits;
+                document.getElementById('display-username').innerText = currentUsername;
+                
+                document.getElementById('myProfileLink').href = `profile.html?u=${currentUsername}`;
+
+                let baseUrl = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
+                document.getElementById('viewer-link-input').value = `${baseUrl}/viewer.html?u=${currentUsername}`;
+            }
+        });
+
         const profileRef = ref(db, `users/${userId}/profile`);
         onValue(profileRef, (snapshot) => {
             if (snapshot.exists()) {
@@ -457,44 +479,16 @@
         });
     }
 
-    if (localStorage.getItem('proCricketUsername') || localStorage.getItem('firebase:authUser:' + firebaseConfig.apiKey + ':[DEFAULT]')) {
-        document.getElementById('login-section').classList.add('hidden');
-        document.getElementById('signup-section').classList.add('hidden');
-        document.getElementById('dashboard-section').classList.remove('hidden');
-    }
-
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('signup-section').classList.add('hidden');
             document.getElementById('dashboard-section').classList.remove('hidden');
 
-            const userRef = ref(db, 'users/' + user.uid);
-            onValue(userRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    const userData = snapshot.val();
-                    currentCredits = userData.credits !== undefined ? userData.credits : 0;
-                    currentUsername = userData.username || "";
-
-                    localStorage.setItem('proCricketUsername', currentUsername);
-
-                    document.getElementById('user-credits').innerText = currentCredits;
-                    document.getElementById('display-username').innerText = currentUsername;
-                    
-                    document.getElementById('myProfileLink').href = `profile.html?u=${currentUsername}`;
-
-                    let baseUrl = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
-                    document.getElementById('viewer-link-input').value = `${baseUrl}/viewer.html?u=${currentUsername}`;
-                }
-            });
-
-            listenUserProfileLarge(user.uid);
+            loadUserData(user.uid);
         } else {
-            const existingUser = localStorage.getItem('proCricketUsername');
-            if (!existingUser) {
-                document.getElementById('dashboard-section').classList.add('hidden');
-                document.getElementById('login-section').classList.remove('hidden');
-            }
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('login-section').classList.remove('hidden');
         }
     });
 </script>
