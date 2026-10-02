@@ -39,14 +39,14 @@
         .match-item, .tournament-item { background: #fff; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; }
         .match-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; color: #1e3c72; font-size: 14px; width: 100%; flex-wrap: wrap; gap: 10px; }
         
-        .btn-delete-icon { background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.3); width: 32px; height: 32px; border-radius: 5px; cursor: pointer; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+        .btn-delete-icon { background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.3); width: 32px; height: 32px; border-radius: 5px; cursor: pointer; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease; flex-shrink: 0; }
         .btn-delete-icon:hover { background: #dc3545; color: white; }
 
         .btn-launch-match { background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-size: 13px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
         .btn-launch-match:hover { background: #0056b3; }
 
         .completed-badge { background: #e2e8f0; color: #2d3748; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .page-section { display: none; }
+        .page-section { display: block; } /* ডিফল্টভাবে ব্লক করা হয়েছে যাতে ফাঁকা না থাকে */
     </style>
 </head>
 <body>
@@ -78,7 +78,7 @@
     </div>
 
     <!-- ২. নির্দিষ্ট টুর্নামেন্ট প্যানেল -->
-    <div id="activeTournamentView" class="page-section">
+    <div id="activeTournamentView" class="page-section" style="display: none;">
         
         <div style="margin-bottom: 15px;">
             <a id="backToHubBtn" href="tournament.html" style="color: #0056b3; text-decoration: none; font-weight: bold; font-size: 14px;">⬅️ Back to Tournaments List</a>
@@ -101,7 +101,7 @@
             </ul>
         </div>
 
-        <!-- ম্যাচ শিডিউল তৈরি করার সেকশন (এখানে এখন শুধু শিডিউল বা ম্যাচ সেভ করার অপশন থাকবে) -->
+        <!-- ম্যাচ শিডিউল তৈরি করার সেকশন -->
         <div class="box">
             <h3>⚔️ Schedule New Match</h3>
             <label>Select Team 1</label>
@@ -122,7 +122,7 @@
             <button class="btn" style="background: #007bff;" onclick="window.scheduleMatch()">📅 Save / Schedule Match to List</button>
         </div>
 
-        <!-- ম্যাচ হিস্ট্রি ও শিডিউল লিস্ট (প্রতিটি ম্যাচে আলাদা লঞ্চ/রিজিউম বাটন থাকবে) -->
+        <!-- ম্যাচ হিস্ট্রি ও শিডিউল লিস্ট -->
         <div class="box">
             <h3>📜 Tournament Matches & Schedule</h3>
             <ul id="matchesListContainer" class="match-list" style="display: block;">
@@ -156,6 +156,8 @@
     if (!currentUsername) {
         alert("⚠️ Please login from dashboard first.");
         window.location.href = "index.html";
+    } else {
+        localStorage.setItem('proCricketUsername', currentUsername);
     }
 
     document.getElementById('profileLinkBtn').href = `profile.html?u=${currentUsername}`;
@@ -175,13 +177,15 @@
                 currentUserId = currentUsername;
             }
 
-            if (!tourId || tourId.trim() === "") {
+            // যদি টুর্নামেন্ট আইডি (t) না থাকে, তবে হাবের টুর্নামেন্ট লিস্ট দেখাবে
+            if (!tourId || tourId.trim() === "" || tourId === "null" || tourId === "undefined") {
                 document.getElementById('noTournamentView').style.display = 'block';
                 document.getElementById('activeTournamentView').style.display = 'none';
                 loadAllTournaments();
                 return;
             }
 
+            // যদি টুর্নামেন্ট আইডি থাকে, তবে নির্দিষ্ট টুর্নামেন্টের প্যানেল দেখাবে
             document.getElementById('noTournamentView').style.display = 'none';
             document.getElementById('activeTournamentView').style.display = 'block';
 
@@ -189,12 +193,18 @@
             const tourSnap = await get(tourRef);
             if (tourSnap.exists()) {
                 document.getElementById('tourTitle').innerText = "🏆 " + (tourSnap.val().name || "Tournament Hub");
+            } else {
+                document.getElementById('tourTitle').innerText = "🏆 Tournament Hub";
             }
 
             loadTeamsAndSquads();
             loadMatchesList();
         } catch (err) {
             console.error("Error initializing tournament hub:", err);
+            // ফেইল করলে অন্তত হাব ভিউ যেন ওপেন থাকে
+            document.getElementById('noTournamentView').style.display = 'block';
+            document.getElementById('activeTournamentView').style.display = 'none';
+            loadAllTournaments();
         }
     }
 
@@ -386,6 +396,7 @@
     window.updateTeamDropdowns = function() {
         const team1Select = document.getElementById('team1Select');
         const team2Select = document.getElementById('team2Select');
+        if (!team1Select || !team2Select) return;
 
         const selectedTeam1 = team1Select.value;
         const selectedTeam2 = team2Select.value;
@@ -420,6 +431,7 @@
 
     async function loadMatchesList() {
         const matchesContainer = document.getElementById('matchesListContainer');
+        if (!matchesContainer) return;
         matchesContainer.innerHTML = "<li style='text-align:center; color:#888; width: 100%;'>Loading matches schedule...</li>";
 
         try {
@@ -434,11 +446,16 @@
                     li.className = "match-item";
                     
                     let isCompleted = match.status === "completed";
+                    let isRunning = match.status === "running";
 
-                    // শিডিউল বা রানিং ম্যাচের জন্য লঞ্চ বাটন, কমপ্লিট হলে লক বাটন
-                    let actionButton = isCompleted 
-                        ? `<span class="completed-badge">Completed (${match.winner || 'Finished'})</span>` 
-                        : `<button class="btn-launch-match" onclick="window.launchOrResumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')">🚀 Launch / Resume</button>`;
+                    let actionButton = "";
+                    if (isCompleted) {
+                        actionButton = `<span class="completed-badge">Completed (${match.winner || 'Finished'})</span>`;
+                    } else if (isRunning) {
+                        actionButton = `<button class="btn-launch-match" style="background: #28a745;" onclick="window.launchOrResumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')">▶️ Resume Match</button>`;
+                    } else {
+                        actionButton = `<button class="btn-launch-match" onclick="window.launchOrResumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')">🚀 Launch Match</button>`;
+                    }
 
                     li.innerHTML = `
                         <div class="match-header">
@@ -455,11 +472,10 @@
                 matchesContainer.innerHTML = '<li style="text-align:center; color:#888; width: 100%;">No matches scheduled yet. Use above box to schedule matches!</li>';
             }
         } catch (err) {
-            matchesContainer.innerHTML = '<li style="text-align:center; color:red; width: 100%;'>Error loading matches schedule.</li>';
+            matchesContainer.innerHTML = '<li style="text-align:center; color:red; width: 100%;">Error loading matches schedule.</li>';
         }
     }
 
-    // ১. আগে থেকেই ম্যাচ শিডিউল বা সেভ করে রাখার ফাংশন (কোনো ক্রেডিট কাটবে না)
     window.scheduleMatch = async function() {
         const team1 = document.getElementById('team1Select').value;
         const team2 = document.getElementById('team2Select').value;
@@ -497,7 +513,6 @@
         }
     };
 
-    // ২. নির্দিষ্ট ম্যাচের পাশের "Launch / Resume" বাটনে ক্লিক করলে ১ ক্রেডিট কেটে কন্ট্রোলারে নিয়ে যাওয়ার ফাংশন
     window.launchOrResumeMatch = async function(matchId, t1, t2, overs, type) {
         try {
             const matchRef = ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${matchId}`);
@@ -507,16 +522,15 @@
             if (matchSnap.exists()) {
                 let mData = matchSnap.val();
                 if (mData.status === 'running') {
-                    isAlreadyStarted = true; // যদি ম্যাচ আগে থেকেই রানিং থাকে তবে ডাবল ক্রেডিট কাটবে না
+                    isAlreadyStarted = true;
                 }
             }
 
             if (!isAlreadyStarted) {
-                // প্রথমবার ম্যাচ লাইভ বা লঞ্চ করার সময় ১ ক্রেডিট চেক ও কাটা
                 const userRef = ref(db, `users/${currentUserId}`);
                 const userSnap = await get(userRef);
 
-                let currentCredits = 1; // ডিফল্ট ১ ক্রেডিট
+                let currentCredits = 1;
                 if (userSnap.exists() && userSnap.val().credits !== undefined) {
                     currentCredits = parseInt(userSnap.val().credits);
                 }
@@ -526,21 +540,17 @@
                     return;
                 }
 
-                // ফায়ারবেস থেকে ১ ক্রেডিট মাইনাস করা
                 await update(userRef, {
                     credits: currentCredits - 1
                 });
 
-                // সফল ক্রেডিট কাটার নোটিফিকেশন
                 alert("🔔 Notice: 1 credit has been deducted for launching this match.");
 
-                // ম্যাচের স্ট্যাটাস 'running' করে আপডেট করা
                 await update(matchRef, {
                     status: 'running'
                 });
             }
 
-            // কন্ট্রোলারে রিডাইরেক্ট করা
             window.location.href = `controller.html?t=${tourId}&u=${currentUsername}&m=${matchId}&t1=${encodeURIComponent(t1)}&t2=${encodeURIComponent(t2)}&overs=${overs}&type=${encodeURIComponent(type)}`;
         } catch (err) {
             console.error("Error launching match:", err);
