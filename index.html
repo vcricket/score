@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scoreboard - Dashboard & Tournament Manager</title>
+    <title>Scoreboard - Dashboard</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -26,7 +26,6 @@
             text-align: center; 
         }
         h2 { color: #1e3c72; margin-top: 0; margin-bottom: 15px; font-size: 22px; }
-        h3 { color: #2a5298; margin: 15px 0 10px; font-size: 16px; text-align: left; border-bottom: 2px solid #eef2f3; padding-bottom: 5px; }
         input, select, textarea { 
             width: 100%; 
             padding: 10px; 
@@ -65,7 +64,6 @@
         .btn-login { background-color: #28a745; }
         .btn-signup { background-color: #007bff; }
         .btn-logout { background-color: #4a5568; }
-        .btn-action-small { background-color: #007bff; padding: 8px 12px; font-size: 13px; width: auto; }
         
         /* হেডার প্রোফাইল বাটন ও ছবি স্টাইল */
         .btn-profile-link { 
@@ -182,25 +180,6 @@
             display: inline-block;
         }
         .msg { font-size: 13px; margin-top: 6px; }
-
-        .card-box {
-            background: #fdfdfd;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 14px;
-            margin-bottom: 15px;
-            text-align: left;
-        }
-        .team-tag {
-            display: inline-block;
-            background: #e2e8f0;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-            margin: 3px;
-            color: #333;
-        }
     </style>
 </head>
 <body>
@@ -246,12 +225,11 @@
     <!-- User Dashboard -->
     <div id="dashboard-section" class="hidden">
         
-        <!-- মূল হোমপেজ ভিউ -->
         <div id="homeMainView">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
                 <h2 style="margin: 0; text-align: left;">Welcome, <span id="display-username" style="color: #ff9800;"></span>!</h2>
                 
-                <!-- হেডার প্রোফাইল বাটন (যেখানে ইউজারের ছবি ও নাম রিয়েল-টাইমে দেখাবে) -->
+                <!-- হেডার প্রোফাইল বাটন -->
                 <a id="myProfileLink" href="profile.html" class="btn-profile-link">
                     <img id="headerAvatar" src="https://via.placeholder.com/28" alt="Avatar" class="header-avatar">
                     <span id="headerProfileName">My Profile</span>
@@ -271,19 +249,6 @@
                 </div>
             </div>
 
-            <!-- Global Team Library Section -->
-            <div class="card-box" style="background: #f0f7ff; border-color: #b8daff;">
-                <h3 style="color: #0056b3;">👥 Global Team & Squad Library</h3>
-                <p style="font-size: 12px; color: #555; margin: 0 0 6px;">Create and save your teams here once.</p>
-                <textarea id="globalSquadText" rows="3" placeholder="Kolkata Tigers&#10;Player 1&#10;Player 2 (wk)"></textarea>
-                <button class="btn-action-small" style="background:#0056b3; width: 100%;" onclick="saveGlobalTeam()">💾 Save Team to Library</button>
-                
-                <div style="margin-top: 8px; font-size: 12px; color: #333;">
-                    <b>Saved Teams in Library:</b><br>
-                    <div id="globalTeamsList" style="margin-top: 4px;">None</div>
-                </div>
-            </div>
-
             <!-- Payment Recharge Box -->
             <div class="payment-box">
                 <b>Recharge Guidelines:</b><br>
@@ -298,13 +263,6 @@
                 <a href="https://wa.me/917980735754?text=Hello,%20I%20have%20paid%20%E2%82%B950%20via%20UPI%20for%201%20match%20credit." target="_blank" class="whatsapp-btn">
                     💬 Send Screenshot on WhatsApp
                 </a>
-            </div>
-
-            <!-- Danger Zone -->
-            <div style="background: #fff5f5; border: 1px dashed #feb2b2; padding: 12px; border-radius: 8px; margin-top: 15px; text-align: left;">
-                <b style="color: #c53030; font-size: 13px;">⚠️ Danger Zone:</b>
-                <p style="font-size: 11px; color: #742a2a; margin: 4px 0 8px;">Delete all your data, teams, and squads permanently.</p>
-                <button style="background: #e53e3e; color: white; padding: 8px 12px; font-size: 12px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; width: 100%; margin: 0;" onclick="resetAllUserData()">🗑️ Reset All Data</button>
             </div>
 
             <button class="btn-logout" style="margin-top: 15px;" onclick="logout()">Logout</button>
@@ -326,7 +284,7 @@
         setPersistence, 
         browserLocalPersistence 
     } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-    import { getDatabase, ref, get, update, set, onValue } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+    import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
@@ -343,10 +301,8 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    let currentUser = null;
     let currentCredits = 0;
     let currentUsername = "";
-    let globalTeamsLibrary = {};
 
     window.togglePasswordVisibility = (inputId, iconElement) => {
         const passwordInput = document.getElementById(inputId);
@@ -476,43 +432,8 @@
         }
     };
 
-    window.saveGlobalTeam = async () => {
-        const text = document.getElementById('globalSquadText').value.trim();
-        if (!text) return alert("Please enter team name and squad!");
-
-        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        const teamName = lines[0];
-
-        await set(ref(db, `users/${currentUser.uid}/global_teams/${teamName}`), text);
-        document.getElementById('globalSquadText').value = '';
-        alert(`✅ Team '${teamName}' saved to your Global Team Library!`);
-    };
-
-    function listenGlobalTeams() {
-        const teamsRef = ref(db, `users/${currentUser.uid}/global_teams`);
-        onValue(teamsRef, (snapshot) => {
-            globalTeamsLibrary = snapshot.val() || {};
-            const listContainer = document.getElementById('globalTeamsList');
-            
-            listContainer.innerHTML = '';
-
-            const teamNames = Object.keys(globalTeamsLibrary);
-            if (teamNames.length === 0) {
-                listContainer.innerHTML = '<span style="color: #888; font-size: 11px;">No teams saved in library yet.</span>';
-                return;
-            }
-
-            teamNames.forEach(tName => {
-                const tag = document.createElement('span');
-                tag.className = 'team-tag';
-                tag.innerText = tName;
-                listContainer.appendChild(tag);
-            });
-        });
-    }
-
-    function listenUserProfileHeader() {
-        const profileRef = ref(db, `users/${currentUser.uid}/profile`);
+    function listenUserProfileHeader(userId) {
+        const profileRef = ref(db, `users/${userId}/profile`);
         onValue(profileRef, (snapshot) => {
             if (snapshot.exists()) {
                 const profileData = snapshot.val();
@@ -526,25 +447,6 @@
         });
     }
 
-    window.resetAllUserData = async () => {
-        const confirm1 = confirm("⚠️ DANGER: Do you really want to delete ALL your teams and squads?");
-        if (!confirm1) return;
-
-        const confirm2 = prompt("Type 'DELETE' in capital letters to confirm wiping out your data:");
-        if (confirm2 !== "DELETE") {
-            return alert("Action cancelled. Data is safe.");
-        }
-
-        try {
-            await set(ref(db, `users/${currentUser.uid}/global_teams`), null);
-            alert("🗑️ All your global teams have been wiped successfully!");
-            location.reload();
-        } catch (error) {
-            alert("Error resetting data: " + error.message);
-        }
-    };
-
-    // ইনস্ট্যান্ট চেক যাতে ব্যাক করলে বা পেজ রিফ্রেশ করলে লগইন ফর্ম না দেখায়
     if (localStorage.getItem('proCricketUsername') || localStorage.getItem('firebase:authUser:' + firebaseConfig.apiKey + ':[DEFAULT]')) {
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('signup-section').classList.add('hidden');
@@ -553,7 +455,6 @@
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            currentUser = user;
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('signup-section').classList.add('hidden');
             document.getElementById('dashboard-section').classList.remove('hidden');
@@ -565,6 +466,8 @@
                     currentCredits = userData.credits !== undefined ? userData.credits : 0;
                     currentUsername = userData.username || "";
 
+                    localStorage.setItem('proCricketUsername', currentUsername);
+
                     document.getElementById('user-credits').innerText = currentCredits;
                     document.getElementById('display-username').innerText = currentUsername;
                     
@@ -575,12 +478,13 @@
                 }
             });
 
-            listenGlobalTeams();
-            listenUserProfileHeader();
+            listenUserProfileHeader(user.uid);
         } else {
-            currentUser = null;
-            document.getElementById('dashboard-section').classList.add('hidden');
-            document.getElementById('login-section').classList.remove('hidden');
+            const existingUser = localStorage.getItem('proCricketUsername');
+            if (!existingUser) {
+                document.getElementById('dashboard-section').classList.add('hidden');
+                document.getElementById('login-section').classList.remove('hidden');
+            }
         }
     });
 </script>
