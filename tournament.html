@@ -37,13 +37,15 @@
         .btn-edit-player:hover { background: #0056b3; color: white; }
 
         .match-item, .tournament-item { background: #fff; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; }
-        .match-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; color: #1e3c72; font-size: 15px; width: 100%; }
+        .match-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; color: #1e3c72; font-size: 14px; width: 100%; flex-wrap: wrap; gap: 10px; }
         
-        /* শুধু ডাস্টবিন গ্লাস আইকন, কোনো টেক্সট বা লেবেল নেই */
         .btn-delete-icon { background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.3); width: 32px; height: 32px; border-radius: 5px; cursor: pointer; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
         .btn-delete-icon:hover { background: #dc3545; color: white; }
 
-        .completed-badge { background: #e2e8f0; color: #2d3748; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .btn-launch-match { background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-size: 13px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+        .btn-launch-match:hover { background: #0056b3; }
+
+        .completed-badge { background: #e2e8f0; color: #2d3748; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
         .page-section { display: none; }
     </style>
 </head>
@@ -99,9 +101,9 @@
             </ul>
         </div>
 
-        <!-- ম্যাচ শিডিউল ও লঞ্চ সেকশন -->
+        <!-- ম্যাচ শিডিউল তৈরি করার সেকশন (এখানে এখন শুধু শিডিউল বা ম্যাচ সেভ করার অপশন থাকবে) -->
         <div class="box">
-            <h3>⚔️ Create & Launch Match</h3>
+            <h3>⚔️ Schedule New Match</h3>
             <label>Select Team 1</label>
             <select id="team1Select" onchange="window.filterTeams()"><option value="">-- Select Team 1 --</option></select>
 
@@ -117,14 +119,14 @@
                 <option value="Knockout">Knockout / Final</option>
             </select>
 
-            <button class="btn" style="background: #007bff;" onclick="window.launchMatch()">🚀 Launch Match Controller</button>
+            <button class="btn" style="background: #007bff;" onclick="window.scheduleMatch()">📅 Save / Schedule Match to List</button>
         </div>
 
-        <!-- ম্যাচ হিস্ট্রি ও কমপ্লিটেড ম্যাচ লিস্ট সেকশন -->
+        <!-- ম্যাচ হিস্ট্রি ও শিডিউল লিস্ট (প্রতিটি ম্যাচে আলাদা লঞ্চ/রিজিউম বাটন থাকবে) -->
         <div class="box">
-            <h3>📜 Tournament Matches History</h3>
+            <h3>📜 Tournament Matches & Schedule</h3>
             <ul id="matchesListContainer" class="match-list" style="display: block;">
-                <li style="color: #888; font-size: 14px; width: 100%;">No matches played or scheduled yet.</li>
+                <li style="color: #888; font-size: 14px; width: 100%;">No matches scheduled yet.</li>
             </ul>
         </div>
 
@@ -418,7 +420,7 @@
 
     async function loadMatchesList() {
         const matchesContainer = document.getElementById('matchesListContainer');
-        matchesContainer.innerHTML = "<li style='text-align:center; color:#888; width: 100%;'>Loading matches history...</li>";
+        matchesContainer.innerHTML = "<li style='text-align:center; color:#888; width: 100%;'>Loading matches schedule...</li>";
 
         try {
             const matchesSnap = await get(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches`));
@@ -433,21 +435,16 @@
                     
                     let isCompleted = match.status === "completed";
 
-                    let matchClickAction = isCompleted 
-                        ? `alert('⚠️ This match is completed and locked. You cannot edit it anymore!');` 
-                        : `window.resumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')`;
-
-                    let statusBadge = isCompleted 
+                    // শিডিউল বা রানিং ম্যাচের জন্য লঞ্চ বাটন, কমপ্লিট হলে লক বাটন
+                    let actionButton = isCompleted 
                         ? `<span class="completed-badge">Completed (${match.winner || 'Finished'})</span>` 
-                        : `<span style="color:#007bff; font-size:12px; font-weight:bold; cursor:pointer;" onclick="${matchClickAction}">▶️ Running (Click to Resume)</span>`;
+                        : `<button class="btn-launch-match" onclick="window.launchOrResumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')">🚀 Launch / Resume</button>`;
 
                     li.innerHTML = `
                         <div class="match-header">
-                            <span style="cursor: ${isCompleted ? 'default' : 'pointer'}; color: ${isCompleted ? '#555' : '#0056b3'};" onclick="${matchClickAction}">
-                                🏏 ${match.team1} vs ${match.team2} (${match.overs || 10} Ov, ${match.type || 'League'})
-                            </span>
+                            <span>🏏 ${match.team1} vs ${match.team2} (${match.overs || 10} Ov, ${match.type || 'League'})</span>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                ${statusBadge}
+                                ${actionButton}
                                 <button class="btn-delete-icon" onclick="window.deleteMatch('${matchId}')" title="Delete Match">🗑️</button>
                             </div>
                         </div>
@@ -455,15 +452,15 @@
                     matchesContainer.appendChild(li);
                 });
             } else {
-                matchesContainer.innerHTML = '<li style="text-align:center; color:#888; width: 100%;">No matches played or scheduled yet.</li>';
+                matchesContainer.innerHTML = '<li style="text-align:center; color:#888; width: 100%;">No matches scheduled yet. Use above box to schedule matches!</li>';
             }
         } catch (err) {
-            matchesContainer.innerHTML = '<li style="text-align:center; color:red; width: 100%;">Error loading matches history.</li>';
+            matchesContainer.innerHTML = '<li style="text-align:center; color:red; width: 100%;'>Error loading matches schedule.</li>';
         }
     }
 
-    // ম্যাচ লঞ্চ ও ১ ক্রেডিট কাটার নোটিফিকেশনসহ স্মার্ট লজিক
-    window.launchMatch = async function() {
+    // ১. আগে থেকেই ম্যাচ শিডিউল বা সেভ করে রাখার ফাংশন (কোনো ক্রেডিট কাটবে না)
+    window.scheduleMatch = async function() {
         const team1 = document.getElementById('team1Select').value;
         const team2 = document.getElementById('team2Select').value;
         const overs = document.getElementById('matchOversInput').value || 10;
@@ -479,66 +476,76 @@
         }
 
         try {
-            const matchesSnap = await get(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches`));
-            let existingRunningMatchId = null;
+            const newMatchRef = push(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches`));
+            await set(newMatchRef, {
+                team1: team1,
+                team2: team2,
+                overs: overs,
+                type: matchType.toLowerCase(),
+                status: 'scheduled',
+                createdAt: Date.now()
+            });
 
-            if (matchesSnap.exists()) {
-                const matches = matchesSnap.val();
-                Object.keys(matches).forEach(mId => {
-                    let m = matches[mId];
-                    if (m.status !== 'completed' && ((m.team1 === team1 && m.team2 === team2) || (m.team1 === team2 && m.team2 === team1))) {
-                        existingRunningMatchId = mId;
-                    }
-                });
+            document.getElementById('team1Select').value = "";
+            document.getElementById('team2Select').value = "";
+            updateTeamDropdowns();
+            loadMatchesList();
+            alert("📅 Match scheduled successfully to the list!");
+        } catch (err) {
+            console.error("Error scheduling match:", err);
+            alert("❌ Failed to schedule match.");
+        }
+    };
+
+    // ২. নির্দিষ্ট ম্যাচের পাশের "Launch / Resume" বাটনে ক্লিক করলে ১ ক্রেডিট কেটে কন্ট্রোলারে নিয়ে যাওয়ার ফাংশন
+    window.launchOrResumeMatch = async function(matchId, t1, t2, overs, type) {
+        try {
+            const matchRef = ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${matchId}`);
+            const matchSnap = await get(matchRef);
+
+            let isAlreadyStarted = false;
+            if (matchSnap.exists()) {
+                let mData = matchSnap.val();
+                if (mData.status === 'running') {
+                    isAlreadyStarted = true; // যদি ম্যাচ আগে থেকেই রানিং থাকে তবে ডাবল ক্রেডিট কাটবে না
+                }
             }
 
-            let matchId = "";
-
-            if (existingRunningMatchId) {
-                matchId = existingRunningMatchId; 
-            } else {
+            if (!isAlreadyStarted) {
+                // প্রথমবার ম্যাচ লাইভ বা লঞ্চ করার সময় ১ ক্রেডিট চেক ও কাটা
                 const userRef = ref(db, `users/${currentUserId}`);
                 const userSnap = await get(userRef);
 
-                if (userSnap.exists()) {
-                    let userData = userSnap.val();
-                    let currentCredits = userData.credits !== undefined ? parseInt(userData.credits) : 5;
-
-                    if (currentCredits <= 0) {
-                        alert("❌ Insufficient credits! Please top up your credits to launch a match.");
-                        return;
-                    }
-
-                    await update(userRef, {
-                        credits: currentCredits - 1
-                    });
-
-                    // ১ ক্রেডিট কাটার সফল নোটিফিকেশন পপ-আপ
-                    alert("🔔 Notice: 1 credit has been deducted for launching this match.");
+                let currentCredits = 1; // ডিফল্ট ১ ক্রেডিট
+                if (userSnap.exists() && userSnap.val().credits !== undefined) {
+                    currentCredits = parseInt(userSnap.val().credits);
                 }
 
-                const newMatchRef = push(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches`));
-                matchId = newMatchRef.key;
+                if (currentCredits <= 0) {
+                    alert("❌ Insufficient credits! You have 0 credits left. Please top up to launch a match.");
+                    return;
+                }
 
-                await set(newMatchRef, {
-                    team1: team1,
-                    team2: team2,
-                    overs: overs,
-                    type: matchType.toLowerCase(),
-                    status: 'running',
-                    createdAt: Date.now()
+                // ফায়ারবেস থেকে ১ ক্রেডিট মাইনাস করা
+                await update(userRef, {
+                    credits: currentCredits - 1
+                });
+
+                // সফল ক্রেডিট কাটার নোটিফিকেশন
+                alert("🔔 Notice: 1 credit has been deducted for launching this match.");
+
+                // ম্যাচের স্ট্যাটাস 'running' করে আপডেট করা
+                await update(matchRef, {
+                    status: 'running'
                 });
             }
 
-            window.location.href = `controller.html?t=${tourId}&u=${currentUsername}&m=${matchId}&t1=${encodeURIComponent(team1)}&t2=${encodeURIComponent(team2)}&overs=${overs}&type=${encodeURIComponent(matchType)}`;
+            // কন্ট্রোলারে রিডাইরেক্ট করা
+            window.location.href = `controller.html?t=${tourId}&u=${currentUsername}&m=${matchId}&t1=${encodeURIComponent(t1)}&t2=${encodeURIComponent(t2)}&overs=${overs}&type=${encodeURIComponent(type)}`;
         } catch (err) {
             console.error("Error launching match:", err);
             alert("❌ Failed to launch match.");
         }
-    };
-
-    window.resumeMatch = function(matchId, t1, t2, overs, type) {
-        window.location.href = `controller.html?t=${tourId}&u=${currentUsername}&m=${matchId}&t1=${encodeURIComponent(t1)}&t2=${encodeURIComponent(t2)}&overs=${overs}&type=${encodeURIComponent(type)}`;
     };
 
     window.deleteMatch = async function(matchId) {
