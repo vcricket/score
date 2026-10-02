@@ -39,7 +39,7 @@
         .match-item, .tournament-item { background: #fff; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; }
         .match-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; color: #1e3c72; font-size: 15px; width: 100%; }
         
-        /* শুধু ডাস্টবিন গ্লাস আইকন, কোনো টেক্সট নেই */
+        /* শুধু ডাস্টবিন গ্লাস আইকন, কোনো টেক্সট বা লেবেল নেই */
         .btn-delete-icon { background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.3); width: 32px; height: 32px; border-radius: 5px; cursor: pointer; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
         .btn-delete-icon:hover { background: #dc3545; color: white; }
 
@@ -356,7 +356,6 @@
                         playersHTML = '<div style="color: #888; font-size: 13px;">No players found</div>';
                     }
 
-                    // টিমের নামের পাশে এখন শুধু ডাস্টবিন গ্লাস (🗑️) আইকন রয়েছে
                     li.innerHTML = `
                         <div class="team-header-row" onclick="window.toggleSquadDropdown(this)">
                             <span class="team-name-text">🏏 ${team.name} <span style="font-size:12px; color:#666; font-weight:normal;">(Click to view squad ▾)</span></span>
@@ -419,7 +418,7 @@
 
     async function loadMatchesList() {
         const matchesContainer = document.getElementById('matchesListContainer');
-        matchesContainer.innerHTML = "<li style='color: #888; font-size: 14px; width: 100;'>Loading matches history...</li>";
+        matchesContainer.innerHTML = "<li style='text-align:center; color:#888; width: 100%;'>Loading matches history...</li>";
 
         try {
             const matchesSnap = await get(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches`));
@@ -434,13 +433,22 @@
                     
                     let isCompleted = match.status === "completed";
 
+                    // যদি ম্যাচ কমপ্লিট হয়ে যায়, তবে লক থাকবে এবং ক্লিক করলে এডিট করা যাবে না
+                    let matchClickAction = isCompleted 
+                        ? `alert('⚠️ This match is completed and locked. You cannot edit it anymore!');` 
+                        : `window.resumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')`;
+
+                    let statusBadge = isCompleted 
+                        ? `<span class="completed-badge">Completed (${match.winner || 'Finished'})</span>` 
+                        : `<span style="color:#007bff; font-size:12px; font-weight:bold; cursor:pointer;" onclick="${matchClickAction}">▶️ Running (Click to Resume)</span>`;
+
                     li.innerHTML = `
                         <div class="match-header">
-                            <span style="cursor: pointer; color: #0056b3;" onclick="window.resumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')">
+                            <span style="cursor: ${isCompleted ? 'default' : 'pointer'}; color: ${isCompleted ? '#555' : '#0056b3'};" onclick="${matchClickAction}">
                                 🏏 ${match.team1} vs ${match.team2} (${match.overs || 10} Ov, ${match.type || 'League'})
                             </span>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                ${isCompleted ? '<span class="completed-badge">Completed</span>' : '<span style="color:#007bff; font-size:12px; font-weight:bold;">Running (Click to resume)</span>'}
+                                ${statusBadge}
                                 <button class="btn-delete-icon" onclick="window.deleteMatch('${matchId}')" title="Delete Match">🗑️</button>
                             </div>
                         </div>
@@ -448,14 +456,14 @@
                     matchesContainer.appendChild(li);
                 });
             } else {
-                matchesContainer.innerHTML = '<li style="color: #888; font-size: 14px; width: 100%;">No matches played or scheduled yet.</li>';
+                matchesContainer.innerHTML = '<li style="text-align:center; color:#888; width: 100%;">No matches played or scheduled yet.</li>';
             }
         } catch (err) {
-            matchesContainer.innerHTML = '<li style="color: red; font-size: 14px; width: 100%;">Error loading matches history.</li>';
+            matchesContainer.innerHTML = '<li style="text-align:center; color:red; width: 100%;">Error loading matches history.</li>';
         }
     }
 
-    // ম্যাচ ক্রিয়েট ও ফায়ারবেসে পার্মানেন্টলি সেভ করে কন্ট্রোলারে যাওয়া
+    // ম্যাচ লঞ্চ ও ডাবল ক্রেডিট কাটা রোধ করার স্মার্ট লজিক
     window.launchMatch = async function() {
         const team1 = document.getElementById('team1Select').value;
         const team2 = document.getElementById('team2Select').value;
@@ -467,25 +475,61 @@
             return;
         }
         if (team1 === team2) {
-            alert("⚠️️ Team 1 and Team 2 cannot be the same!");
+            alert("⚠️ Team 1 and Team 2 cannot be the same!");
             return;
         }
 
         try {
-            // ফায়ারবেসে ম্যাচটি আগে থেকেই পার্মানেন্টলি এন্ট্রি বা শিডিউল করে রাখা যাতে ব্যাক করলেও মুছে না যায়
-            const newMatchRef = push(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches`));
-            const matchId = newMatchRef.key;
+            // চেক করা যাক এই দুই দলের কোনো রানিং ম্যাচ আগে থেকেই আছে কি না (যাতে ব্যাক করলে ডাবল ক্রেডিট না কাটে)
+            const matchesSnap = await get(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches`));
+            let existingRunningMatchId = null;
 
-            await set(newMatchRef, {
-                team1: team1,
-                team2: team2,
-                overs: overs,
-                type: matchType.toLowerCase(),
-                status: 'running',
-                createdAt: Date.now()
-            });
+            if (matchesSnap.exists()) {
+                const matches = matchesSnap.val();
+                Object.keys(matches).forEach(mId => {
+                    let m = matches[mId];
+                    if (m.status !== 'completed' && ((m.team1 === team1 && m.team2 === team2) || (m.team1 === team2 && m.team2 === team1))) {
+                        existingRunningMatchId = mId;
+                    }
+                });
+            }
 
-            // কন্ট্রোলারে রিডাইরেক্ট করা
+            let matchId = "";
+
+            if (existingRunningMatchId) {
+                matchId = existingRunningMatchId; // পুরনো রানিং ম্যাচ হলে ক্রেডিট কাটবে না
+            } else {
+                // নতুন ম্যাচ হলে প্রথমবার শুধু ১ ক্রেডিট কাটবে
+                const userRef = ref(db, `users/${currentUserId}`);
+                const userSnap = await get(userRef);
+
+                if (userSnap.exists()) {
+                    let userData = userSnap.val();
+                    let currentCredits = userData.credits !== undefined ? parseInt(userData.credits) : 5;
+
+                    if (currentCredits <= 0) {
+                        alert("❌ Insufficient credits! Please top up your credits to launch a match.");
+                        return;
+                    }
+
+                    await update(userRef, {
+                        credits: currentCredits - 1
+                    });
+                }
+
+                const newMatchRef = push(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches`));
+                matchId = newMatchRef.key;
+
+                await set(newMatchRef, {
+                    team1: team1,
+                    team2: team2,
+                    overs: overs,
+                    type: matchType.toLowerCase(),
+                    status: 'running',
+                    createdAt: Date.now()
+                });
+            }
+
             window.location.href = `controller.html?t=${tourId}&u=${currentUsername}&m=${matchId}&t1=${encodeURIComponent(team1)}&t2=${encodeURIComponent(team2)}&overs=${overs}&type=${encodeURIComponent(matchType)}`;
         } catch (err) {
             console.error("Error launching match:", err);
@@ -493,7 +537,6 @@
         }
     };
 
-    // রানিং বা সেভ করা ম্যাচে ক্লিক করে আবার কন্ট্রোলারে ফিরে যাওয়ার অপশন
     window.resumeMatch = function(matchId, t1, t2, overs, type) {
         window.location.href = `controller.html?t=${tourId}&u=${currentUsername}&m=${matchId}&t1=${encodeURIComponent(t1)}&t2=${encodeURIComponent(t2)}&overs=${overs}&type=${encodeURIComponent(type)}`;
     };
