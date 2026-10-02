@@ -289,7 +289,6 @@
     let detailedStats = {};
     let scheduledMatchOvers = null;
 
-    // হেডারের "Tournament" বা "Back" বাটনে ক্লিক করলে সঠিক টুর্নামেন্টে ফিরে যাওয়ার ফিক্সড ফাংশন
     window.returnToTournamentImmediately = async function() {
         localStorage.removeItem(`localCricketLive_${currentMatchUser}`);
         localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}`);
@@ -1387,7 +1386,7 @@
             isLeagueMatchGlobal = (urlType.toLowerCase() === 'league');
         }
 
-        // ১. সবার আগে ফায়ারবেসের লাইভ স্কোর নোড থেকে রানিং বা সেভ করা স্কোর রিকভার করার চেষ্টা করা (যাতে ব্যাক করলে ডেটা ও ব্যাটার-বোলার মুছে না যায়)
+        // ১. ফায়ারবেসের লাইভ স্কোর নোড থেকে রানিং বা সেভ করা স্কোর রিকভার করা (টিম নেম যেন কোনোভাবেই স্কোয়াডের প্রথম প্লেয়ার না হয়ে যায়)
         let liveScoreLoaded = false;
         try {
             const liveSnap = await get(ref(db, `live_matches/${currentMatchUser}/score`));
@@ -1407,7 +1406,7 @@
             console.error("Error reading live score state:", e);
         }
 
-        // ২. যদি লাইভ স্কোর না থাকে, তবে টুর্নামেন্টের শিডিউল বা ডাটাবেজ থেকে টিম ও স্কোয়াড লোড করবে
+        // ২. লাইভ স্কোর না থাকলে শিডিউল বা ডাটাবেজ থেকে সুনির্দিষ্ট টিম ও স্কোয়াড লোড করবে
         if (!liveScoreLoaded && activeTournamentId && activeMatchId) {
             try {
                 const userSnap = await get(ref(db, 'usernames/' + currentMatchUser));
@@ -1437,7 +1436,7 @@
             }
         }
 
-        // টুর্নামেন্ট আইডি বা ইউজার ডেটা থেকে স্কোয়াড কুয়েরি করা যদি সরাসরি নাম দিয়ে থাকে
+        // স্কোয়াড ফেচ করার সময় কোনো কারণে টিম নেমে প্লেয়ারের নাম বসে গেলে তা রোধ করা
         if (activeTournamentId && (!squad1 || !squad2)) {
             try {
                 const userSnap = await get(ref(db, 'usernames/' + currentMatchUser));
@@ -1457,6 +1456,7 @@
             } catch(e) {}
         }
 
+        // টিমের ঘরে সুনির্দিষ্টভাবে টিমের নামই সেট করা নিশ্চিত করা হচ্ছে
         if (loadedBatTeam) document.getElementById('batTeamName').value = loadedBatTeam;
         if (loadedBowlTeam) document.getElementById('bowlTeamName').value = loadedBowlTeam;
 
@@ -1464,7 +1464,6 @@
         localStorage.setItem(`tempSelectedBowlTeamSquad_${currentMatchUser}`, squad2);
         localStorage.setItem(`localCricketSquads_${currentMatchUser}`, JSON.stringify({ t1: squad1, t2: squad2 }));
 
-        // আগের সমস্ত লাইভ স্কোর ও ব্যাটার-বোলার স্টেট লোড করা
         loadControllerState();
 
         if (loadedBatTeam) document.getElementById('batTeamName').value = loadedBatTeam;
@@ -1478,7 +1477,6 @@
 
         updateSuggestions();
         
-        // যদি স্কোর আগে থেকেই রানিং থাকে, তবে প্যানেলটি অটো বন্ধ থাকবে, না হলে ওপেন হবে
         let runsVal = parseInt(document.getElementById('runs').value) || 0;
         let wicketsVal = parseInt(document.getElementById('wickets').value) || 0;
         if (runsVal > 0 || wicketsVal > 0 || document.getElementById('bat1Name').value !== "") {
