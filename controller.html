@@ -17,7 +17,8 @@
         
         .box { background: #f9f9f9; padding: 18px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
         label { font-weight: bold; display: block; margin-top: 10px; font-size: 14px; color: #444; }
-        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; font-weight: bold; }
+        textarea { font-weight: normal; }
         .btn { width: 100%; padding: 12px; background: #28a745; color: white; border: none; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 15px; }
         .btn:hover { background: #218838; }
 
@@ -81,16 +82,20 @@
     <div id="activeTournamentView" class="page-section" style="display: none;">
         
         <div style="margin-bottom: 15px;">
-            <a id="backToHubBtn" href="tournament.html" style="color: #0056b3; text-decoration: none; font-weight: bold; font-size: 14px;">⬅️ Back to Tournaments List</a>
+            <a id="backToHubBtn" href="tournament.html" style="color: #0056b3; text-decoration: none; font-weight: bold; font-size: 14px;">⬅️️ Back to Tournaments List</a>
         </div>
 
-        <!-- টিম ও স্কোয়াড ম্যানেজমেন্ট সেকশন (প্রথম লাইনে টিম নাম, পরের লাইনগুলোতে প্লেয়ার) -->
+        <!-- টিম ও স্কোয়াড ম্যানেজমেন্ট সেকশন (আলাদা টিম নেম ও আলাদা স্কোয়াড ইনপুট) -->
         <div class="box" style="background: #f0f7ff; border-color: #b8daff;">
             <h3 style="color: #0056b3;">👥 Add Team & Squad</h3>
-            <label>Team Name & Players (1st line = Team Name, Next lines = Players List)</label>
-            <textarea id="teamAndSquadInput" rows="6" placeholder="Kolkata Tigers&#10;Player 1 (c) - Captain&#10;Player 2 (wk) - Wicketkeeper&#10;Player 3&#10;Player 4"></textarea>
+            
+            <label>Team Name</label>
+            <input type="text" id="separateTeamNameInput" placeholder="e.g. Kolkata Tigers">
 
-            <button class="btn" style="background: #0056b3;" onclick="window.saveTeamWithSquad()">💾 Save Team & Squad to Cloud</button>
+            <label>Players Squad (প্রতি লাইনে একজনের নাম লিখুন)</label>
+            <textarea id="separateSquadInput" rows="5" placeholder="Player 1 (c)&#10;Player 2 (wk)&#10;Player 3&#10;Player 4"></textarea>
+
+            <button class="btn" style="background: #0056b3;" onclick="window.saveSeparateTeamAndSquad()">💾 Save Team & Squad to Cloud</button>
             
             <h4 style="margin-top: 20px; color: #333;">Registered Teams:</h4>
             <ul id="teamsListContainer" class="team-list">
@@ -262,30 +267,32 @@
         if (!confirm("⚠️ Are you sure you want to delete this tournament?")) return;
         try {
             await remove(ref(db, `users/${currentUserId}/tournaments/${tId}`));
-            alert("🗑️ Tournament deleted successfully!");
+            alert("🗑️️ Tournament deleted successfully!");
             loadAllTournaments();
         } catch (err) {
             alert("❌ Failed to delete tournament.");
         }
     };
 
-    // একই টেক্সটবক্স থেকে প্রথম লাইন টিম নাম এবং বাকি লাইনগুলো স্কোয়াড হিসেবে প্রসেস করে সেভ করা
-    window.saveTeamWithSquad = async function() {
-        const rawText = document.getElementById('teamAndSquadInput').value.trim();
-        if (!rawText) {
-            alert("⚠️ Please enter Team Name on the 1st line and players below it!");
+    // আলাদা টিম নেম এবং আলাদা স্কোয়াড ইনপুট থেকে ডেটা প্রসেস করে ক্লাউডে সেভ করা
+    window.saveSeparateTeamAndSquad = async function() {
+        const teamName = document.getElementById('separateTeamNameInput').value.trim();
+        const squadText = document.getElementById('separateSquadInput').value.trim();
+
+        if (!teamName) {
+            alert("⚠️ Please enter the Team Name!");
+            return;
+        }
+        if (!squadText) {
+            alert("⚠️ Please enter the Players Squad!");
             return;
         }
 
-        let lines = rawText.split('\n').map(p => p.trim()).filter(p => p.length > 0);
-        if (lines.length < 2) {
-            alert("⚠️ Please provide at least the Team Name on the 1st line and some players on the following lines!");
+        let players = squadText.split('\n').map(p => p.trim()).filter(p => p.length > 0);
+        if (players.length === 0) {
+            alert("⚠️ Please add at least one player!");
             return;
         }
-
-        // প্রথম লাইন হলো টিমের নাম, আর বাকিগুলো প্লেয়ার স্কোয়াড
-        const teamName = lines[0];
-        let players = lines.slice(1);
 
         try {
             const teamRef = ref(db, `users/${currentUserId}/tournaments/${tourId}/teams/${teamName}`);
@@ -294,7 +301,8 @@
                 players: players
             });
 
-            document.getElementById('teamAndSquadInput').value = "";
+            document.getElementById('separateTeamNameInput').value = "";
+            document.getElementById('separateSquadInput').value = "";
             loadTeamsAndSquads();
             alert(`✅ Team '${teamName}' and its squad saved to cloud successfully!`);
         } catch (err) {
@@ -567,7 +575,7 @@
         if (!confirm("⚠️ Are you sure you want to delete this match?")) return;
         try {
             await remove(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${matchId}`));
-            alert("🗑️️ Match deleted successfully!");
+            alert("🗑️ Match deleted successfully!");
             loadMatchesList();
         } catch (err) {
             alert("❌ Failed to delete match.");
