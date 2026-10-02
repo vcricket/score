@@ -39,7 +39,7 @@
         .match-item, .tournament-item { background: #fff; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; }
         .match-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; color: #1e3c72; font-size: 14px; width: 100%; flex-wrap: wrap; gap: 10px; }
         
-        .btn-delete-icon { background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.3); width: 32px; height: 32px; border-radius: 5px; cursor: pointer; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+        .btn-delete-icon { background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.3); width: 32px; height: 32px; border-radius: 5px; cursor: pointer; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease; flex-shrink: 0; }
         .btn-delete-icon:hover { background: #dc3545; color: white; }
 
         .btn-launch-match { background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-size: 13px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
@@ -101,7 +101,7 @@
             </ul>
         </div>
 
-        <!-- ম্যাচ শিডিউল তৈরি করার সেকশন (এখানে এখন শুধু শিডিউল বা ম্যাচ সেভ করার অপশন থাকবে) -->
+        <!-- ম্যাচ শিডিউল তৈরি করার সেকশন -->
         <div class="box">
             <h3>⚔️ Schedule New Match</h3>
             <label>Select Team 1</label>
@@ -122,7 +122,7 @@
             <button class="btn" style="background: #007bff;" onclick="window.scheduleMatch()">📅 Save / Schedule Match to List</button>
         </div>
 
-        <!-- ম্যাচ হিস্ট্রি ও শিডিউল লিস্ট (প্রতিটি ম্যাচে আলাদা লঞ্চ/রিজিউম বাটন থাকবে) -->
+        <!-- ম্যাচ হিস্ট্রি ও শিডিউল লিস্ট (প্রতিটিতে লঞ্চ বাটন এবং ডিলিট ডাস্টবিন গ্লাস আইকন থাকবে) -->
         <div class="box">
             <h3>📜 Tournament Matches & Schedule</h3>
             <ul id="matchesListContainer" class="match-list" style="display: block;">
@@ -434,11 +434,16 @@
                     li.className = "match-item";
                     
                     let isCompleted = match.status === "completed";
+                    let isRunning = match.status === "running";
 
-                    // শিডিউল বা রানিং ম্যাচের জন্য লঞ্চ বাটন, কমপ্লিট হলে লক বাটন
-                    let actionButton = isCompleted 
-                        ? `<span class="completed-badge">Completed (${match.winner || 'Finished'})</span>` 
-                        : `<button class="btn-launch-match" onclick="window.launchOrResumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')">🚀 Launch / Resume</button>`;
+                    let actionButton = "";
+                    if (isCompleted) {
+                        actionButton = `<span class="completed-badge">Completed (${match.winner || 'Finished'})</span>`;
+                    } else if (isRunning) {
+                        actionButton = `<button class="btn-launch-match" style="background: #28a745;" onclick="window.launchOrResumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')">▶️ Resume Match</button>`;
+                    } else {
+                        actionButton = `<button class="btn-launch-match" onclick="window.launchOrResumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')">🚀 Launch Match</button>`;
+                    }
 
                     li.innerHTML = `
                         <div class="match-header">
@@ -455,11 +460,11 @@
                 matchesContainer.innerHTML = '<li style="text-align:center; color:#888; width: 100%;">No matches scheduled yet. Use above box to schedule matches!</li>';
             }
         } catch (err) {
-            matchesContainer.innerHTML = '<li style="text-align:center; color:red; width: 100%;'>Error loading matches schedule.</li>';
+            matchesContainer.innerHTML = '<li style="text-align:center; color:red; width: 100%;">Error loading matches schedule.</li>';
         }
     }
 
-    // ১. আগে থেকেই ম্যাচ শিডিউল বা সেভ করে রাখার ফাংশন (কোনো ক্রেডিট কাটবে না)
+    // ১. ম্যাচ শিডিউল বা সেভ করে লিস্টে যুক্ত করার ফাংশন (কোনো ক্রেডিট কাটবে না)
     window.scheduleMatch = async function() {
         const team1 = document.getElementById('team1Select').value;
         const team2 = document.getElementById('team2Select').value;
@@ -507,7 +512,7 @@
             if (matchSnap.exists()) {
                 let mData = matchSnap.val();
                 if (mData.status === 'running') {
-                    isAlreadyStarted = true; // যদি ম্যাচ আগে থেকেই রানিং থাকে তবে ডাবল ক্রেডিট কাটবে না
+                    isAlreadyStarted = true; // যদি ম্যাচ আগে থেকেই রানিং বা স্টার্ট করা থাকে তবে ডাবল ক্রেডিট কাটবে না
                 }
             }
 
