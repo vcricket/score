@@ -66,8 +66,30 @@
         .btn-signup { background-color: #007bff; }
         .btn-logout { background-color: #4a5568; }
         .btn-action-small { background-color: #007bff; padding: 8px 12px; font-size: 13px; width: auto; }
-        .btn-profile-link { background-color: #17a2b8; padding: 8px 14px; font-size: 13px; width: auto; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; font-weight: bold; border-radius: 6px; color: white; }
+        
+        /* হেডার প্রোফাইল বাটন ও ছবি স্টাইল */
+        .btn-profile-link { 
+            background-color: #17a2b8; 
+            padding: 6px 12px; 
+            font-size: 13px; 
+            text-decoration: none; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 8px; 
+            font-weight: bold; 
+            border-radius: 20px; 
+            color: white; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
         .btn-profile-link:hover { background-color: #138496; }
+        .header-avatar { 
+            width: 28px; 
+            height: 28px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            border: 1.5px solid #fff; 
+        }
+
         .btn-copy { 
             background-color: #17a2b8; 
             padding: 8px 14px; 
@@ -226,9 +248,13 @@
         
         <!-- মূল হোমপেজ ভিউ -->
         <div id="homeMainView">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
                 <h2 style="margin: 0; text-align: left;">Welcome, <span id="display-username" style="color: #ff9800;"></span>!</h2>
-                <a id="myProfileLink" href="profile.html" class="btn-profile-link">👤 My Profile</a>
+                <!-- হেডার প্রোফাইল বাটন (যেখানে ইউজারের ছবি ও নাম দেখাবে) -->
+                <a id="myProfileLink" href="profile.html" class="btn-profile-link">
+                    <img id="headerAvatar" src="https://via.placeholder.com/28" alt="Avatar" class="header-avatar">
+                    <span id="headerProfileName">My Profile</span>
+                </a>
             </div>
             
             <div class="credit-box">
@@ -378,6 +404,12 @@
                 credits: 1 
             });
 
+            // ডিফল্ট প্রোফাইল ডাটা সেট করা
+            await set(ref(db, `users/${user.uid}/profile`), {
+                name: username,
+                photo: ""
+            });
+
             msg.style.color = "green";
             msg.innerText = "Account created! 1 Free Credit added.";
         } catch (error) {
@@ -479,6 +511,22 @@
         });
     }
 
+    // ইউজারের রিয়েল-টাইম প্রোফাইল ডাটা (নাম ও ছবি) হেডারে দেখানোর জন্য লিসেনার
+    function listenUserProfileHeader() {
+        const profileRef = ref(db, `users/${currentUser.uid}/profile`);
+        onValue(profileRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const profileData = snapshot.val();
+                if (profileData.name) {
+                    document.getElementById('headerProfileName').innerText = profileData.name;
+                }
+                if (profileData.photo) {
+                    document.getElementById('headerAvatar').src = profileData.photo;
+                }
+            }
+        });
+    }
+
     window.resetAllUserData = async () => {
         const confirm1 = confirm("⚠️ DANGER: Do you really want to delete ALL your teams and squads?");
         if (!confirm1) return;
@@ -522,6 +570,7 @@
             });
 
             listenGlobalTeams();
+            listenUserProfileHeader(); // প্রোফাইল ডাটা হেডারে কানেক্ট করা হলো
         } else {
             currentUser = null;
             document.getElementById('dashboard-section').classList.add('hidden');
