@@ -250,7 +250,8 @@
         <div id="homeMainView">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
                 <h2 style="margin: 0; text-align: left;">Welcome, <span id="display-username" style="color: #ff9800;"></span>!</h2>
-                <!-- হেডার প্রোফাইল বাটন (যেখানে ইউজারের ছবি ও নাম দেখাবে) -->
+                
+                <!-- হেডার প্রোফাইল বাটন (যেখানে ইউজারের ছবি ও নাম রিয়েল-টাইমে দেখাবে) -->
                 <a id="myProfileLink" href="profile.html" class="btn-profile-link">
                     <img id="headerAvatar" src="https://via.placeholder.com/28" alt="Avatar" class="header-avatar">
                     <span id="headerProfileName">My Profile</span>
@@ -404,7 +405,6 @@
                 credits: 1 
             });
 
-            // ডিফল্ট প্রোফাইল ডাটা সেট করা
             await set(ref(db, `users/${user.uid}/profile`), {
                 name: username,
                 photo: ""
@@ -511,7 +511,6 @@
         });
     }
 
-    // ইউজারের রিয়েল-টাইম প্রোফাইল ডাটা (নাম ও ছবি) হেডারে দেখানোর জন্য লিসেনার
     function listenUserProfileHeader() {
         const profileRef = ref(db, `users/${currentUser.uid}/profile`);
         onValue(profileRef, (snapshot) => {
@@ -545,6 +544,13 @@
         }
     };
 
+    // ইনস্ট্যান্ট চেক যাতে ব্যাক করলে বা পেজ রিফ্রেশ করলে লগইন ফর্ম না দেখায়
+    if (localStorage.getItem('proCricketUsername') || localStorage.getItem('firebase:authUser:' + firebaseConfig.apiKey + ':[DEFAULT]')) {
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('signup-section').classList.add('hidden');
+        document.getElementById('dashboard-section').classList.remove('hidden');
+    }
+
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUser = user;
@@ -570,7 +576,7 @@
             });
 
             listenGlobalTeams();
-            listenUserProfileHeader(); // প্রোফাইল ডাটা হেডারে কানেক্ট করা হলো
+            listenUserProfileHeader();
         } else {
             currentUser = null;
             document.getElementById('dashboard-section').classList.add('hidden');
