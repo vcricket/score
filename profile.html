@@ -8,11 +8,14 @@
     <style>
         body { font-family: 'Poppins', sans-serif; background: #eef2f3; padding: 20px; margin: 0; }
         .container { max-width: 750px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        .header-nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 20px; }
-        .btn-back { background: #6c757d; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 14px; }
+        .header-nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        
+        /* ড্যাশবোর্ডে যাওয়ার বাটন স্টাইল */
+        .btn-dash-link { background: #0056b3; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-dash-link:hover { background: #004085; }
+
         h2 { color: #333; margin: 0; font-family: 'Oswald', sans-serif; letter-spacing: 1px; text-transform: uppercase; }
         
-        /* প্রোফাইল কার্ড */
         .profile-card { display: flex; align-items: center; gap: 20px; background: #e8f4fd; border: 1px solid #b8daff; padding: 20px; border-radius: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: #ccc; object-fit: cover; border: 3px solid #0056b3; }
         .profile-details { flex: 1; }
@@ -25,7 +28,6 @@
         .btn { width: 100%; padding: 12px; background: #28a745; color: white; border: none; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 15px; }
         .btn:hover { background: #218838; }
 
-        /* স্ট্যাটস গ্রিড */
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
         @media(max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
         .stat-card { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
@@ -38,10 +40,10 @@
 <div class="container">
     <div class="header-nav">
         <h2>👤 Player Profile</h2>
-        <a id="backToDashBtn" href="index.html" class="btn-back">⬅️ Back to Dashboard</a>
+        <!-- ড্যাশবোর্ডে যাওয়ার জন্য নতুন বাটন -->
+        <a id="dashboardLinkBtn" href="index.html" class="btn-dash-link">🏠 Go to Dashboard</a>
     </div>
 
-    <!-- ইউজার প্রোফাইল ইনফো -->
     <div class="profile-card">
         <img id="displayAvatar" src="https://via.placeholder.com/90" alt="Avatar" class="profile-avatar">
         <div class="profile-details">
@@ -51,7 +53,6 @@
         <button class="btn" style="width: auto; padding: 10px 18px; margin: 0;" onclick="window.toggleEditMode()">Edit Profile</button>
     </div>
 
-    <!-- প্রোফাইল এডিট ফর্ম (শুরুতে লুকানো থাকবে) -->
     <div class="box" id="profileEditBox" style="display: none;">
         <h3>✏️ Edit Profile Details</h3>
         <label>Your Name</label>
@@ -64,7 +65,6 @@
         </div>
     </div>
 
-    <!-- ক্যারিয়ার স্ট্যাটস বা ক্রিকেট রেকর্ডস -->
     <div class="box">
         <h3 style="color: #0056b3; border-bottom: 1px solid #ddd; padding-bottom: 8px; margin-top: 0;">🏏 Cricket Career Statistics</h3>
         <div class="stats-grid">
@@ -98,7 +98,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-    import { getDatabase, ref, get, update, set } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
@@ -119,8 +119,8 @@
         window.location.href = "index.html";
     }
 
-    // ব্যাক বাটনে ইউজারনেম পাস করার ব্যবস্থা
-    document.getElementById('backToDashBtn').href = `index.html?u=${currentUsername}`;
+    // ড্যাশবোর্ড লিংকের সাথে ইউজারনেম পাস করার ব্যবস্থা
+    document.getElementById('dashboardLinkBtn').href = `index.html?u=${currentUsername}`;
 
     let currentUserId = "";
 
@@ -160,17 +160,15 @@
 
     async function loadCareerStats() {
         try {
-            // ইউজারের সমস্ত টুর্নামেন্ট থেকে প্লেয়ার স্ট্যাটস বা ক্যারিয়ার রেকর্ড ফেচ করা
             const tournamentsSnap = await get(ref(db, `live_matches/${currentUsername}/tournaments_data/`));
             
-            let tMatches = 0, tRuns = 0, tWickets = 0, tFours = 0, tSixes = 0, tMom = 0;
+            let tMatches = 0, tRuns = 0, tWickets = 0, tFours = 0, tSixes = 0;
 
             if (tournamentsSnap.exists()) {
                 const tournaments = tournamentsSnap.val();
                 Object.keys(tournaments).forEach(tourId => {
                     const tourData = tournaments[tourId];
                     if (tourData && tourData.players) {
-                        // যদি ইউজার তার নিজের নামে বা প্রোফাইল নেমে খেলে থাকে
                         const myStats = tourData.players[document.getElementById('displayName').innerText] || tourData.players[currentUsername];
                         if (myStats) {
                             tMatches += (myStats.matchesPlayed || 0);
@@ -183,7 +181,6 @@
                 });
             }
 
-            // ড্যাশবোর্ডে স্ট্যাটসগুলো রেন্ডার করা
             document.getElementById('statMatches').innerText = tMatches;
             document.getElementById('statRuns').innerText = tRuns;
             document.getElementById('statWickets').innerText = tWickets;
