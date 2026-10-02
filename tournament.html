@@ -17,7 +17,8 @@
         
         .box { background: #f9f9f9; padding: 18px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
         label { font-weight: bold; display: block; margin-top: 10px; font-size: 14px; color: #444; }
-        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; font-weight: bold; }
+        textarea { font-weight: normal; }
         .btn { width: 100%; padding: 12px; background: #28a745; color: white; border: none; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 15px; }
         .btn:hover { background: #218838; }
 
@@ -46,7 +47,7 @@
         .btn-launch-match:hover { background: #0056b3; }
 
         .completed-badge { background: #e2e8f0; color: #2d3748; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .page-section { display: none; }
+        .page-section { display: block; }
     </style>
 </head>
 <body>
@@ -78,22 +79,23 @@
     </div>
 
     <!-- ২. নির্দিষ্ট টুর্নামেন্ট প্যানেল -->
-    <div id="activeTournamentView" class="page-section">
+    <div id="activeTournamentView" class="page-section" style="display: none;">
         
         <div style="margin-bottom: 15px;">
-            <a id="backToHubBtn" href="tournament.html" style="color: #0056b3; text-decoration: none; font-weight: bold; font-size: 14px;">⬅️ Back to Tournaments List</a>
+            <a id="backToHubBtn" href="tournament.html" style="color: #0056b3; text-decoration: none; font-weight: bold; font-size: 14px;">⬅ Back to Tournaments List</a>
         </div>
 
-        <!-- টিম ও স্কোয়াড ম্যানেজমেন্ট সেকশন -->
+        <!-- টিম ও স্কোয়াড ম্যানেজমেন্ট সেকশন (আলাদা টিম নেম ও আলাদা স্কোয়াড ইনপুট) -->
         <div class="box" style="background: #f0f7ff; border-color: #b8daff;">
-            <h3 style="color: #0056b3;">👥 Add Team & Player Squad</h3>
+            <h3 style="color: #0056b3;">👥 Add Team & Squad</h3>
+            
             <label>Team Name</label>
-            <input type="text" id="teamNameInput" placeholder="e.g. Kolkata Tigers">
+            <input type="text" id="separateTeamNameInput" placeholder="e.g. Kolkata Tigers">
 
-            <label>Players List (Put Captain (c) first, then Wicketkeeper (wk), each on a new line)</label>
-            <textarea id="squadInput" rows="4" placeholder="Player 1 (c) - Captain&#10;Player 2 (wk) - Wicketkeeper&#10;Player 3&#10;Player 4"></textarea>
+            <label>Players Squad (প্রতি লাইনে একজনের নাম লিখুন)</label>
+            <textarea id="separateSquadInput" rows="5" placeholder="Player 1 (c)&#10;Player 2 (wk)&#10;Player 3&#10;Player 4"></textarea>
 
-            <button class="btn" style="background: #0056b3;" onclick="window.saveTeamWithSquad()">💾 Save Team & Squad to Cloud</button>
+            <button class="btn" style="background: #0056b3;" onclick="window.saveSeparateTeamAndSquad()">💾 Save Team & Squad to Cloud</button>
             
             <h4 style="margin-top: 20px; color: #333;">Registered Teams:</h4>
             <ul id="teamsListContainer" class="team-list">
@@ -164,7 +166,7 @@
     document.getElementById('dashboardLinkBtn').href = `index.html?u=${currentUsername}`;
     document.getElementById('backToHubBtn').href = `tournament.html?u=${currentUsername}`;
 
-    let currentUserId = "";
+    let currentUserId = currentUsername; 
     let globalTeamsData = {};
 
     async function initTournamentHub() {
@@ -173,19 +175,19 @@
             const snap = await get(userRef);
             if (snap.exists()) {
                 currentUserId = snap.val();
-            } else {
-                currentUserId = currentUsername;
             }
 
-            // যদি টুর্নামেন্ট আইডি (t) না থাকে, তবে হাব পেজ দেখাবে
-            if (!tourId || tourId.trim() === "" || tourId === "null") {
+            document.getElementById('profileLinkBtn').href = `profile.html?u=${currentUsername}`;
+            document.getElementById('dashboardLinkBtn').href = `index.html?u=${currentUsername}`;
+            document.getElementById('backToHubBtn').href = `tournament.html?u=${currentUsername}`;
+
+            if (!tourId || tourId.trim() === "" || tourId === "null" || tourId === "undefined") {
                 document.getElementById('noTournamentView').style.display = 'block';
                 document.getElementById('activeTournamentView').style.display = 'none';
                 loadAllTournaments();
                 return;
             }
 
-            // যদি টুর্নামেন্ট আইডি থাকে, তবে নির্দিষ্ট টুর্নামেন্ট প্যানেল দেখাবে
             document.getElementById('noTournamentView').style.display = 'none';
             document.getElementById('activeTournamentView').style.display = 'block';
 
@@ -201,6 +203,9 @@
             loadMatchesList();
         } catch (err) {
             console.error("Error initializing tournament hub:", err);
+            document.getElementById('noTournamentView').style.display = 'block';
+            document.getElementById('activeTournamentView').style.display = 'none';
+            loadAllTournaments();
         }
     }
 
@@ -227,6 +232,7 @@
 
     async function loadAllTournaments() {
         const container = document.getElementById('tournamentsListContainer');
+        if (!container) return;
         container.innerHTML = "<li style='text-align:center; color:#888; width: 100%;'>Loading tournaments...</li>";
 
         try {
@@ -268,16 +274,25 @@
         }
     };
 
-    window.saveTeamWithSquad = async function() {
-        const teamName = document.getElementById('teamNameInput').value.trim();
-        const squadText = document.getElementById('squadInput').value.trim();
+    // আলাদা টিম নেম এবং আলাদা স্কোয়াড ইনপুট থেকে ডেটা প্রসেস করে ক্লাউডে সেভ করা
+    window.saveSeparateTeamAndSquad = async function() {
+        const teamName = document.getElementById('separateTeamNameInput').value.trim();
+        const squadText = document.getElementById('separateSquadInput').value.trim();
 
         if (!teamName) {
-            alert("⚠️ Please enter a team name!");
+            alert("⚠️ Please enter the Team Name!");
+            return;
+        }
+        if (!squadText) {
+            alert("⚠️ Please enter the Players Squad!");
             return;
         }
 
-        let players = squadText ? squadText.split('\n').map(p => p.trim()).filter(p => p.length > 0) : [];
+        let players = squadText.split('\n').map(p => p.trim()).filter(p => p.length > 0);
+        if (players.length === 0) {
+            alert("⚠️ Please add at least one player!");
+            return;
+        }
 
         try {
             const teamRef = ref(db, `users/${currentUserId}/tournaments/${tourId}/teams/${teamName}`);
@@ -286,11 +301,12 @@
                 players: players
             });
 
-            document.getElementById('teamNameInput').value = "";
-            document.getElementById('squadInput').value = "";
+            document.getElementById('separateTeamNameInput').value = "";
+            document.getElementById('separateSquadInput').value = "";
             loadTeamsAndSquads();
-            alert(`✅ Team '${teamName}' saved to cloud successfully!`);
+            alert(`✅ Team '${teamName}' and its squad saved to cloud successfully!`);
         } catch (err) {
+            console.error("Error saving team:", err);
             alert("❌ Failed to save team.");
         }
     };
@@ -336,6 +352,7 @@
 
     async function loadTeamsAndSquads() {
         const teamsContainer = document.getElementById('teamsListContainer');
+        if (!teamsContainer) return;
         teamsContainer.innerHTML = "";
 
         try {
@@ -356,7 +373,7 @@
                             playersHTML += `
                                 <div class="player-row">
                                     <span>👤 ${player}</span>
-                                    <button class="btn-edit-player" onclick="window.editPlayerName('${team.name}', ${idx}, '${player}')">✏️️ Edit</button>
+                                    <button class="btn-edit-player" onclick="window.editPlayerName('${team.name}', ${idx}, '${player}')">✏️ Edit</button>
                                 </div>
                             `;
                         });
@@ -392,6 +409,7 @@
     window.updateTeamDropdowns = function() {
         const team1Select = document.getElementById('team1Select');
         const team2Select = document.getElementById('team2Select');
+        if (!team1Select || !team2Select) return;
 
         const selectedTeam1 = team1Select.value;
         const selectedTeam2 = team2Select.value;
@@ -426,6 +444,7 @@
 
     async function loadMatchesList() {
         const matchesContainer = document.getElementById('matchesListContainer');
+        if (!matchesContainer) return;
         matchesContainer.innerHTML = "<li style='text-align:center; color:#888; width: 100%;'>Loading matches schedule...</li>";
 
         try {
@@ -446,9 +465,9 @@
                     if (isCompleted) {
                         actionButton = `<span class="completed-badge">Completed (${match.winner || 'Finished'})</span>`;
                     } else if (isRunning) {
-                        actionButton = `<button class="btn-launch-match" style="background: #28a745;" onclick="window.launchOrResumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')">▶️ Resume Match</button>`;
+                        actionButton = `<button class="btn-launch-match" style="background: #28a745;" onclick="window.launchOrResumeMatch('${matchId}', '${encodeURIComponent(match.team1 || '')}', '${encodeURIComponent(match.team2 || '')}', '${match.overs || 10}', '${match.type || 'League'}')">▶️ Resume Match</button>`;
                     } else {
-                        actionButton = `<button class="btn-launch-match" onclick="window.launchOrResumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')">🚀 Launch Match</button>`;
+                        actionButton = `<button class="btn-launch-match" onclick="window.launchOrResumeMatch('${matchId}', '${encodeURIComponent(match.team1 || '')}', '${encodeURIComponent(match.team2 || '')}', '${match.overs || 10}', '${match.type || 'League'}')">🚀 Launch Match</button>`;
                     }
 
                     li.innerHTML = `
@@ -470,7 +489,6 @@
         }
     }
 
-    // শিডিউল বা ম্যাচ সেভ করার ফাংশন (কোনো ক্রেডিট কাটবে না)
     window.scheduleMatch = async function() {
         const team1 = document.getElementById('team1Select').value;
         const team2 = document.getElementById('team2Select').value;
@@ -508,9 +526,11 @@
         }
     };
 
-    // নির্দিষ্ট ম্যাচের লঞ্চ বা রিজিউম করার ফাংশন (১ ক্রেডিট কাটবে যদি নতুন স্টার্ট হয়)
-    window.launchOrResumeMatch = async function(matchId, t1, t2, overs, type) {
+    window.launchOrResumeMatch = async function(matchId, t1Encoded, t2Encoded, overs, type) {
         try {
+            let t1 = decodeURIComponent(t1Encoded);
+            let t2 = decodeURIComponent(t2Encoded);
+
             const matchRef = ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${matchId}`);
             const matchSnap = await get(matchRef);
 
@@ -550,7 +570,7 @@
             window.location.href = `controller.html?t=${tourId}&u=${currentUsername}&m=${matchId}&t1=${encodeURIComponent(t1)}&t2=${encodeURIComponent(t2)}&overs=${overs}&type=${encodeURIComponent(type)}`;
         } catch (err) {
             console.error("Error launching match:", err);
-            alert("❌ Failed to launch match.");
+            alert("❌ Failed to launch or resume match.");
         }
     };
 
