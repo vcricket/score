@@ -82,7 +82,7 @@
     <div id="activeTournamentView" class="page-section" style="display: none;">
         
         <div style="margin-bottom: 15px;">
-            <a id="backToHubBtn" href="tournament.html" style="color: #0056b3; text-decoration: none; font-weight: bold; font-size: 14px;">⬅ Back to Tournaments List</a>
+            <a id="backToHubBtn" href="tournament.html" style="color: #0056b3; text-decoration: none; font-weight: bold; font-size: 14px;">⬅️️ Back to Tournaments List</a>
         </div>
 
         <!-- টিম ও স্কোয়াড ম্যানেজমেন্ট সেকশন (আলাদা টিম নেম ও আলাদা স্কোয়াড ইনপুট) -->
@@ -267,7 +267,7 @@
         if (!confirm("⚠️ Are you sure you want to delete this tournament?")) return;
         try {
             await remove(ref(db, `users/${currentUserId}/tournaments/${tId}`));
-            alert("🗑️ Tournament deleted successfully!");
+            alert("🗑️️ Tournament deleted successfully!");
             loadAllTournaments();
         } catch (err) {
             alert("❌ Failed to delete tournament.");
@@ -465,9 +465,9 @@
                     if (isCompleted) {
                         actionButton = `<span class="completed-badge">Completed (${match.winner || 'Finished'})</span>`;
                     } else if (isRunning) {
-                        actionButton = `<button class="btn-launch-match" style="background: #28a745;" onclick="window.launchOrResumeMatch('${matchId}', '${encodeURIComponent(match.team1 || '')}', '${encodeURIComponent(match.team2 || '')}', '${match.overs || 10}', '${match.type || 'League'}')">▶️ Resume Match</button>`;
+                        actionButton = `<button class="btn-launch-match" style="background: #28a745;" onclick="window.launchOrResumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')">▶️ Resume Match</button>`;
                     } else {
-                        actionButton = `<button class="btn-launch-match" onclick="window.launchOrResumeMatch('${matchId}', '${encodeURIComponent(match.team1 || '')}', '${encodeURIComponent(match.team2 || '')}', '${match.overs || 10}', '${match.type || 'League'}')">🚀 Launch Match</button>`;
+                        actionButton = `<button class="btn-launch-match" onclick="window.launchOrResumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')">🚀 Launch Match</button>`;
                     }
 
                     li.innerHTML = `
@@ -526,11 +526,8 @@
         }
     };
 
-    window.launchOrResumeMatch = async function(matchId, t1Encoded, t2Encoded, overs, type) {
+    window.launchOrResumeMatch = async function(matchId, t1, t2, overs, type) {
         try {
-            let t1 = decodeURIComponent(t1Encoded);
-            let t2 = decodeURIComponent(t2Encoded);
-
             const matchRef = ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${matchId}`);
             const matchSnap = await get(matchRef);
 
@@ -570,7 +567,7 @@
             window.location.href = `controller.html?t=${tourId}&u=${currentUsername}&m=${matchId}&t1=${encodeURIComponent(t1)}&t2=${encodeURIComponent(t2)}&overs=${overs}&type=${encodeURIComponent(type)}`;
         } catch (err) {
             console.error("Error launching match:", err);
-            alert("❌ Failed to launch or resume match.");
+            alert("❌ Failed to launch match.");
         }
     };
 
