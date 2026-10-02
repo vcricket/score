@@ -17,13 +17,22 @@
         
         .box { background: #f9f9f9; padding: 18px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
         label { font-weight: bold; display: block; margin-top: 10px; font-size: 14px; color: #444; }
-        input, select { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
         .btn { width: 100%; padding: 12px; background: #28a745; color: white; border: none; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 15px; }
         .btn:hover { background: #218838; }
 
-        .match-list, .team-list { list-style: none; padding: 0; margin-top: 10px; }
-        .match-item, .team-item { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; }
+        .team-list, .match-list { list-style: none; padding: 0; margin-top: 10px; }
+        .team-item, .match-item { background: #fff; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .team-header, .match-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; color: #1e3c72; font-size: 15px; }
         
+        .player-tag { display: inline-block; background: #e2e8f0; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin: 2px; color: #333; }
+        
+        /* টিম ও ম্যাচ ডিলিট করার আইকন বাটন */
+        .btn-delete { background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.3); padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; }
+        .btn-delete:hover { background: #dc3545; color: white; }
+
+        .completed-badge { background: #e2e8f0; color: #2d3748; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+
         .hidden { display: none !important; }
     </style>
 </head>
@@ -38,26 +47,30 @@
         </div>
     </div>
 
-    <!-- যদি টুর্নামেন্ট আইডি (t) না থাকে, তবে ইউজার তার টুর্নামেন্ট সিলেক্ট বা ক্রিয়েট করার অপشن দেখবে -->
+    <!-- যদি টুর্নামেন্ট আইডি (t) না থাকে -->
     <div id="noTournamentView" class="hidden">
         <div class="box">
             <h3>⚠️ No Tournament Selected</h3>
-            <p style="font-size: 14px; color: #555;">Please go back to your Profile hub and select a specific tournament, or create a new one.</p>
-            <a id="backToProfileBtn" href="profile.html" class="btn" style="text-align: center; text-decoration: none; display: block;">Go to Profile & Tournaments</a>
+            <p style="font-size: 14px; color: #555;">Please go back to your Tournaments page and select a specific tournament.</p>
+            <a id="backToTourBtn" href="tournaments.html" class="btn" style="text-align: center; text-decoration: none; display: block;">Go to Tournaments</a>
         </div>
     </div>
 
     <!-- মূল টুর্নামেন্ট ও ম্যাচ ম্যানেজমেন্ট প্যানেল -->
     <div id="activeTournamentView">
         
-        <!-- টিম ম্যানেজমেন্ট সেকশন -->
-        <div class="box">
-            <h3>👥 Add Teams to Tournament</h3>
+        <!-- টিম ও স্কোয়াড ম্যানেজমেন্ট সেকশন -->
+        <div class="box" style="background: #f0f7ff; border-color: #b8daff;">
+            <h3 style="color: #0056b3;">👥 Add Team & Player Squad</h3>
             <label>Team Name</label>
-            <input type="text" id="teamNameInput" placeholder="e.g. Royal Challengers">
-            <button class="btn" onclick="window.addTeamToTournament()">Add Team</button>
+            <input type="text" id="teamNameInput" placeholder="e.g. Kolkata Tigers">
+
+            <label>Players List (Each player on a new line)</label>
+            <textarea id="squadInput" rows="4" placeholder="Player 1&#10;Player 2 (wk)&#10;Player 3 (c)"></textarea>
+
+            <button class="btn" style="background: #0056b3;" onclick="window.saveTeamWithSquad()">💾 Save Team & Squad to Cloud</button>
             
-            <h4 style="margin-top: 15px; color: #333;">Registered Teams:</h4>
+            <h4 style="margin-top: 20px; color: #333;">Registered Teams & Squads:</h4>
             <ul id="teamsListContainer" class="team-list">
                 <li style="color: #888; font-size: 14px;">No teams added yet.</li>
             </ul>
@@ -75,13 +88,21 @@
             <button class="btn" style="background: #007bff;" onclick="window.launchMatch()">🚀 Launch Match Controller</button>
         </div>
 
+        <!-- ম্যাচ হিস্ট্রি ও কমপ্লিটেড ম্যাচ লিস্ট সেকশন (ডাস্টবিন আইকনসহ) -->
+        <div class="box">
+            <h3>📜 Tournament Matches History</h3>
+            <ul id="matchesListContainer" class="match-list">
+                <li style="color: #888; font-size: 14px;">No matches played or scheduled yet.</li>
+            </ul>
+        </div>
+
     </div>
 
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-    import { getDatabase, ref, get, set, push, remove } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+    import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
@@ -106,7 +127,7 @@
     // হেডার নেভিগেশন লিংক সেটআপ
     document.getElementById('profileLinkBtn').href = `profile.html?u=${currentUsername}`;
     document.getElementById('dashboardLinkBtn').href = `index.html?u=${currentUsername}`;
-    document.getElementById('backToProfileBtn.href') = `profile.html?u=${currentUsername}`;
+    document.getElementById('backToTourBtn').href = `tournaments.html?u=${currentUsername}`;
 
     let currentUserId = "";
 
@@ -120,46 +141,70 @@
                 currentUserId = currentUsername;
             }
 
-            // যদি নির্দিষ্ট টুর্নামেন্ট আইডি (t) না থাকে
             if (!tourId) {
                 document.getElementById('activeTournamentView').classList.add('hidden');
                 document.getElementById('noTournamentView').classList.remove('hidden');
                 return;
             }
 
-            // টুর্নামেন্টের নাম লোড করা
             const tourRef = ref(db, `users/${currentUserId}/tournaments/${tourId}`);
             const tourSnap = await get(tourRef);
             if (tourSnap.exists()) {
                 document.getElementById('tourTitle').innerText = "🏆 " + (tourSnap.val().name || "Tournament Hub");
             }
 
-            loadTeams();
+            loadTeamsAndSquads();
+            loadMatchesList();
         } catch (err) {
             console.error("Error initializing tournament:", err);
         }
     }
 
-    window.addTeamToTournament = async function() {
+    window.saveTeamWithSquad = async function() {
         const teamName = document.getElementById('teamNameInput').value.trim();
+        const squadText = document.getElementById('squadInput').value.trim();
+
         if (!teamName) {
             alert("⚠️ Please enter a team name!");
             return;
         }
 
+        let players = squadText ? squadText.split('\n').map(p => p.trim()).filter(p => p.length > 0) : [];
+
         try {
-            const newTeamRef = push(ref(db, `users/${currentUserId}/tournaments/${tourId}/teams`));
-            await set(newTeamRef, { name: teamName });
+            const teamRef = ref(db, `users/${currentUserId}/tournaments/${tourId}/teams/${teamName}`);
+            await set(teamRef, {
+                name: teamName,
+                players: players
+            });
+
             document.getElementById('teamNameInput').value = "";
-            loadTeams();
-            alert("✅ Team added successfully!");
+            document.getElementById('squadInput').value = "";
+            loadTeamsAndSquads();
+            alert(`✅ Team '${teamName}' saved to cloud successfully!`);
         } catch (err) {
-            console.error("Error adding team:", err);
-            alert("❌ Failed to add team.");
+            console.error("Error saving team & squad:", err);
+            alert("❌ Failed to save team.");
         }
     };
 
-    async function loadTeams() {
+    window.deleteTeam = async function(teamName) {
+        if (!confirm(`⚠️ Are you sure you want to delete the team '${teamName}'?`)) {
+            return;
+        }
+
+        try {
+            const teamRef = ref(db, `users/${currentUserId}/tournaments/${tourId}/teams/${teamName}`);
+            await remove(teamRef);
+            alert(`🗑️ Team '${teamName}' deleted successfully!`);
+            loadTeamsAndSquads();
+        } catch (err) {
+            console.error("Error deleting team:", err);
+            alert("❌ Failed to delete team.");
+        }
+    };
+
+    async function loadTeamsAndSquads() {
         const teamsContainer = document.getElementById('teamsListContainer');
         const team1Select = document.getElementById('team1Select');
         const team2Select = document.getElementById('team2Select');
@@ -173,16 +218,30 @@
             if (teamsSnap.exists()) {
                 const teams = teamsSnap.val();
                 
-                Object.keys(teams).forEach(teamId => {
-                    const team = teams[teamId];
+                Object.keys(teams).forEach(teamKey => {
+                    const team = teams[teamKey];
                     
-                    // টিম লিস্টে শো করা
                     let li = document.createElement('li');
                     li.className = "team-item";
-                    li.innerHTML = `<span>🏏 ${team.name}</span>`;
+                    
+                    let playersHTML = '';
+                    if (team.players && Array.isArray(team.players)) {
+                        team.players.forEach(player => {
+                            playersHTML += `<span class="player-tag">👤 ${player}</span>`;
+                        });
+                    } else {
+                        playersHTML = '<span style="color: #888; font-size: 12px;">No players added</span>';
+                    }
+
+                    li.innerHTML = `
+                        <div class="team-header">
+                            <span>🏏 ${team.name}</span>
+                            <button class="btn-delete" onclick="window.deleteTeam('${team.name}')">🗑️ Delete</button>
+                        </div>
+                        <div style="margin-top: 6px;">${playersHTML}</div>
+                    `;
                     teamsContainer.appendChild(li);
 
-                    // ড্রপডাউনে যুক্ত করা
                     let opt1 = document.createElement('option');
                     opt1.value = team.name;
                     opt1.innerText = team.name;
@@ -197,9 +256,63 @@
                 teamsContainer.innerHTML = '<li style="color: #888; font-size: 14px;">No teams added yet.</li>';
             }
         } catch (e) {
-            console.error("Error loading teams:", e);
+            console.error("Error loading teams & squads:", e);
         }
     }
+
+    // ম্যাচ হিস্ট্রি ও কমপ্লিটেড ম্যাচ লিস্ট লোড করার ফাংশন
+    async function loadMatchesList() {
+        const matchesContainer = document.getElementById('matchesListContainer');
+        matchesContainer.innerHTML = "<li style='color: #888; font-size: 14px;'>Loading matches history...</li>";
+
+        try {
+            const matchesSnap = await get(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches`));
+            if (matchesSnap.exists()) {
+                const matches = matchesSnap.val();
+                matchesContainer.innerHTML = "";
+
+                Object.keys(matches).forEach(matchId => {
+                    const match = matches[matchId];
+                    let li = document.createElement('li');
+                    li.className = "match-item";
+                    
+                    let isCompleted = match.status === "completed";
+
+                    li.innerHTML = `
+                        <div class="match-header">
+                            <span>🏏 ${match.team1} vs ${match.team2}</span>
+                            <div>
+                                ${isCompleted ? '<span class="completed-badge">Completed</span>' : '<span style="color:#007bff; font-size:12px; font-weight:bold;">Running / Scheduled</span>'}
+                                <button class="btn-delete" style="margin-left: 10px;" onclick="window.deleteMatch('${matchId}')" title="Delete Match">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                    matchesContainer.appendChild(li);
+                });
+            } else {
+                matchesContainer.innerHTML = '<li style="color: #888; font-size: 14px;">No matches played or scheduled yet.</li>';
+            }
+        } catch (err) {
+            console.error("Error loading matches:", err);
+            matchesContainer.innerHTML = '<li style="color: red; font-size: 14px;">Error loading matches history.</li>';
+        }
+    }
+
+    // কমপ্লিটেড ম্যাচ ডাস্টবিন আইকনে ক্লিক করে ডিলিট করার ফাংশন
+    window.deleteMatch = async function(matchId) {
+        if (!confirm("⚠️ Are you sure you want to delete this match?")) {
+            return;
+        }
+
+        try {
+            await remove(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${matchId}`));
+            alert("🗑️ Match deleted successfully!");
+            loadMatchesList();
+        } catch (err) {
+            console.error("Error deleting match:", err);
+            alert("❌ Failed to delete match.");
+        }
+    };
 
     window.launchMatch = function() {
         const team1 = document.getElementById('team1Select').value;
@@ -214,7 +327,6 @@
             return;
         }
 
-        // কন্ট্রোলার পেজে রিডাইরেক্ট করা
         window.location.href = `controller.html?t=${tourId}&u=${currentUsername}&t1=${encodeURIComponent(team1)}&t2=${encodeURIComponent(team2)}`;
     };
 
