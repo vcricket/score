@@ -70,7 +70,7 @@
             <a id="backToHubBtn" href="tournament.html" style="color: #0056b3; text-decoration: none; font-weight: bold; font-size: 14px;">⬅️ Back to Tournaments List</a>
         </div>
 
-        <!-- টিম ও স্কোয়াড ম্যানেজমেন্ট সেকশন (ক্যাপ্টেন ও উইকেটকিপার সিরিয়াল গাইডলাইনসহ) -->
+        <!-- টিম ও স্কোয়াড ম্যানেজমেন্ট সেকশন -->
         <div class="box" style="background: #f0f7ff; border-color: #b8daff;">
             <h3 style="color: #0056b3;">👥 Add Team & Player Squad</h3>
             <label>Team Name</label>
@@ -87,7 +87,7 @@
             </ul>
         </div>
 
-        <!-- ম্যাচ শিডিউল, ওভার ও ফরম্যাট সিলেক্ট সেকশন -->
+        <!-- ম্যাচ শিডিউল, ওভার ও ফরম্যাট সিলেক্ট সেকশন (যেকি এখানে যোগ করা হয়েছে) -->
         <div class="box">
             <h3>⚔️ Create & Launch Match</h3>
             <label>Select Team 1</label>
@@ -186,7 +186,7 @@
     window.createTournament = async function() {
         const tName = document.getElementById('tourNameInput').value.trim();
         if (!tName) {
-            alert("⚠️️ Please enter a tournament name!");
+            alert("⚠️ Please enter a tournament name!");
             return;
         }
 
@@ -257,7 +257,7 @@
         const squadText = document.getElementById('squadInput').value.trim();
 
         if (!teamName) {
-            alert("⚠️ Please enter a team name!");
+            alert("⚠️️ Please enter a team name!");
             return;
         }
 
