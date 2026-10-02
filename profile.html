@@ -22,7 +22,7 @@
         .profile-details h3 { margin: 0 0 5px 0; color: #0056b3; font-size: 22px; word-break: break-word; }
         .profile-details p { margin: 0; color: #555; font-size: 14px; }
         
-        /* প্রোফাইল কার্ডের ঠিক নিচে দুটি সুন্দর নেভিগেশন বাটন/ট্যাব */
+        /* ট্যাব মেনু বাটন */
         .tab-menu { display: flex; gap: 12px; margin-bottom: 25px; }
         .tab-btn { flex: 1; background: #f1f5f9; color: #334155; border: 2px solid #cbd5e1; padding: 12px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; text-align: center; }
         .tab-btn.active { background: #1e3c72; color: white; border-color: #1e3c72; box-shadow: 0 4px 10px rgba(30,60,114,0.2); }
@@ -45,7 +45,7 @@
         .stat-card span { font-size: 13px; color: #666; display: block; margin-bottom: 5px; }
         .stat-card strong { font-size: 20px; color: #0056b3; }
 
-        /* টুর্নামেন্ট লিস্ট ও ডিলিট বাটন */
+        /* টুর্নামেন্ট লিস্ট ও ডিলিট বাটন (tournament.html লিংকের সাথে যুক্ত) */
         .tournament-list { list-style: none; padding: 0; margin-top: 10px; }
         .tournament-item { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .tournament-item a { text-decoration: none; color: #0056b3; font-weight: bold; font-size: 16px; flex: 1; margin-right: 15px; word-break: break-word; display: flex; align-items: center; justify-content: space-between; }
@@ -64,7 +64,7 @@
         <a id="dashboardLinkBtn" href="index.html" class="btn-dash-link">🏠 Go to Dashboard</a>
     </div>
 
-    <!-- প্রোফাইল কার্ড (ওপরে ফিক্সড থাকবে) -->
+    <!-- প্রোফাইল কার্ড -->
     <div class="profile-card">
         <img id="displayAvatar" src="https://via.placeholder.com/90" alt="Avatar" class="profile-avatar">
         <div class="profile-details">
@@ -89,9 +89,7 @@
         </div>
     </div>
 
-    <!-- ─────────────────────────────────────────────── -->
-    <!-- প্রোফাইল কার্ডের নিচে দুটি সুন্দর বাটন / ট্যাব -->
-    <!-- ─────────────────────────────────────────────── -->
+    <!-- দুটি সুন্দর ট্যাব বাটন (My Performance এবং Tournaments) -->
     <div class="tab-menu">
         <button id="profileTabBtn" class="tab-btn active" onclick="switchTab('profile')">📊 My Performance</button>
         <button id="tournamentsTabBtn" class="tab-btn" onclick="switchTab('tournaments')">🏆 Tournaments & Matches</button>
@@ -99,7 +97,7 @@
 
 
     <!-- ─────────────────────────────────────────────── -->
-    <!-- ১. প্রথম বাটন ক্লিক করলে দেখাবে: পারফরম্যান্স / ক্যারিয়ার স্ট্যাটস -->
+    <!-- ১. মাই পারফরম্যান্স সেকশন (ক্রিকেট ক্যারিয়ার পারফরম্যান্স) -->
     <!-- ─────────────────────────────────────────────── -->
     <div id="profileSection" class="section-box active">
         <div class="box">
@@ -135,7 +133,7 @@
 
 
     <!-- ─────────────────────────────────────────────── -->
-    <!-- ২. দ্বিতীয় বাটন ক্লিক করলে দেখাবে: টুর্নামেন্ট ও ম্যাচ সেকশন -->
+    <!-- ২. টুর্নামেন্ট ও ম্যাচ সেকশন (tournament.html লিংকের সাথে যুক্ত) -->
     <!-- ─────────────────────────────────────────────── -->
     <div id="tournamentsSection" class="section-box">
         <!-- টুর্নামেন্ট তৈরির বক্স -->
@@ -185,7 +183,7 @@
     let currentUserId = "";
     let selectedImageBase64 = "";
 
-    // ট্যাব বাটন সুইচ করার ফাংশন
+    // ট্যাব সুইচ করার ফাংশন
     window.switchTab = function(tabName) {
         const profileTab = document.getElementById('profileTabBtn');
         const tournamentsTab = document.getElementById('tournamentsTabBtn');
@@ -255,7 +253,7 @@
     window.createTournament = async function() {
         const tName = document.getElementById('tourNameInput').value.trim();
         if (!tName) {
-            alert("⚠️️ Please enter a tournament name!");
+            alert("⚠️ Please enter a tournament name!");
             return;
         }
 
@@ -290,9 +288,10 @@
                     const tour = tours[tourId];
                     let li = document.createElement('li');
                     li.className = "tournament-item";
+                    // টুর্নামেন্টের নামের ওপর ক্লিক করলে সরাসরি tournament.html এ চলে যাবে
                     li.innerHTML = `
                         <a href="tournament.html?t=${tourId}&u=${currentUsername}">
-                            <span>${tour.name || 'Unnamed Tournament'}</span>
+                            <span>🏆 ${tour.name || 'Unnamed Tournament'}</span>
                             <span class="tour-arrow">➔</span>
                         </a>
                         <div class="tournament-actions">
@@ -327,20 +326,21 @@
     async function loadCareerStats() {
         try {
             const tournamentsSnap = await get(ref(db, `live_matches/${currentUsername}/tournaments_data/`));
-            let tMatches = 0, tRuns = 0, tWickets = 0, tFours = 0, tSixes = 0;
+            let tMatches = 0, tRuns = 0, tWickets = 0, tFours = 0, tSixes = 0, tMOM = 0;
 
             if (tournamentsSnap.exists()) {
                 const tournaments = tournamentsSnap.val();
                 Object.keys(tournaments).forEach(tourId => {
                     const tourData = tournaments[tourId];
                     if (tourData && tourData.players) {
-                        const myStats = tourData.players[document.getElementById('displayName'].innerText] || tourData.players[currentUsername];
+                        const myStats = tourData.players[document.getElementById('displayName').innerText] || tourData.players[currentUsername];
                         if (myStats) {
                             tMatches += (myStats.matchesPlayed || 0);
                             tRuns += (myStats.runs || 0);
                             tWickets += (myStats.wickets || 0);
                             tFours += (myStats.fours || 0);
                             tSixes += (myStats.sixes || 0);
+                            tMOM += (myStats.mom || 0);
                         }
                     }
                 });
@@ -351,6 +351,7 @@
             document.getElementById('statWickets').innerText = tWickets;
             document.getElementById('statFours').innerText = tFours;
             document.getElementById('statSixes').innerText = tSixes;
+            document.getElementById('statMOM').innerText = tMOM;
         } catch (err) {
             console.error("Error loading career stats:", err);
         }
