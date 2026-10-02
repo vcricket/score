@@ -1221,7 +1221,7 @@
         let bat1 = document.getElementById('bat1Name').value;
         let bat2 = document.getElementById('bat2Name').value;
 
-        if (!bat1 || !bat2) { alert("⚠️️ Select batters first!"); document.getElementById('bowlerName').value = ""; return; }
+        if (!bat1 || !bat2) { alert("⚠ Select batters first!"); document.getElementById('bowlerName').value = ""; return; }
         if (bowler !== "" && bowler === lastBowler) { alert("⚠️ Same bowler cannot bowl consecutive overs!"); document.getElementById('bowlerName').value = ""; updateSuggestions(); return; }
 
         if(bowler !== "") {
@@ -1387,8 +1387,28 @@
             isLeagueMatchGlobal = (urlType.toLowerCase() === 'league');
         }
 
-        // ফায়ারবেস বা টুর্নামেন্ট ডাটা থেকে টিম ও স্কোয়াড লোড করার ব্যবস্থা (যদি URL-এ না থাকে)
-        if (activeTournamentId && activeMatchId) {
+        // ১. সবার আগে ফায়ারবেসের লাইভ স্কোর নোড থেকে রানিং বা সেভ করা স্কোর রিকভার করার চেষ্টা করা (যাতে ব্যাক করলে ডেটা ও ব্যাটার-বোলার মুছে না যায়)
+        let liveScoreLoaded = false;
+        try {
+            const liveSnap = await get(ref(db, `live_matches/${currentMatchUser}/score`));
+            if (liveSnap.exists()) {
+                const mData = liveSnap.val();
+                if (mData.batTeamName && mData.bowlTeamName) {
+                    loadedBatTeam = mData.batTeamName;
+                    loadedBowlTeam = mData.bowlTeamName;
+                    squad1 = mData.squad1Data || "";
+                    squad2 = mData.squad2Data || "";
+                    if (mData.totalOvers) scheduledMatchOvers = mData.totalOvers;
+                    if (mData.tournamentId && !activeTournamentId) activeTournamentId = mData.tournamentId;
+                    liveScoreLoaded = true;
+                }
+            }
+        } catch (e) {
+            console.error("Error reading live score state:", e);
+        }
+
+        // ২. যদি লাইভ স্কোর না থাকে, তবে টুর্নামেন্টের শিডিউল বা ডাটাবেজ থেকে টিম ও স্কোয়াড লোড করবে
+        if (!liveScoreLoaded && activeTournamentId && activeMatchId) {
             try {
                 const userSnap = await get(ref(db, 'usernames/' + currentMatchUser));
                 if (userSnap.exists()) {
@@ -1437,29 +1457,6 @@
             } catch(e) {}
         }
 
-        if (!loadedBatTeam || !loadedBowlTeam) {
-            try {
-                const liveSnap = await get(ref(db, `live_matches/${currentMatchUser}/score`));
-                if (liveSnap.exists()) {
-                    const mData = liveSnap.val();
-                    if (!loadedBatTeam) loadedBatTeam = mData.batTeamName || "";
-                    if (!loadedBowlTeam) loadedBowlTeam = mData.bowlTeamName || "";
-                    if (!squad1) squad1 = mData.squad1Data || "";
-                    if (!squad2) squad2 = mData.squad2Data || "";
-                    if (!activeTournamentId && mData.tournamentId) activeTournamentId = mData.tournamentId;
-                    if (!scheduledMatchOvers && mData.totalOvers) {
-                        scheduledMatchOvers = mData.totalOvers;
-                    }
-                    if (mData.firstInningsRuns !== undefined && mData.firstInningsRuns > 0) {
-                        firstInningsRunsStored = mData.firstInningsRuns;
-                    }
-                    if (mData.firstInningsOvers !== undefined) {
-                        firstInningsOversStored = mData.firstInningsOvers;
-                    }
-                }
-            } catch (e) {}
-        }
-
         if (loadedBatTeam) document.getElementById('batTeamName').value = loadedBatTeam;
         if (loadedBowlTeam) document.getElementById('bowlTeamName').value = loadedBowlTeam;
 
@@ -1467,6 +1464,7 @@
         localStorage.setItem(`tempSelectedBowlTeamSquad_${currentMatchUser}`, squad2);
         localStorage.setItem(`localCricketSquads_${currentMatchUser}`, JSON.stringify({ t1: squad1, t2: squad2 }));
 
+        // আগের সমস্ত লাইভ স্কোর ও ব্যাটার-বোলার স্টেট লোড করা
         loadControllerState();
 
         if (loadedBatTeam) document.getElementById('batTeamName').value = loadedBatTeam;
@@ -1479,7 +1477,15 @@
         }
 
         updateSuggestions();
-        document.getElementById('playerPanel').open = true;
+        
+        // যদি স্কোর আগে থেকেই রানিং থাকে, তবে প্যানেলটি অটো বন্ধ থাকবে, না হলে ওপেন হবে
+        let runsVal = parseInt(document.getElementById('runs').value) || 0;
+        let wicketsVal = parseInt(document.getElementById('wickets').value) || 0;
+        if (runsVal > 0 || wicketsVal > 0 || document.getElementById('bat1Name').value !== "") {
+            document.getElementById('playerPanel').open = false;
+        } else {
+            document.getElementById('playerPanel').open = true;
+        }
 
         processAndUpdate();
     }
