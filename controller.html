@@ -289,6 +289,13 @@
     let detailedStats = {};
     let scheduledMatchOvers = null;
 
+    // সহায়ক ফাংশন: টিম নাম পরিষ্কার ও সঠিক করার জন্য
+    function cleanTeamName(name) {
+        if (!name) return "";
+        let decoded = decodeURIComponent(name).trim();
+        return decoded.includes('\n') ? decoded.split('\n')[0].trim() : decoded;
+    }
+
     window.returnToTournamentImmediately = async function() {
         localStorage.removeItem(`localCricketLive_${currentMatchUser}`);
         localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}`);
@@ -996,7 +1003,7 @@
 
     window.submitWicketDetails = function() {
         let t = document.getElementById('dismissalType').value; let f = document.getElementById('fielderName').value;
-        if ((t === 'caught' || t === 'stumped') && !f) { alert("⚠️ Select fielder!"); return; }
+        if ((t === 'caught' || t === 'stumped') && !f) { alert("⚠️️ Select fielder!"); return; }
         window.closeWicketModal(); saveState();
         
         let outB = document.getElementById('bat1Name').value;
@@ -1391,17 +1398,15 @@
             isLeagueMatchGlobal = (urlType.toLowerCase() === 'league');
         }
 
-        // ১. ফায়ারবেস থেকে লাইভ স্কোর ও রানিং স্টেট রিকভার করা
+        // ১. ফায়ারবেস থেকে লাইভ স্কোর ও রানিং স্টেট রিকভার করা
         let liveScoreLoaded = false;
         try {
             const liveSnap = await get(ref(db, `live_matches/${currentMatchUser}/score`));
             if (liveSnap.exists()) {
                 const mData = liveSnap.val();
                 if (mData.batTeamName && mData.bowlTeamName) {
-                    let bName = mData.batTeamName.trim();
-                    let bwName = mData.bowlTeamName.trim();
-                    if (bName !== "" && !bName.includes('\n')) loadedBatTeam = bName;
-                    if (bwName !== "" && !bwName.includes('\n')) loadedBowlTeam = bwName;
+                    loadedBatTeam = cleanTeamName(mData.batTeamName);
+                    loadedBowlTeam = cleanTeamName(mData.bowlTeamName);
                     
                     if (mData.runs !== undefined) document.getElementById('runs').value = mData.runs;
                     if (mData.wickets !== undefined) document.getElementById('wickets').value = mData.wickets;
@@ -1420,19 +1425,13 @@
             console.error("Error reading live score state from firebase:", e);
         }
 
-        // ২. ফায়ারবেসে লাইভ ডেটা না থাকলে URL থেকে টিম নাম নেওয়া
+        // ২. ফায়ারবেসে লাইভ ডেটা না থাকলে URL থেকে টিম নাম নেওয়া
         if (!liveScoreLoaded) {
-            if (urlTeam1 && typeof urlTeam1 === 'string') {
-                let t1Decoded = decodeURIComponent(urlTeam1).trim();
-                loadedBatTeam = t1Decoded.includes('\n') ? t1Decoded.split('\n')[0].trim() : t1Decoded;
-            }
-            if (urlTeam2 && typeof urlTeam2 === 'string') {
-                let t2Decoded = decodeURIComponent(urlTeam2).trim();
-                loadedBowlTeam = t2Decoded.includes('\n') ? t2Decoded.split('\n')[0].trim() : t2Decoded;
-            }
+            if (urlTeam1) loadedBatTeam = cleanTeamName(urlTeam1);
+            if (urlTeam2) loadedBowlTeam = cleanTeamName(urlTeam2);
         }
 
-        // ৩. টুর্নামেন্ট ডাটাবেজ থেকে স্কোয়াড বা ম্যাচ ইনফো লোড করা
+        // ৩. টুর্নামেন্ট ডাটাবেজ থেকে স্কোয়াড বা ম্যাচ ইনফো লোড করা
         if ((!loadedBatTeam || !loadedBowlTeam || !squad1 || !squad2) && activeTournamentId && activeMatchId) {
             try {
                 const userSnap = await get(ref(db, 'usernames/' + currentMatchUser));
@@ -1444,8 +1443,8 @@
                         const matchInfo = (tData.matches || {})[activeMatchId];
                         if (matchInfo) {
                             if (!liveScoreLoaded) {
-                                if (matchInfo.team1 && matchInfo.team1.trim() !== "") loadedBatTeam = matchInfo.team1.trim().split('\n')[0];
-                                if (matchInfo.team2 && matchInfo.team2.trim() !== "") loadedBowlTeam = matchInfo.team2.trim().split('\n')[0];
+                                if (matchInfo.team1) loadedBatTeam = cleanTeamName(matchInfo.team1);
+                                if (matchInfo.team2) loadedBowlTeam = cleanTeamName(matchInfo.team2);
                             }
                             if (!scheduledMatchOvers && matchInfo.overs) scheduledMatchOvers = matchInfo.overs;
                             isLeagueMatchGlobal = (matchInfo.type === 'league');
