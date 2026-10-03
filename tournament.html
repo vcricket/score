@@ -160,7 +160,6 @@
     let currentUserId = currentUsername; 
     let globalTeamsData = {};
 
-    // টিম বা স্কোয়াড নাম ক্লিন করার ফাংশন
     function cleanTeamName(name) {
         if (!name) return "";
         let decoded = decodeURIComponent(name).trim();
@@ -306,7 +305,7 @@
     };
 
     window.deleteTeam = async function(teamName) {
-        if (!confirm(`⚠️️ Are you sure you want to delete the team '${teamName}'?`)) return;
+        if (!confirm(`⚠️ Are you sure you want to delete the team '${teamName}'?`)) return;
 
         try {
             const teamRef = ref(db, `users/${currentUserId}/tournaments/${tourId}/teams/${teamName}`);
@@ -570,13 +569,17 @@
             if (globalTeamsData) {
                 for (let k in globalTeamsData) {
                     let tm = globalTeamsData[k];
-                    if (cleanTeamName(tm.name).toLowerCase() === t1.toLowerCase()) {
+                    let tmCleanName = cleanTeamName(tm.name);
+                    
+                    if (tmCleanName.toLowerCase() === t1.toLowerCase()) {
                         let squadArr = [tm.name, ...(tm.players || [])];
                         localStorage.setItem('tempSelectedBatTeamSquad', squadArr.join('\n'));
+                        localStorage.setItem('tempSelectedTeam1Squad', squadArr.join('\n'));
                     }
-                    if (cleanTeamName(tm.name).toLowerCase() === t2.toLowerCase()) {
+                    if (tmCleanName.toLowerCase() === t2.toLowerCase()) {
                         let squadArr = [tm.name, ...(tm.players || [])];
                         localStorage.setItem('tempSelectedBowlTeamSquad', squadArr.join('\n'));
+                        localStorage.setItem('tempSelectedTeam2Squad', squadArr.join('\n'));
                     }
                 }
             }
