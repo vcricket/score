@@ -39,7 +39,6 @@
                 btn.style.background = "#17a2b8";
             }
             
-            // ভিউয়ারের সাথে ম্যাচ করার জন্য সঠিক পাথ 'matchScore/' ব্যবহার করা হলো
             set(ref(db, 'matchScore/'), scoreData).then(() => {
                 if(btn) {
                     btn.innerText = "🟢 Live Update Active (Auto)";
@@ -136,10 +135,7 @@
         .sub-header-item select, .sub-header-item input[type="number"] { padding: 4px 6px; font-size: 13px; font-weight: bold; border: 1px solid #ccc; border-radius: 4px; width: 60px; background: #fff; }
         
         .btn-sub-action { padding: 5px 8px; font-size: 11px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; color: white; }
-        .btn-new-match-sub { background: #ff4757; }
-        .btn-reset-sub { background: #e74c3c; }
         .btn-winner-sub { background: #f39c12; }
-        .btn-squad-top { background: #6f42c1; }
 
         .box { background: #f9f9f9; padding: 14px; border: 1px solid #ddd; border-radius: 8px; }
         h3 { margin-top: 0; margin-bottom: 8px; color: #0056b3; font-size: 16px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
@@ -260,7 +256,7 @@
         <h4 style="color: #d9534f; margin-bottom: 8px;">Delete Team:</h4>
         <div style="display: flex; gap: 10px; align-items: center;">
             <select id="selectTeamToDelete" style="padding: 8px; font-weight: bold; flex: 1; border-radius: 4px; border: 1px solid #ccc;"></select>
-            <button class="btn-save-squad" style="background: #dc3545; width: auto; margin: 0; padding: 9px 15px;" onclick="deleteTeamFromBank()">🗑️ Delete</button>
+            <button class="btn-save-squad" style="background: #dc3545; width: auto; margin: 0; padding: 9px 15px;" onclick="deleteTeamFromBank()">🗑️️ Delete</button>
         </div>
     </div>
 </div>
@@ -370,7 +366,7 @@
         <h2>🏏 Pro Score Controller</h2>
     </div>
 
-    <!-- Sub-header Bar -->
+    <!-- Sub-header Bar (Teams, New, Reset বাটনগুলো সরিয়ে দেওয়া হয়েছে) -->
     <div class="sub-header-bar">
         <div class="sub-header-item">
             <span>Innings:</span>
@@ -384,10 +380,7 @@
             <input type="number" id="totalOvers" value="10" onchange="updateTargetMessage()">
         </div>
         
-        <button class="btn-sub-action btn-squad-top" onclick="openSquadSetupModal()">📋 Teams</button>
         <button class="btn-sub-action btn-winner-sub" onclick="declareWinnerManually()">🏆 End Match</button>
-        <button class="btn-sub-action btn-new-match-sub" onclick="startNewMatch()">🔄 New</button>
-        <button class="btn-sub-action btn-reset-sub" onclick="clearEntireTournament()">🗑️ Reset</button>
     </div>
 
     <datalist id="bowlerSuggestions"></datalist>
@@ -1439,7 +1432,7 @@
     function submitWicketDetails() {
         let type = document.getElementById('dismissalType').value;
         let fielder = document.getElementById('fielderName').value;
-        if ((type === 'caught' || type === 'stumped') && !fielder) { alert("⚠️ Please select the fielder/wicketkeeper from the dropdown!"); return; }
+        if ((type === 'caught' || type === 'stumped') && !fielder) { alert("⚠️️ Please select the fielder/wicketkeeper from the dropdown!"); return; }
         closeWicketModal(); saveState();
        
         let outBatter = document.getElementById('bat1Name').value.trim();
