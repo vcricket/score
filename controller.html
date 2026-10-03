@@ -23,13 +23,14 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // টিম নাম ও স্কোয়াড সেফ রাখার জন্য ক্লিনার ফাংশন
+        // টিম নাম বা স্কোয়াড থেকে সবসময় শুধু আসল টিমের নাম আলাদা করার ফাংশন
         function cleanTeamName(name) {
             if (!name) return "";
             let decoded = decodeURIComponent(name).trim();
             let parts = decoded.split('\n');
             return parts[0].trim();
         }
+        window.cleanTeamName = cleanTeamName;
 
         window.sendToFirebase = function(scoreData) {
             const btn = document.getElementById('updateBtn');
@@ -38,6 +39,7 @@
                 btn.style.background = "#17a2b8";
             }
             
+            // ভিউয়ারের সাথে ম্যাচ করার জন্য সঠিক পাথ 'matchScore/' ব্যবহার করা হলো
             set(ref(db, 'matchScore/'), scoreData).then(() => {
                 if(btn) {
                     btn.innerText = "🟢 Live Update Active (Auto)";
@@ -59,20 +61,20 @@
                 let teamsData = snapshot.val() || {};
 
                 let t1Key = "team1", t2Key = "team2";
-                let defaultTeam1Name = document.getElementById('batTeamName').value || "Team 1";
-                let defaultTeam2Name = document.getElementById('bowlTeamName').value || "Team 2";
+                let defaultTeam1Name = cleanTeamName(document.getElementById('batTeamName').value) || "Team 1";
+                let defaultTeam2Name = cleanTeamName(document.getElementById('bowlTeamName').value) || "Team 2";
 
                 let t1Obj = teamsData[t1Key] || { name: defaultTeam1Name, matchesPlayed: 0, won: 0, lost: 0, points: 0, totalRunsScored: 0, totalOversFaced: 0, totalRunsConceded: 0, totalOversBowled: 0, netRunRate: "+0.000" };
                 let t2Obj = teamsData[t2Key] || { name: defaultTeam2Name, matchesPlayed: 0, won: 0, lost: 0, points: 0, totalRunsScored: 0, totalOversFaced: 0, totalRunsConceded: 0, totalOversBowled: 0, netRunRate: "+0.000" };
 
-                let winnerKey = t1Obj.name.toLowerCase().trim() === winnerTeam.toLowerCase().trim() ? t1Key : t2Key;
+                let winnerKey = cleanTeamName(t1Obj.name).toLowerCase().trim() === cleanTeamName(winnerTeam).toLowerCase().trim() ? t1Key : t2Key;
                 let loserKey = winnerKey === t1Key ? t2Key : t1Key;
 
                 let winObj = winnerKey === t1Key ? t1Obj : t2Obj;
                 let loseObj = loserKey === t1Key ? t1Obj : t2Obj;
 
-                winObj.name = winnerTeam;
-                loseObj.name = loserTeam;
+                winObj.name = cleanTeamName(winnerTeam);
+                loseObj.name = cleanTeamName(loserTeam);
 
                 winObj.matchesPlayed = (winObj.matchesPlayed || 0) + 1;
                 
@@ -1467,7 +1469,7 @@
         if (!matchEnded && !isFirstInningsPopupOpen && w < 10) {
             if (legalBallsInCurrentOver !== 0) { 
                 setTimeout(() => {
-                    alert("⚠️️ Batter is OUT! Select the name of the new batter.");
+                    alert("⚠️ Batter is OUT! Select the name of the new batter.");
                     const bat1Input = document.getElementById('bat1Name');
                     bat1Input.scrollIntoView({ behavior: 'smooth', block: 'center' }); bat1Input.focus();
                 }, 200);
