@@ -372,9 +372,12 @@
             }, timeoutDuration);
         }
 
-        function formatSquad(rawText, titleElementId, listElementId, defaultTitle) {
+        // ফিক্সড ফরম্যাট স্কোয়াড ফাংশন যাতে সঠিক টিম নাম ও প্লেয়ার লিস্ট রেন্ডার হয়
+        function formatSquad(rawText, teamNameDirect, titleElementId, listElementId, defaultTitle) {
+            let displayTeamName = teamNameDirect && teamNameDirect.trim() !== "" ? teamNameDirect.trim() : defaultTitle;
+            document.getElementById(titleElementId).innerText = displayTeamName;
+
             if (!rawText || typeof rawText !== 'string') {
-                document.getElementById(titleElementId).innerText = defaultTitle;
                 document.getElementById(listElementId).innerHTML = '';
                 return;
             } 
@@ -382,21 +385,20 @@
             const lines = rawText.split('\n').map(l => l.trim()).filter(line => line !== '');
             
             if (lines.length > 0) {
-                // প্রথম লাইনটি হলো নিশ্চিতভাবেই টিমের নাম
-                let teamName = lines[0];
-                document.getElementById(titleElementId).innerText = teamName; 
-                
                 let playersHtml = ''; 
                 let playerIndex = 1;
                 
-                // দ্বিতীয় লাইন থেকে বাকিগুলো হলো প্লেয়ারদের তালিকা
-                for (let i = 1; i < lines.length && i <= 20; i++) {
+                let startIndex = 0;
+                if (lines[0].toLowerCase() === displayTeamName.toLowerCase()) {
+                    startIndex = 1;
+                }
+
+                for (let i = startIndex; i < lines.length && playerIndex <= 20; i++) {
                     playersHtml += `<li><span style="color:#ffcc00; margin-right:6px; font-weight:750;">${playerIndex++}.</span> ${lines[i]}</li>`;
                 }
                 
                 document.getElementById(listElementId).innerHTML = playersHtml;
             } else { 
-                document.getElementById(titleElementId).innerText = defaultTitle; 
                 document.getElementById(listElementId).innerHTML = ''; 
             }
         }
@@ -491,8 +493,8 @@
 
             if(data.showSquadsOnScreen) {
                 squadScreen.classList.add('active'); mainBoard.classList.add('hidden');
-                formatSquad(data.squad1Data, 't1-title', 't1-list', 'TEAM A'); 
-                formatSquad(data.squad2Data, 't2-title', 't2-list', 'TEAM B');
+                formatSquad(data.squad1Data, data.batTeamName, 't1-title', 't1-list', 'TEAM A'); 
+                formatSquad(data.squad2Data, data.bowlTeamName, 't2-title', 't2-list', 'TEAM B');
             } else squadScreen.classList.remove('active');
 
             if(data.showPointsTableOnScreen) { pointsScreen.classList.add('active'); mainBoard.classList.add('hidden'); } else pointsScreen.classList.remove('active');
