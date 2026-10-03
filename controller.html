@@ -154,7 +154,6 @@
             });
         };
 
-        // গ্লোবালি উইন্ডো অবজেক্টে ফাংশনগুলো বাইন্ড করা যাতে বাটন ক্লিক করলে সরাসরি কাজ করে
         window.addBall = addBall;
         window.addExtra = addExtra;
         window.addLegBye = addLegBye;
@@ -452,8 +451,8 @@
     async function initPage() {
         let loadedBatTeam = "";
         let loadedBowlTeam = "";
-        let squad1 = localStorage.getItem('tempSelectedBatTeamSquad') || "";
-        let squad2 = localStorage.getItem('tempSelectedBowlTeamSquad') || "";
+        let squad1 = localStorage.getItem('tempSelectedTeam1Squad') || localStorage.getItem('tempSelectedBatTeamSquad') || "";
+        let squad2 = localStorage.getItem('tempSelectedTeam2Squad') || localStorage.getItem('tempSelectedBowlTeamSquad') || "";
 
         if (urlTeam1) loadedBatTeam = cleanTeamName(urlTeam1);
         if (urlTeam2) loadedBowlTeam = cleanTeamName(urlTeam2);
@@ -489,6 +488,13 @@
 
         if (loadedBatTeam) document.getElementById('batTeamName').value = loadedBatTeam;
         if (loadedBowlTeam) document.getElementById('bowlTeamName').value = loadedBowlTeam;
+
+        if(!localStorage.getItem('tempSelectedBatTeamSquad') && squad1) {
+            localStorage.setItem('tempSelectedBatTeamSquad', squad1);
+        }
+        if(!localStorage.getItem('tempSelectedBowlTeamSquad') && squad2) {
+            localStorage.setItem('tempSelectedBowlTeamSquad', squad2);
+        }
 
         loadControllerState();
         updateSuggestions();
@@ -735,7 +741,7 @@
         }
 
         if (!bowler || bowler === "Bowler") {
-            alert("⚠️️ Selecting the current bowler is mandatory!");
+            alert("⚠️ Selecting the current bowler is mandatory!");
             document.getElementById('playerPanel').open = true;
             return false;
         }
@@ -1101,7 +1107,7 @@
     }
 
     function addExtra(type) {
-        if(matchEnded) { alert("⚠️ The match has already ended!"); return; }
+        if(matchEnded) { alert("⚠️️ The match has already ended!"); return; }
         if(!validateMandatorySelections()) return;
         autoClosePanel();
 
