@@ -218,7 +218,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-        import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
@@ -230,17 +230,16 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentMatchUser = urlParams.get('u');
-
-        if (!currentMatchUser) {
-            document.getElementById('targetText').innerText = "⚠️ Error: No active match channel specified in URL (?u=username).";
-        }
-
         let lastTriggerId = 0;
         let eventQueue = [];
         let isEventPlaying = false;
-        let currentActiveTournamentId = null;
+
+        function cleanTeamName(name) {
+            if (!name) return "";
+            let decoded = decodeURIComponent(name).trim();
+            let parts = decoded.split('\n');
+            return parts[0].trim();
+        }
 
         function enqueueEvent(eventData) {
             eventQueue.push(eventData);
@@ -249,12 +248,11 @@
 
         function processQueue() {
             if (isEventPlaying || eventQueue.length === 0) {
-                if (!isEventPlaying && eventQueue.length === 0 && currentMatchUser) {
+                if (!isEventPlaying && eventQueue.length === 0) {
                     document.getElementById('mainScoreboard').classList.remove('hidden');
                 }
                 return;
             }
-            
             isEventPlaying = true;
             let evt = eventQueue.shift();
             playEventAnimation(evt);
@@ -305,64 +303,11 @@
                 textEl.innerHTML = evt.targetMsg;
                 timeoutDuration = 8000;
             }
-            else if(type === 'SHOW_PLAYER_STAT') {
-                textEl.classList.add('color-over-summary', 'animate-over-summary');
-                let pData = evt.playerStat;
-                if(pData) {
-                    let s = pData.stats;
-                    let cat = pData.category;
-                    let htmlContent = "";
-
-                    if(cat === "best_scorer") {
-                        let sr = s.balls ? ((s.runs/s.balls)*100).toFixed(1) : "0.0";
-                        htmlContent = `
-                            <div>Runs: <span style="color:#00ff88;">${s.runs||0}</span> <span style="font-size:14px; color:#aaa;">(${s.balls||0}b)</span></div>
-                            <div>4s/6s: <span style="color:#ffcc00;">${s.fours||0}/${s.sixes||0}</span></div>
-                            <div>SR: <span style="color:#00d2ff;">${sr}</span></div>
-                        `;
-                    } else if(cat === "best_bowler") {
-                        let ovStr = s.oversBowled || "0.0";
-                        htmlContent = `
-                            <div>Wkts: <span style="color:#ff4757;">${s.wickets||0}</span></div>
-                            <div>Ov/R: <span style="color:#ffcc00;">${ovStr}/${s.runsConceded||0}</span></div>
-                            <div>Dots: <span style="color:#00d2ff;">${s.dotBallsBowled||0}</span></div>
-                        `;
-                    } else {
-                        htmlContent = `
-                            <div>RO: <span style="color:#00ff88;">${s.runOuts||0}</span></div>
-                            <div>Catches: <span style="color:#ffcc00;">${s.catches||0}</span></div>
-                            <div>Stump: <span style="color:#00d2ff;">${s.stumpings||0}</span></div>
-                        `;
-                    }
-                    
-                    textEl.innerHTML = `
-                        <div style="font-size: 20px; color: #00d2ff; text-transform: uppercase; margin-bottom: 5px;">🌟 Player Spotlight</div>
-                        <div style="font-size: 30px; color: #ffcc00; font-weight: bold; border-bottom: 2px solid #555; padding-bottom: 5px; margin-bottom: 10px;">${pData.name}</div>
-                        <div style="display: flex; justify-content: space-around; font-size: 18px; color: #fff;">
-                            ${htmlContent}
-                        </div>
-                    `;
-                }
-                timeoutDuration = 6500;
-            }
-            else if(type === 'MAN_OF_THE_MATCH') {
-                textEl.classList.add('color-winner', 'animate-winner');
-                let m = evt.momData;
-                if(m) {
-                    textEl.innerHTML = `
-                        <div style="font-size: 22px; color: #fff; margin-bottom: 10px; border-bottom:1px solid #555;">🌟 Man of the Match</div>
-                        <div style="font-size: 40px; color: #00ff88; font-weight: bold;">${m.name}</div>
-                        <div style="font-size: 20px; color: #ffcc00; margin-top: 10px;">${m.reason}</div>
-                    `;
-                }
-                timeoutDuration = 8000;
-            }
             else {
                 isEventPlaying = false; processQueue(); return;
             }
             
             overlay.classList.add('active');
-            
             setTimeout(() => {
                 overlay.classList.remove('active');
                 setTimeout(() => {
@@ -372,9 +317,8 @@
             }, timeoutDuration);
         }
 
-        // ফিক্সড ফরম্যাট স্কোয়াড ফাংশন যাতে সঠিক টিম নাম ও প্লেয়ার লিস্ট রেন্ডার হয়
         function formatSquad(rawText, teamNameDirect, titleElementId, listElementId, defaultTitle) {
-            let displayTeamName = teamNameDirect && teamNameDirect.trim() !== "" ? teamNameDirect.trim() : defaultTitle;
+            let displayTeamName = cleanTeamName(teamNameDirect) || defaultTitle;
             document.getElementById(titleElementId).innerText = displayTeamName;
 
             if (!rawText || typeof rawText !== 'string') {
@@ -383,20 +327,17 @@
             } 
             
             const lines = rawText.split('\n').map(l => l.trim()).filter(line => line !== '');
-            
             if (lines.length > 0) {
                 let playersHtml = ''; 
                 let playerIndex = 1;
-                
                 let startIndex = 0;
-                if (lines[0].toLowerCase() === displayTeamName.toLowerCase()) {
+                if (cleanTeamName(lines[0]).toLowerCase() === displayTeamName.toLowerCase()) {
                     startIndex = 1;
                 }
 
                 for (let i = startIndex; i < lines.length && playerIndex <= 20; i++) {
                     playersHtml += `<li><span style="color:#ffcc00; margin-right:6px; font-weight:750;">${playerIndex++}.</span> ${lines[i]}</li>`;
                 }
-                
                 document.getElementById(listElementId).innerHTML = playersHtml;
             } else { 
                 document.getElementById(listElementId).innerHTML = ''; 
@@ -416,92 +357,61 @@
             return { crr, rrr };
         }
 
-        async function fetchTournamentPointsTable(tournamentId) {
-            if (!currentMatchUser || !tournamentId) return;
+        // Points Table Listener
+        onValue(ref(db, 'tournament/teams/'), (snapshot) => {
+            let teams = snapshot.val();
+            const tbody = document.getElementById('pointsTablePopupBody');
+            tbody.innerHTML = '';
             
-            const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${tournamentId}/teams`);
-            
-            onValue(pointsRef, async (snapshot) => {
-                let teams = snapshot.val(); 
-                const tbody = document.getElementById('pointsTablePopupBody'); 
-                tbody.innerHTML = '';
-                
-                if (!teams) {
-                    try {
-                        const userSnap = await get(ref(db, 'usernames/' + currentMatchUser));
-                        if (userSnap.exists()) {
-                            const uid = userSnap.val();
-                            const tourTeamsSnap = await get(ref(db, `users/${uid}/tournaments/${tournamentId}/teams`));
-                            const tourTeams = tourTeamsSnap.val() || {};
-                            
-                            teams = {};
-                            Object.keys(tourTeams).forEach((teamName) => {
-                                let cleanKey = teamName.trim().toLowerCase().replace(/[\s.#$\[\]]/g, "_");
-                                teams[cleanKey] = {
-                                    name: teamName.trim(),
-                                    matchesPlayed: 0,
-                                    won: 0,
-                                    lost: 0,
-                                    points: 0,
-                                    netRunRate: "+0.000"
-                                };
-                            });
-                        }
-                    } catch (e) {
-                        console.error("Error fetching fallback tournament teams:", e);
-                    }
+            if(!teams) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#888;">No teams data available.</td></tr>`;
+                return;
+            }
+
+            let teamsArray = Object.keys(teams).map(key => teams[key]);
+            teamsArray.sort((a, b) => {
+                if ((b.points || 0) !== (a.points || 0)) {
+                    return (b.points || 0) - (a.points || 0);
                 }
-
-                if(!teams || Object.keys(teams).length === 0) { 
-                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#888;">No teams added to this tournament yet.</td></tr>`; 
-                    return; 
-                }
-
-                let teamsArray = Object.keys(teams).map(key => teams[key]);
-                teamsArray.sort((a, b) => {
-                    if ((b.points || 0) !== (a.points || 0)) {
-                        return (b.points || 0) - (a.points || 0);
-                    }
-                    return parseFloat(b.netRunRate || 0) - parseFloat(a.netRunRate || 0);
-                });
-
-                teamsArray.forEach((team, index) => {
-                    let tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${index + 1}</td>
-                        <td style="font-weight:700; text-align:left; padding-left:12px; color:#ffcc00;">${team.name || 'Team'}</td>
-                        <td>${team.matchesPlayed || 0}</td>
-                        <td>${team.won || 0}</td>
-                        <td>${team.lost || 0}</td>
-                        <td style="color:#00d2ff; font-weight:600;">${team.netRunRate || '+0.000'}</td>
-                        <td style="font-weight:700; color:#00ff88;">${team.points || 0}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+                return parseFloat(b.netRunRate || 0) - parseFloat(a.netRunRate || 0);
             });
-        }
+
+            teamsArray.forEach((team, index) => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td style="font-weight:700; text-align:left; padding-left:12px; color:#ffcc00;">${cleanTeamName(team.name) || 'Team'}</td>
+                    <td>${team.matchesPlayed || 0}</td>
+                    <td>${team.won || 0}</td>
+                    <td>${team.lost || 0}</td>
+                    <td style="color:#00d2ff; font-weight:600;">${team.netRunRate || '+0.000'}</td>
+                    <td style="font-weight:700; color:#00ff88;">${team.points || 0}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
 
         function updateUI(data) {
             if (!data) return;
-            const squadScreen = document.getElementById('squadPresentation'); const pointsScreen = document.getElementById('pointsTableOverlay');
-            const summaryScreen = document.getElementById('matchSummaryOverlay'); const mainBoard = document.getElementById('mainScoreboard');
+            const squadScreen = document.getElementById('squadPresentation'); 
+            const pointsScreen = document.getElementById('pointsTableOverlay');
+            const summaryScreen = document.getElementById('matchSummaryOverlay'); 
+            const mainBoard = document.getElementById('mainScoreboard');
 
-            if (data.tournamentId && data.tournamentId !== currentActiveTournamentId) {
-                currentActiveTournamentId = data.tournamentId;
-                fetchTournamentPointsTable(currentActiveTournamentId);
-            }
+            let cleanBatTeam = cleanTeamName(data.batTeamName) || 'TEAM A';
+            let cleanBowlTeam = cleanTeamName(data.bowlTeamName) || 'TEAM B';
 
             if(data.showSquadsOnScreen) {
                 squadScreen.classList.add('active'); mainBoard.classList.add('hidden');
-                formatSquad(data.squad1Data, data.batTeamName, 't1-title', 't1-list', 'TEAM A'); 
-                formatSquad(data.squad2Data, data.bowlTeamName, 't2-title', 't2-list', 'TEAM B');
+                formatSquad(data.squad1Data, cleanBatTeam, 't1-title', 't1-list', 'TEAM A'); 
+                formatSquad(data.squad2Data, cleanBowlTeam, 't2-title', 't2-list', 'TEAM B');
             } else squadScreen.classList.remove('active');
 
             if(data.showPointsTableOnScreen) { pointsScreen.classList.add('active'); mainBoard.classList.add('hidden'); } else pointsScreen.classList.remove('active');
 
             if(data.showSummaryOnScreen) {
                 summaryScreen.classList.add('active'); mainBoard.classList.add('hidden');
-                document.getElementById('sum-bat-team').innerText = data.batTeamName || 'TEAM A';
+                document.getElementById('sum-bat-team').innerText = cleanBatTeam;
                 document.getElementById('sum-score').innerHTML = `${data.runs}<span style="font-size: 20px; color:#ffcccc;">/${data.wickets}</span>`;
                 document.getElementById('sum-overs').innerText = data.overs;
                 document.getElementById('sum-bat1').innerText = `${data.bat1Name} - ${data.bat1Runs} (${data.bat1Balls}b)`;
@@ -524,7 +434,7 @@
                 }
             }
 
-            document.getElementById('disp-team').innerText = data.batTeamName || 'TEAM A';
+            document.getElementById('disp-team').innerText = cleanBatTeam;
             document.getElementById('disp-score').innerHTML = `${data.runs}<span class="wickets">/${data.wickets}</span>`;
             document.getElementById('disp-overs').innerText = data.overs;
             
@@ -603,20 +513,16 @@
                         overHistory: data.overHistory, 
                         overs: data.overs,
                         totalOvers: data.totalOvers, 
-                        innings: data.innings, 
-                        playerStat: data.broadcastPlayerStat, 
-                        momData: data.manOfTheMatch
+                        innings: data.innings
                     });
                 }
             }
         }
 
-        if (currentMatchUser) {
-            onValue(ref(db, `live_matches/${currentMatchUser}/score`), (snapshot) => { 
-                const data = snapshot.val(); 
-                if (data) { updateUI(data); } 
-            });
-        }
+        onValue(ref(db, 'matchScore/'), (snapshot) => { 
+            const data = snapshot.val(); 
+            if (data) { updateUI(data); } 
+        });
     </script>
 </body>
 </html>
