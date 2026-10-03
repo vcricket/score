@@ -450,7 +450,7 @@
         const sBowl = localStorage.getItem(`tempSelectedBowlTeamSquad_${currentMatchUser}`) || "";
 
         const targetSquad = isBattingTeam ? sBat : sBowl;
-        if (!targetSquad) return [];
+        if (!targetSquad || targetSquad.trim() === "") return [];
 
         let lines = targetSquad.split('\n').map(p => p.trim()).filter(p => p.length > 0);
         return lines.length > 1 ? lines.slice(1) : lines;
@@ -1395,9 +1395,13 @@
                             }
                             
                             isLeagueMatchGlobal = (matchInfo.type === 'league');
-                            // Fixed: Accessing valid strings instead of objects
-                            squad1 = (tData.squads || {})[loadedBatTeam] || "";
-                            squad2 = (tData.squads || {})[loadedBowlTeam] || "";
+                            
+                            // Safely extract squads from tournament teams if available
+                            let t1Obj = (tData.teams || {})[loadedBatTeam];
+                            let t2Obj = (tData.teams || {})[loadedBowlTeam];
+                            
+                            squad1 = (typeof t1Obj === 'object') ? (t1Obj.squad || "") : (t1Obj || "");
+                            squad2 = (typeof t2Obj === 'object') ? (t2Obj.squad || "") : (t2Obj || "");
                         }
                     }
                 }
@@ -1406,32 +1410,37 @@
             }
         }
 
-        if (!loadedBatTeam || !loadedBowlTeam) {
-            try {
-                const liveSnap = await get(ref(db, `live_matches/${currentMatchUser}/score`));
-                if (liveSnap.exists()) {
-                    const mData = liveSnap.val();
-                    if (!loadedBatTeam) loadedBatTeam = mData.batTeamName || "";
-                    if (!loadedBowlTeam) loadedBowlTeam = mData.bowlTeamName || "";
-                    // Fixed: Ensured string fallback to prevent [object Object]
-                    if (!squad1) squad1 = mData.squad1Data || loadedBatTeam;
-                    if (!squad2) squad2 = mData.squad2Data || loadedBowlTeam;
-                    if (!scheduledMatchOvers && mData.totalOvers) {
-                        scheduledMatchOvers = mData.totalOvers;
-                        document.getElementById('totalOvers').value = scheduledMatchOvers;
-                    }
-                    if (mData.firstInningsRuns !== undefined && mData.firstInningsRuns > 0) {
-                        firstInningsRunsStored = mData.firstInningsRuns;
-                    }
-                    if (mData.firstInningsOvers !== undefined) {
-                        firstInningsOversStored = mData.firstInningsOvers;
-                    }
+        // ALWAYS fetch live data to recover squad strings correctly
+        try {
+            const liveSnap = await get(ref(db, `live_matches/${currentMatchUser}/score`));
+            if (liveSnap.exists()) {
+                const mData = liveSnap.val();
+                if (!loadedBatTeam) loadedBatTeam = mData.batTeamName || "";
+                if (!loadedBowlTeam) loadedBowlTeam = mData.bowlTeamName || "";
+                
+                // Prioritize squad data saved in the live match node
+                if (mData.squad1Data && mData.squad1Data !== "[object Object]") squad1 = mData.squad1Data;
+                if (mData.squad2Data && mData.squad2Data !== "[object Object]") squad2 = mData.squad2Data;
+                
+                if (!scheduledMatchOvers && mData.totalOvers) {
+                    scheduledMatchOvers = mData.totalOvers;
+                    document.getElementById('totalOvers').value = scheduledMatchOvers;
                 }
-            } catch (e) {}
-        }
+                if (mData.firstInningsRuns !== undefined && mData.firstInningsRuns > 0) {
+                    firstInningsRunsStored = mData.firstInningsRuns;
+                }
+                if (mData.firstInningsOvers !== undefined) {
+                    firstInningsOversStored = mData.firstInningsOvers;
+                }
+            }
+        } catch (e) {}
 
         if (loadedBatTeam) document.getElementById('batTeamName').value = loadedBatTeam;
         if (loadedBowlTeam) document.getElementById('bowlTeamName').value = loadedBowlTeam;
+
+        // Emergency fallback if squad is still empty (prevents totally blank dropdowns)
+        if (!squad1 || squad1.trim() === "") squad1 = `${loadedBatTeam}\nPlayer 1\nPlayer 2\nPlayer 3\nPlayer 4\nPlayer 5\nPlayer 6\nPlayer 7\nPlayer 8\nPlayer 9\nPlayer 10\nPlayer 11`;
+        if (!squad2 || squad2.trim() === "") squad2 = `${loadedBowlTeam}\nPlayer 1\nPlayer 2\nPlayer 3\nPlayer 4\nPlayer 5\nPlayer 6\nPlayer 7\nPlayer 8\nPlayer 9\nPlayer 10\nPlayer 11`;
 
         localStorage.setItem(`tempSelectedBatTeamSquad_${currentMatchUser}`, squad1);
         localStorage.setItem(`tempSelectedBowlTeamSquad_${currentMatchUser}`, squad2);
