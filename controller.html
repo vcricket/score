@@ -311,7 +311,7 @@
         }
 
         if (targetTourId && targetTourId !== "null" && targetTourId !== "undefined") {
-            window.location.href = `index.html?t=${targetTourId}`;
+            window.location.href = `tournament.html?t=${targetTourId}`;
         } else {
             window.location.href = "index.html";
         }
@@ -414,7 +414,6 @@
         } catch (e) {}
     }
 
-    // নিখুঁতভাবে Points ও NRR ক্যালকুলেট করার নতুন ফাংশন
     async function updateTournamentStandings(winTeamName, loseTeamName, winRuns, winOvers, loseRuns, loseOvers, isTie = false) {
         if (!activeTournamentId) return;
         const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${activeTournamentId}/teams/`);
@@ -428,7 +427,6 @@
             let winObj = teamsData[wKey] || { name: winTeamName, matchesPlayed: 0, won: 0, lost: 0, tied: 0, points: 0, totalRunsScored: 0, totalBallsFaced: 0, totalRunsConceded: 0, totalBallsBowled: 0, netRunRate: "+0.000" };
             let loseObj = teamsData[lKey] || { name: loseTeamName, matchesPlayed: 0, won: 0, lost: 0, tied: 0, points: 0, totalRunsScored: 0, totalBallsFaced: 0, totalRunsConceded: 0, totalBallsBowled: 0, netRunRate: "+0.000" };
 
-            // পুরানো ডেটা স্ট্রাকচার ফিক্সিং
             winObj.totalBallsFaced = winObj.totalBallsFaced || oversToBalls(winObj.totalOversFaced || 0);
             winObj.totalBallsBowled = winObj.totalBallsBowled || oversToBalls(winObj.totalOversBowled || 0);
             loseObj.totalBallsFaced = loseObj.totalBallsFaced || oversToBalls(loseObj.totalOversFaced || 0);
@@ -690,7 +688,6 @@
             matchEnded = true; let winnerText = `${bTeam} Won by ${10 - wickets} Wickets! 🎉`;
             document.getElementById('targetMsg').value = winnerText; currentEvent = "WINNER";
             if(isLeagueMatchGlobal && !tournamentPointsUpdated) {
-                // bTeam is chaser/winner, bwTeam is defender/loser
                 updateTournamentStandings(bTeam, bwTeam, runs, oversStr, firstInningsRunsStored, firstInningsOversStored, false);
                 tournamentPointsUpdated = true;
             }
@@ -716,8 +713,8 @@
                 let winnerText = isTie ? `Match Tied! 🤝` : `${bwTeam} Won by ${targetNum - runs} Runs! 🏆`;
                 document.getElementById('targetMsg').value = winnerText; currentEvent = "WINNER";
                 
-                let winTeamName = isTie ? bwTeam : bwTeam; // Defender
-                let loseTeamName = bTeam; // Chaser
+                let winTeamName = isTie ? bwTeam : bwTeam;
+                let loseTeamName = bTeam;
                 
                 if(isLeagueMatchGlobal && !tournamentPointsUpdated) {
                     updateTournamentStandings(winTeamName, loseTeamName, firstInningsRunsStored, firstInningsOversStored, runs, convertBallsToOversStr(totalOvers * 6), isTie);
@@ -985,7 +982,7 @@
 
         sendToFirebase(finalScoreData); localStorage.removeItem(`localCricketLive_${currentMatchUser}`); localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}`);
         alert(`🏆 Match Completed! Man of the Match: ${momName}. Returning to Tournament...`);
-        if (activeTournamentId) { window.location.href = `index.html?t=${activeTournamentId}`; } else { window.location.href = "index.html"; }
+        if (activeTournamentId) { window.location.href = `tournament.html?t=${activeTournamentId}`; } else { window.location.href = "index.html"; }
     };
 
     window.onBowlerNameChange = function() {
@@ -1121,7 +1118,6 @@
         return "";
     }
 
-    // **TOURNAMENT INIT SYSTEM:** পয়েন্ট টেবিলে সমস্ত টিমকে 0 পয়েন্ট দিয়ে শো করানোর লজিক
     async function initializePointsTable(tData) {
         if (!activeTournamentId) return;
         const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${activeTournamentId}/teams/`);
@@ -1142,7 +1138,6 @@
                 if (!teamName || typeof teamName !== 'string' || teamName === 'team1' || teamName === 'team2') return; 
                 let sKey = teamName.replace(/[.#$\[\]]/g, '_');
                 
-                // যদি টিম আগে থেকে না থাকে, তাহলে 0 পয়েন্ট দিয়ে তৈরি করবে
                 if (!teamsData[sKey]) {
                     teamsData[sKey] = { 
                         name: teamName, matchesPlayed: 0, won: 0, lost: 0, tied: 0, points: 0, 
@@ -1171,7 +1166,6 @@
                     if (tourSnap.exists()) {
                         const tData = tourSnap.val();
                         
-                        // টুর্নামেন্ট লোড হওয়ার সাথে সাথেই সমস্ত টিম পয়েন্ট টেবিলে পাঠিয়ে দেওয়া হবে 
                         await initializePointsTable(tData);
 
                         const matchInfo = (tData.matches || {})[activeMatchId];
