@@ -46,7 +46,7 @@
         .btn-launch-match:hover { background: #0056b3; }
 
         .completed-badge { background: #e2e8f0; color: #2d3748; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .page-section { display: block; }
+        .page-section { display: none; }
     </style>
 </head>
 <body>
@@ -78,7 +78,7 @@
     </div>
 
     <!-- ২. নির্দিষ্ট টুর্নামেন্ট প্যানেল -->
-    <div id="activeTournamentView" class="page-section" style="display: none;">
+    <div id="activeTournamentView" class="page-section">
         
         <div style="margin-bottom: 15px;">
             <a id="backToHubBtn" href="tournament.html" style="color: #0056b3; text-decoration: none; font-weight: bold; font-size: 14px;">⬅️ Back to Tournaments List</a>
@@ -86,9 +86,12 @@
 
         <!-- টিম ও স্কোয়াড ম্যানেজমেন্ট সেকশন -->
         <div class="box" style="background: #f0f7ff; border-color: #b8daff;">
-            <h3 style="color: #0056b3;">👥 Add Team & Squad</h3>
-            <label>Team Name & Players (1st line = Team Name, Next lines = Players List, উইকেটকিপারের নামের পাশে (wk) দিন)</label>
-            <textarea id="teamAndSquadInput" rows="6" placeholder="Kolkata Tigers&#10;Player 1 (c) - Captain&#10;Player 2 (wk) - Wicketkeeper&#10;Player 3&#10;Player 4"></textarea>
+            <h3 style="color: #0056b3;">👥 Add Team & Player Squad</h3>
+            <label>Team Name</label>
+            <input type="text" id="teamNameInput" placeholder="e.g. Kolkata Tigers">
+
+            <label>Players List (Put Captain (c) first, then Wicketkeeper (wk), each on a new line)</label>
+            <textarea id="squadInput" rows="4" placeholder="Player 1 (c) - Captain&#10;Player 2 (wk) - Wicketkeeper&#10;Player 3&#10;Player 4"></textarea>
 
             <button class="btn" style="background: #0056b3;" onclick="window.saveTeamWithSquad()">💾 Save Team & Squad to Cloud</button>
             
@@ -157,15 +160,12 @@
         localStorage.setItem('proCricketUsername', currentUsername);
     }
 
-    let currentUserId = currentUsername; 
-    let globalTeamsData = {};
+    document.getElementById('profileLinkBtn').href = `profile.html?u=${currentUsername}`;
+    document.getElementById('dashboardLinkBtn').href = `index.html?u=${currentUsername}`;
+    document.getElementById('backToHubBtn').href = `tournament.html?u=${currentUsername}`;
 
-    function cleanTeamName(name) {
-        if (!name) return "";
-        let decoded = decodeURIComponent(name).trim();
-        let parts = decoded.split('\n');
-        return parts[0].trim();
-    }
+    let currentUserId = "";
+    let globalTeamsData = {};
 
     async function initTournamentHub() {
         try {
@@ -173,19 +173,19 @@
             const snap = await get(userRef);
             if (snap.exists()) {
                 currentUserId = snap.val();
+            } else {
+                currentUserId = currentUsername;
             }
 
-            document.getElementById('profileLinkBtn').href = `profile.html?u=${currentUsername}`;
-            document.getElementById('dashboardLinkBtn').href = `index.html?u=${currentUsername}`;
-            document.getElementById('backToHubBtn').href = `tournament.html?u=${currentUsername}`;
-
-            if (!tourId || tourId.trim() === "" || tourId === "null" || tourId === "undefined") {
+            // যদি টুর্নামেন্ট আইডি (t) না থাকে, তবে হাব পেজ দেখাবে
+            if (!tourId || tourId.trim() === "" || tourId === "null") {
                 document.getElementById('noTournamentView').style.display = 'block';
                 document.getElementById('activeTournamentView').style.display = 'none';
                 loadAllTournaments();
                 return;
             }
 
+            // যদি টুর্নামেন্ট আইডি থাকে, তবে নির্দিষ্ট টুর্নামেন্ট প্যানেল দেখাবে
             document.getElementById('noTournamentView').style.display = 'none';
             document.getElementById('activeTournamentView').style.display = 'block';
 
@@ -201,9 +201,6 @@
             loadMatchesList();
         } catch (err) {
             console.error("Error initializing tournament hub:", err);
-            document.getElementById('noTournamentView').style.display = 'block';
-            document.getElementById('activeTournamentView').style.display = 'none';
-            loadAllTournaments();
         }
     }
 
@@ -230,7 +227,6 @@
 
     async function loadAllTournaments() {
         const container = document.getElementById('tournamentsListContainer');
-        if (!container) return;
         container.innerHTML = "<li style='text-align:center; color:#888; width: 100%;'>Loading tournaments...</li>";
 
         try {
@@ -273,20 +269,15 @@
     };
 
     window.saveTeamWithSquad = async function() {
-        const rawText = document.getElementById('teamAndSquadInput').value.trim();
-        if (!rawText) {
-            alert("⚠️ Please enter Team Name on the 1st line and players below it!");
+        const teamName = document.getElementById('teamNameInput').value.trim();
+        const squadText = document.getElementById('squadInput').value.trim();
+
+        if (!teamName) {
+            alert("⚠️ Please enter a team name!");
             return;
         }
 
-        let lines = rawText.split('\n').map(p => p.trim()).filter(p => p.length > 0);
-        if (lines.length < 2) {
-            alert("⚠️ Please provide at least the Team Name on the 1st line and some players on the following lines!");
-            return;
-        }
-
-        const teamName = cleanTeamName(lines[0]);
-        let players = lines.slice(1);
+        let players = squadText ? squadText.split('\n').map(p => p.trim()).filter(p => p.length > 0) : [];
 
         try {
             const teamRef = ref(db, `users/${currentUserId}/tournaments/${tourId}/teams/${teamName}`);
@@ -295,11 +286,11 @@
                 players: players
             });
 
-            document.getElementById('teamAndSquadInput').value = "";
+            document.getElementById('teamNameInput').value = "";
+            document.getElementById('squadInput').value = "";
             loadTeamsAndSquads();
-            alert(`✅ Team '${teamName}' and its squad saved to cloud successfully!`);
+            alert(`✅ Team '${teamName}' saved to cloud successfully!`);
         } catch (err) {
-            console.error("Error saving team:", err);
             alert("❌ Failed to save team.");
         }
     };
@@ -345,7 +336,6 @@
 
     async function loadTeamsAndSquads() {
         const teamsContainer = document.getElementById('teamsListContainer');
-        if (!teamsContainer) return;
         teamsContainer.innerHTML = "";
 
         try {
@@ -356,7 +346,6 @@
                 
                 Object.keys(globalTeamsData).forEach(teamKey => {
                     const team = globalTeamsData[teamKey];
-                    let cleanName = cleanTeamName(team.name);
                     
                     let li = document.createElement('li');
                     li.className = "team-item";
@@ -367,7 +356,7 @@
                             playersHTML += `
                                 <div class="player-row">
                                     <span>👤 ${player}</span>
-                                    <button class="btn-edit-player" onclick="window.editPlayerName('${cleanName}', ${idx}, '${player}')">✏️ Edit</button>
+                                    <button class="btn-edit-player" onclick="window.editPlayerName('${team.name}', ${idx}, '${player}')">✏️️ Edit</button>
                                 </div>
                             `;
                         });
@@ -377,8 +366,8 @@
 
                     li.innerHTML = `
                         <div class="team-header-row" onclick="window.toggleSquadDropdown(this)">
-                            <span class="team-name-text">🏏 ${cleanName} <span style="font-size:12px; color:#666; font-weight:normal;">(Click to view squad ▾)</span></span>
-                            <button class="btn-delete-icon" onclick="event.stopPropagation(); window.deleteTeam('${cleanName}')" title="Delete Team">🗑️</button>
+                            <span class="team-name-text">🏏 ${team.name} <span style="font-size:12px; color:#666; font-weight:normal;">(Click to view squad ▾)</span></span>
+                            <button class="btn-delete-icon" onclick="event.stopPropagation(); window.deleteTeam('${team.name}')" title="Delete Team">🗑️</button>
                         </div>
                         <div class="squad-dropdown-content">
                             <h5 style="margin: 0 0 8px 0; color: #1e3c72;">Player Squad:</h5>
@@ -403,7 +392,6 @@
     window.updateTeamDropdowns = function() {
         const team1Select = document.getElementById('team1Select');
         const team2Select = document.getElementById('team2Select');
-        if (!team1Select || !team2Select) return;
 
         const selectedTeam1 = team1Select.value;
         const selectedTeam2 = team2Select.value;
@@ -412,7 +400,7 @@
         team2Select.innerHTML = '<option value="">-- Select Team 2 --</option>';
 
         Object.keys(globalTeamsData).forEach(teamKey => {
-            const teamName = cleanTeamName(globalTeamsData[teamKey].name);
+            const teamName = globalTeamsData[teamKey].name;
 
             if (teamName !== selectedTeam2) {
                 let opt1 = document.createElement('option');
@@ -438,7 +426,6 @@
 
     async function loadMatchesList() {
         const matchesContainer = document.getElementById('matchesListContainer');
-        if (!matchesContainer) return;
         matchesContainer.innerHTML = "<li style='text-align:center; color:#888; width: 100%;'>Loading matches schedule...</li>";
 
         try {
@@ -452,24 +439,21 @@
                     let li = document.createElement('li');
                     li.className = "match-item";
                     
-                    let cleanT1 = cleanTeamName(match.team1);
-                    let cleanT2 = cleanTeamName(match.team2);
-
                     let isCompleted = match.status === "completed";
                     let isRunning = match.status === "running";
 
                     let actionButton = "";
                     if (isCompleted) {
-                        actionButton = `<span class="completed-badge">Completed (${cleanTeamName(match.winner) || 'Finished'})</span>`;
+                        actionButton = `<span class="completed-badge">Completed (${match.winner || 'Finished'})</span>`;
                     } else if (isRunning) {
-                        actionButton = `<button class="btn-launch-match" style="background: #28a745;" onclick="window.launchOrResumeMatch('${matchId}', '${encodeURIComponent(cleanT1)}', '${encodeURIComponent(cleanT2)}', '${match.overs || 10}', '${encodeURIComponent(match.type || 'League')}')">▶️ Resume Match</button>`;
+                        actionButton = `<button class="btn-launch-match" style="background: #28a745;" onclick="window.launchOrResumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')">▶️ Resume Match</button>`;
                     } else {
-                        actionButton = `<button class="btn-launch-match" onclick="window.launchOrResumeMatch('${matchId}', '${encodeURIComponent(cleanT1)}', '${encodeURIComponent(cleanT2)}', '${match.overs || 10}', '${encodeURIComponent(match.type || 'League')}')">🚀 Launch Match</button>`;
+                        actionButton = `<button class="btn-launch-match" onclick="window.launchOrResumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')">🚀 Launch Match</button>`;
                     }
 
                     li.innerHTML = `
                         <div class="match-header">
-                            <span>🏏 ${cleanT1} vs ${cleanT2} (${match.overs || 10} Ov, ${match.type || 'League'})</span>
+                            <span>🏏 ${match.team1} vs ${match.team2} (${match.overs || 10} Ov, ${match.type || 'League'})</span>
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 ${actionButton}
                                 <button class="btn-delete-icon" onclick="window.deleteMatch('${matchId}')" title="Delete Match">🗑️</button>
@@ -486,9 +470,10 @@
         }
     }
 
+    // শিডিউল বা ম্যাচ সেভ করার ফাংশন (কোনো ক্রেডিট কাটবে না)
     window.scheduleMatch = async function() {
-        const team1 = cleanTeamName(document.getElementById('team1Select').value);
-        const team2 = cleanTeamName(document.getElementById('team2Select').value);
+        const team1 = document.getElementById('team1Select').value;
+        const team2 = document.getElementById('team2Select').value;
         const overs = document.getElementById('matchOversInput').value || 10;
         const matchType = document.getElementById('matchTypeSelect').value;
 
@@ -523,11 +508,8 @@
         }
     };
 
-    window.launchOrResumeMatch = async function(matchId, encodedT1, encodedT2, overs, encodedType) {
-        let t1 = cleanTeamName(decodeURIComponent(encodedT1));
-        let t2 = cleanTeamName(decodeURIComponent(encodedT2));
-        let type = decodeURIComponent(encodedType);
-
+    // নির্দিষ্ট ম্যাচের লঞ্চ বা রিজিউম করার ফাংশন (১ ক্রেডিট কাটবে যদি নতুন স্টার্ট হয়)
+    window.launchOrResumeMatch = async function(matchId, t1, t2, overs, type) {
         try {
             const matchRef = ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${matchId}`);
             const matchSnap = await get(matchRef);
@@ -563,25 +545,6 @@
                 await update(matchRef, {
                     status: 'running'
                 });
-            }
-
-            // স্কোয়াড লোকালস্টোরেজে সেট করা যাতে কন্ট্রোলার ওপেন হওয়ার সাথে সাথেই স্কোয়াড পেয়ে যায়
-            if (globalTeamsData) {
-                for (let k in globalTeamsData) {
-                    let tm = globalTeamsData[k];
-                    let tmCleanName = cleanTeamName(tm.name);
-                    
-                    if (tmCleanName.toLowerCase() === t1.toLowerCase()) {
-                        let squadArr = [tm.name, ...(tm.players || [])];
-                        localStorage.setItem('tempSelectedBatTeamSquad', squadArr.join('\n'));
-                        localStorage.setItem('tempSelectedTeam1Squad', squadArr.join('\n'));
-                    }
-                    if (tmCleanName.toLowerCase() === t2.toLowerCase()) {
-                        let squadArr = [tm.name, ...(tm.players || [])];
-                        localStorage.setItem('tempSelectedBowlTeamSquad', squadArr.join('\n'));
-                        localStorage.setItem('tempSelectedTeam2Squad', squadArr.join('\n'));
-                    }
-                }
             }
 
             window.location.href = `controller.html?t=${tourId}&u=${currentUsername}&m=${matchId}&t1=${encodeURIComponent(t1)}&t2=${encodeURIComponent(t2)}&overs=${overs}&type=${encodeURIComponent(type)}`;
