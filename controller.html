@@ -7,7 +7,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+        import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
@@ -26,6 +26,9 @@
         const urlParams = new URLSearchParams(window.location.search);
         const currentMatchUser = urlParams.get('u');
         let activeTournamentId = urlParams.get('t');
+        const activeMatchId = urlParams.get('m');
+        const urlTeam1 = urlParams.get('t1');
+        const urlTeam2 = urlParams.get('t2');
 
         function cleanTeamName(name) {
             if (!name) return "";
@@ -35,7 +38,6 @@
         }
         window.cleanTeamName = cleanTeamName;
 
-        // ব্যাক বাটন ক্লিক করলে টুর্নামেন্ট পেজে ফিরে যাওয়ার ফাংশন
         window.returnToTournamentImmediately = function() {
             if (activeTournamentId && activeTournamentId !== "null" && activeTournamentId !== "undefined") {
                 window.location.href = `tournament.html?t=${activeTournamentId}&u=${currentMatchUser || ''}`;
@@ -66,6 +68,22 @@
                 }
             });
         };
+
+        async function markMatchCompletedInDatabase(winnerText, winnerTeamName) {
+            try {
+                if (activeTournamentId && activeMatchId && currentMatchUser) {
+                    const snap = await get(ref(db, 'usernames/' + currentMatchUser));
+                    let uid = snap.exists() ? snap.val() : currentMatchUser;
+                    await update(ref(db, `users/${uid}/tournaments/${activeTournamentId}/matches/${activeMatchId}`), {
+                        status: 'completed',
+                        winner: winnerTeamName || "",
+                        resultText: winnerText || "Match Ended"
+                    });
+                }
+            } catch (err) {
+                console.error("Error setting status completed:", err);
+            }
+        }
 
         window.updateTournamentStandings = async function(winnerTeam, loserTeam, matchRunsScored, matchOversBowled, matchRunsConceded, matchOversAgainst) {
             const pointsRef = ref(db, 'tournament/teams/');
@@ -135,6 +153,25 @@
                 alert("❌ Points table update failed!");
             });
         };
+
+        // গ্লোবালি উইন্ডো অবজেক্টে ফাংশনগুলো বাইন্ড করা যাতে বাটন ক্লিক করলে সরাসরি কাজ করে
+        window.addBall = addBall;
+        window.addExtra = addExtra;
+        window.addLegBye = addLegBye;
+        window.openWicketModal = openWicketModal;
+        window.addLBW = addLBW;
+        window.openRunOutModal = openRunOutModal;
+        window.swapStrike = swapStrike;
+        window.undoAction = undoAction;
+        window.toggleSquadDisplay = toggleSquadDisplay;
+        window.togglePointsTableDisplay = togglePointsTableDisplay;
+        window.toggleSummaryDisplay = toggleSummaryDisplay;
+        window.declareWinnerManually = declareWinnerManually;
+        window.onBowlerNameChange = onBowlerNameChange;
+        window.validatePlayers = validatePlayers;
+        window.swapTeams = swapTeams;
+        window.closeInningsPopup = closeInningsPopup;
+        window.closeMatchResultAndReset = closeMatchResultAndReset;
     </script>
 
     <style>
@@ -284,7 +321,7 @@
         <h2>🏏 Pro Score Controller</h2>
     </div>
 
-    <!-- Sub-header Bar (ট্যুরনামেন্ট ব্যাক বাটনসহ) -->
+    <!-- Sub-header Bar -->
     <div class="sub-header-bar">
         <button class="btn-sub-action btn-tour-back" onclick="returnToTournamentImmediately()">⬅️ Tournament</button>
 
@@ -388,31 +425,7 @@
     <button id="updateBtn" class="btn-main">🟢 Live Auto-Update System Active</button>
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-    import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
-        authDomain: "cricket-score-d187a.firebaseapp.com",
-        databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
-        projectId: "cricket-score-d187a",
-        storageBucket: "cricket-score-d187a.firebasestorage.app",
-        messagingSenderId: "782741896785",
-        appId: "1:782741896785:web:78ab5ffe8c6a43ba928270",
-        measurementId: "G-PHXZ72EC94"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const currentMatchUser = urlParams.get('u');
-    let activeTournamentId = urlParams.get('t');
-    const activeMatchId = urlParams.get('m');
-    const urlTeam1 = urlParams.get('t1');
-    const urlTeam2 = urlParams.get('t2');
-
+<script>
     let isLeagueMatchGlobal = true;
     let tournamentPointsUpdated = false;
     
@@ -435,130 +448,6 @@
 
     let firstInningsRunsStored = 0;
     let firstInningsOversStored = "0.0";
-
-    function cleanTeamName(name) {
-        if (!name) return "";
-        let decoded = decodeURIComponent(name).trim();
-        let parts = decoded.split('\n');
-        return parts[0].trim();
-    }
-    window.cleanTeamName = cleanTeamName;
-
-    window.returnToTournamentImmediately = function() {
-        if (activeTournamentId && activeTournamentId !== "null" && activeTournamentId !== "undefined") {
-            window.location.href = `tournament.html?t=${activeTournamentId}&u=${currentMatchUser || ''}`;
-        } else if (currentMatchUser) {
-            window.location.href = `tournament.html?u=${currentMatchUser}`;
-        } else {
-            window.location.href = `tournament.html`;
-        }
-    };
-
-    window.sendToFirebase = function(scoreData) {
-        const btn = document.getElementById('updateBtn');
-        if(btn) {
-            btn.innerText = "⚡ Auto-Updating...";
-            btn.style.background = "#17a2b8";
-        }
-        
-        set(ref(db, 'matchScore/'), scoreData).then(() => {
-            if(btn) {
-                btn.innerText = "🟢 Live Update Active (Auto)";
-                btn.style.background = "#28a745";
-            }
-        }).catch((error) => {
-            console.error("Firebase Error: ", error);
-            if(btn) {
-                btn.innerText = "❌ Update Failed!";
-                btn.style.background = "#dc3545";
-            }
-        });
-    };
-
-    async function markMatchCompletedInDatabase(winnerText, winnerTeamName) {
-        try {
-            if (activeTournamentId && activeMatchId && currentMatchUser) {
-                const snap = await get(ref(db, 'usernames/' + currentMatchUser));
-                let uid = snap.exists() ? snap.val() : currentMatchUser;
-                await update(ref(db, `users/${uid}/tournaments/${activeTournamentId}/matches/${activeMatchId}`), {
-                    status: 'completed',
-                    winner: winnerTeamName || "",
-                    resultText: winnerText || "Match Ended"
-                });
-            }
-        } catch (err) {
-            console.error("Error setting status completed:", err);
-        }
-    }
-
-    window.updateTournamentStandings = async function(winnerTeam, loserTeam, matchRunsScored, matchOversBowled, matchRunsConceded, matchOversAgainst) {
-        const pointsRef = ref(db, 'tournament/teams/');
-        try {
-            const snapshot = await get(pointsRef);
-            let teamsData = snapshot.val() || {};
-
-            let t1Key = "team1", t2Key = "team2";
-            let defaultTeam1Name = cleanTeamName(document.getElementById('batTeamName').value) || "Team 1";
-            let defaultTeam2Name = cleanTeamName(document.getElementById('bowlTeamName').value) || "Team 2";
-
-            let t1Obj = teamsData[t1Key] || { name: defaultTeam1Name, matchesPlayed: 0, won: 0, lost: 0, points: 0, totalRunsScored: 0, totalOversFaced: 0, totalRunsConceded: 0, totalOversBowled: 0, netRunRate: "+0.000" };
-            let t2Obj = teamsData[t2Key] || { name: defaultTeam2Name, matchesPlayed: 0, won: 0, lost: 0, points: 0, totalRunsScored: 0, totalOversFaced: 0, totalRunsConceded: 0, totalOversBowled: 0, netRunRate: "+0.000" };
-
-            let winnerKey = cleanTeamName(t1Obj.name).toLowerCase().trim() === cleanTeamName(winnerTeam).toLowerCase().trim() ? t1Key : t2Key;
-            let loserKey = winnerKey === t1Key ? t2Key : t1Key;
-
-            let winObj = winnerKey === t1Key ? t1Obj : t2Obj;
-            let loseObj = loserKey === t1Key ? t1Obj : t2Obj;
-
-            winObj.name = cleanTeamName(winnerTeam);
-            loseObj.name = cleanTeamName(loserTeam);
-
-            winObj.matchesPlayed = (winObj.matchesPlayed || 0) + 1;
-            
-            if (winnerTeam === "Tied") {
-                winObj.points = (winObj.points || 0) + 1;
-                loseObj.points = (loseObj.points || 0) + 1;
-            } else {
-                winObj.won = (winObj.won || 0) + 1;
-                winObj.points = (winObj.points || 0) + 2;
-                loseObj.lost = (loseObj.lost || 0) + 1;
-            }
-
-            loseObj.matchesPlayed = (loseObj.matchesPlayed || 0) + 1;
-
-            winObj.totalRunsScored = (winObj.totalRunsScored || 0) + matchRunsScored;
-            winObj.totalOversFaced = (winObj.totalOversFaced || 0) + matchOversBowled;
-            winObj.totalRunsConceded = (winObj.totalRunsConceded || 0) + matchRunsConceded;
-            winObj.totalOversBowled = (winObj.totalOversBowled || 0) + matchOversAgainst;
-
-            loseObj.totalRunsScored = (loseObj.totalRunsScored || 0) + matchRunsConceded;
-            loseObj.totalOversFaced = (loseObj.totalOversFaced || 0) + matchOversAgainst;
-            loseObj.totalRunsConceded = (loseObj.totalRunsConceded || 0) + matchRunsScored;
-            loseObj.totalOversBowled = (loseObj.totalOversBowled || 0) + matchOversBowled;
-
-            let winRunRate = winObj.totalOversFaced > 0 ? (winObj.totalRunsScored / winObj.totalOversFaced) - (winObj.totalRunsConceded / winObj.totalOversBowled) : 0;
-            let loseRunRate = loseObj.totalOversFaced > 0 ? (loseObj.totalRunsScored / loseObj.totalOversFaced) - (loseObj.totalRunsConceded / loseObj.totalOversBowled) : 0;
-
-            winObj.netRunRate = (winRunRate >= 0 ? "+" : "") + winRunRate.toFixed(3);
-            loseObj.netRunRate = (loseRunRate >= 0 ? "+" : "") + loseRunRate.toFixed(3);
-
-            teamsData[winnerKey] = winObj;
-            teamsData[loserKey] = loseObj;
-
-            await set(pointsRef, teamsData);
-        } catch (error) {
-            console.error("Points Update Error: ", error);
-        }
-    };
-
-    window.savePointsToFirebase = function(teamsDataObj) {
-        set(ref(db, 'tournament/teams/'), teamsDataObj).then(() => {
-            alert("✅ Points table updated successfully!");
-        }).catch((error) => {
-            console.error("Points Update Error: ", error);
-            alert("❌ Points table update failed!");
-        });
-    };
 
     async function initPage() {
         let loadedBatTeam = "";
@@ -610,10 +499,6 @@
         initPage();
     };
 
-    function toggleModal(modalId, show) {
-        document.getElementById(modalId).style.display = show ? 'flex' : 'none';
-    }
-    
     function autoClosePanel() {
         let b1 = document.getElementById('bat1Name').value.trim();
         let b2 = document.getElementById('bat2Name').value.trim();
@@ -624,17 +509,42 @@
         }
     }
 
-    function showMatchResultPopup(details) {
-        document.getElementById('matchResultDetails').innerText = details;
-        document.getElementById('matchResultModal').style.display = 'flex';
-    }
+    function onBowlerNameChange() {
+        let bowler = document.getElementById('bowlerName').value.trim();
+        let bat1 = document.getElementById('bat1Name').value.trim();
+        let bat2 = document.getElementById('bat2Name').value.trim();
 
-    window.closeMatchResultAndReset = async function() {
-        document.getElementById('matchResultModal').style.display = 'none';
-        let winnerName = cleanTeamName(document.getElementById('batTeamName').value);
-        let resultText = document.getElementById('targetMsg').value;
-        await markMatchCompletedInDatabase(resultText, winnerName);
-        returnToTournamentImmediately();
+        if (!bat1 || !bat2) {
+            alert("⚠️ First select both batters, then you can select a bowler!");
+            document.getElementById('bowlerName').value = "";
+            document.getElementById('playerPanel').open = true;
+            return;
+        }
+
+        if (bowler !== "" && bowler === lastBowler) {
+            alert("⚠️ The same bowler cannot bowl two consecutive overs! Please select another bowler.");
+            document.getElementById('bowlerName').value = "";
+            document.getElementById('playerPanel').open = true;
+            updateSuggestions();
+            return;
+        }
+
+        if(bowler !== "") {
+            if (bowlersRecord[bowler]) {
+                setVal('bWickets', bowlersRecord[bowler].wickets);
+                setVal('bRuns', bowlersRecord[bowler].runs);
+                document.getElementById('bowlerOvers').value = bowlersRecord[bowler].overs;
+            } else {
+                setVal('bWickets', 0);
+                setVal('bRuns', 0);
+                document.getElementById('bowlerOvers').value = "0.0";
+            }
+            
+            activeBowler = bowler;
+            bowlerSelectionPending = false;
+        }
+        processAndUpdate();
+        autoClosePanel();
     }
 
     function getPlayersByTeamName(teamName) {
@@ -825,7 +735,7 @@
         }
 
         if (!bowler || bowler === "Bowler") {
-            alert("⚠️ Selecting the current bowler is mandatory!");
+            alert("⚠️️ Selecting the current bowler is mandatory!");
             document.getElementById('playerPanel').open = true;
             return false;
         }
@@ -1250,26 +1160,9 @@
         document.getElementById('wicketPopupModal').style.display = 'flex';
     }
 
-    window.handleDismissalChange = function() {
-        let type = document.getElementById('dismissalType').value;
-        let fielderBox = document.getElementById('fielderSelectionBox');
-        let fielderLabel = document.getElementById('fielderLabel');
-        let fielderSelect = document.getElementById('fielderName');
+    function closeWicketModal() { document.getElementById('wicketPopupModal').style.display = 'none'; }
 
-        if (type === 'caught') {
-            fielderBox.style.display = 'block'; fielderLabel.innerText = 'Caught By (Fielder)'; fielderSelect.value = ''; 
-        } else if (type === 'stumped') {
-            fielderBox.style.display = 'block'; fielderLabel.innerText = 'Stumped By (Wicket Keeper)';
-            let bowlTeam = cleanTeamName(document.getElementById('bowlTeamName').value);
-            let bowlingPlayers = getPlayersByTeamName(bowlTeam);
-            let wk = bowlingPlayers.find(p => p.toLowerCase().includes('(wk)'));
-            if(wk) { fielderSelect.value = wk; } else { fielderSelect.value = ''; }
-        } else { fielderBox.style.display = 'none'; }
-    }
-
-    window.closeWicketModal = function() { document.getElementById('wicketPopupModal').style.display = 'none'; };
-
-    window.submitWicketDetails = function() {
+    function submitWicketDetails() {
         let type = document.getElementById('dismissalType').value;
         let fielder = document.getElementById('fielderName').value;
         if ((type === 'caught' || type === 'stumped') && !fielder) { alert("⚠️ Please select the fielder/wicketkeeper from the dropdown!"); return; }
@@ -1354,7 +1247,7 @@
         let bowlTeam = cleanTeamName(document.getElementById('bowlTeamName').value);
         let bowlingPlayers = getPlayersByTeamName(bowlTeam);
         let fielderSelect = document.getElementById('runOutFielder');
-        fielderSelect.innerHTML = '<option value="">-- Select Fielder --</option>';
+        fielderSelect.innerHTML = '<option value="">-- Select Player --</option>';
         bowlingPlayers.forEach(p => { fielderSelect.innerHTML += `<option value="${p}">${p}</option>`; });
 
         let bat1 = document.getElementById('bat1Name').value.trim();
@@ -1366,9 +1259,9 @@
         document.getElementById('runOutPopupModal').style.display = 'flex';
     }
 
-    window.closeRunOutModal = function() { document.getElementById('runOutPopupModal').style.display = 'none'; };
+    function closeRunOutModal() { document.getElementById('runOutPopupModal').style.display = 'none'; }
 
-    window.submitRunOutDetails = function() {
+    function submitRunOutDetails() {
         let runInput = parseInt(document.getElementById('runOutRuns').value) || 0;
         let fielder = document.getElementById('runOutFielder').value;
         let outAns = document.getElementById('runOutBatsman').value;
