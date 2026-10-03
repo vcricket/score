@@ -373,20 +373,27 @@
         }
 
         function formatSquad(rawText, titleElementId, listElementId, defaultTitle) {
-            if(!rawText) {
+            if (!rawText || typeof rawText !== 'string') {
                 document.getElementById(titleElementId).innerText = defaultTitle;
                 document.getElementById(listElementId).innerHTML = '';
                 return;
             } 
+            
             const lines = rawText.split('\n').map(l => l.trim()).filter(line => line !== '');
-            if(lines.length > 0) {
+            
+            if (lines.length > 0) {
                 // প্রথম লাইনটি হলো নিশ্চিতভাবেই টিমের নাম
-                document.getElementById(titleElementId).innerText = lines[0]; 
+                let teamName = lines[0];
+                document.getElementById(titleElementId).innerText = teamName; 
+                
                 let playersHtml = ''; 
                 let playerIndex = 1;
-                for(let i = 1; i < lines.length && i <= 15; i++) {
+                
+                // দ্বিতীয় লাইন থেকে বাকিগুলো হলো প্লেয়ারদের তালিকা
+                for (let i = 1; i < lines.length && i <= 20; i++) {
                     playersHtml += `<li><span style="color:#ffcc00; margin-right:6px; font-weight:750;">${playerIndex++}.</span> ${lines[i]}</li>`;
                 }
+                
                 document.getElementById(listElementId).innerHTML = playersHtml;
             } else { 
                 document.getElementById(titleElementId).innerText = defaultTitle; 
