@@ -373,12 +373,25 @@
         }
 
         function formatSquad(rawText, titleElementId, listElementId, defaultTitle) {
-            if(!rawText) return; const lines = rawText.split('\n').filter(line => line.trim() !== '');
+            if(!rawText) {
+                document.getElementById(titleElementId).innerText = defaultTitle;
+                document.getElementById(listElementId).innerHTML = '';
+                return;
+            } 
+            const lines = rawText.split('\n').map(l => l.trim()).filter(line => line !== '');
             if(lines.length > 0) {
-                document.getElementById(titleElementId).innerText = lines[0]; let playersHtml = ''; let playerIndex = 1;
-                for(let i = 1; i < lines.length && i <= 15; i++) playersHtml += `<li><span style="color:#ffcc00; margin-right:6px; font-weight:750;">${playerIndex++}.</span> ${lines[i]}</li>`;
+                // প্রথম লাইনটি হলো নিশ্চিতভাবেই টিমের নাম
+                document.getElementById(titleElementId).innerText = lines[0]; 
+                let playersHtml = ''; 
+                let playerIndex = 1;
+                for(let i = 1; i < lines.length && i <= 15; i++) {
+                    playersHtml += `<li><span style="color:#ffcc00; margin-right:6px; font-weight:750;">${playerIndex++}.</span> ${lines[i]}</li>`;
+                }
                 document.getElementById(listElementId).innerHTML = playersHtml;
-            } else { document.getElementById(titleElementId).innerText = defaultTitle; document.getElementById(listElementId).innerHTML = ''; }
+            } else { 
+                document.getElementById(titleElementId).innerText = defaultTitle; 
+                document.getElementById(listElementId).innerHTML = ''; 
+            }
         }
 
         function calculateRunRates(runs, oversStr, targetRuns, totalOvers) {
@@ -394,7 +407,6 @@
             return { crr, rrr };
         }
 
-        // ডাইনামিক পয়েন্ট টেবিল ফেচ এবং রেন্ডার করার লজিক (ম্যাচ না থাকলেও টুর্নামেন্টের সমস্ত দলের নাম শূন্য পয়েন্টসহ দেখানোর ব্যবস্থা)
         async function fetchTournamentPointsTable(tournamentId) {
             if (!currentMatchUser || !tournamentId) return;
             
@@ -405,7 +417,6 @@
                 const tbody = document.getElementById('pointsTablePopupBody'); 
                 tbody.innerHTML = '';
                 
-                // যদি পয়েন্ট টেবিল পাথে ডেটা না থাকে, তবে সরাসরি ইউজারের টুর্নামেন্ট টিম লিস্ট থেকে ফেচ করে জিরো পয়েন্ট দিয়ে টেবিল বানাবে
                 if (!teams) {
                     try {
                         const userSnap = await get(ref(db, 'usernames/' + currentMatchUser));
@@ -473,7 +484,8 @@
 
             if(data.showSquadsOnScreen) {
                 squadScreen.classList.add('active'); mainBoard.classList.add('hidden');
-                formatSquad(data.squad1Data, 't1-title', 't1-list', 'TEAM A'); formatSquad(data.squad2Data, 't2-title', 't2-list', 'TEAM B');
+                formatSquad(data.squad1Data, 't1-title', 't1-list', 'TEAM A'); 
+                formatSquad(data.squad2Data, 't2-title', 't2-list', 'TEAM B');
             } else squadScreen.classList.remove('active');
 
             if(data.showPointsTableOnScreen) { pointsScreen.classList.add('active'); mainBoard.classList.add('hidden'); } else pointsScreen.classList.remove('active');
