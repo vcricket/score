@@ -393,43 +393,51 @@
             return { crr, rrr };
         }
 
-        // সমস্ত টিমের পয়েন্ট টেবিল ডাইনামিক্যালি ফেচ এবং রেন্ডার করার লজিক
-        if (currentMatchUser) {
-            const tournamentRef = ref(db, `live_matches/${currentMatchUser}/tournament/teams`);
-            onValue(tournamentRef, (snapshot) => {
-                const teams = snapshot.val(); 
-                const tbody = document.getElementById('pointsTablePopupBody'); 
-                tbody.innerHTML = '';
-                
-                if(!teams) { 
-                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#888;">No points table data found.</td></tr>`; 
-                    return; 
+        // Live Points Table Fetcher
+        function loadPointsTable() {
+            if(!currentMatchUser) return;
+            // Get tournamentId from live match node
+            onValue(ref(db, `live_matches/${currentMatchUser}/score/tournamentId`), (snap) => {
+                const tourId = snap.val();
+                if(tourId) {
+                    const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${tourId}/teams/`);
+                    onValue(pointsRef, (snapshot) => {
+                        const teams = snapshot.val(); 
+                        const tbody = document.getElementById('pointsTablePopupBody'); 
+                        tbody.innerHTML = '';
+                        
+                        if(!teams) { 
+                            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#888;">Tournament data loading...</td></tr>`; 
+                            return; 
+                        }
+
+                        let teamsArray = Object.keys(teams).map(key => teams[key]);
+                        teamsArray.sort((a, b) => {
+                            if ((b.points || 0) !== (a.points || 0)) {
+                                return (b.points || 0) - (a.points || 0);
+                            }
+                            return parseFloat(b.netRunRate || 0) - parseFloat(a.netRunRate || 0);
+                        });
+
+                        teamsArray.forEach((team, index) => {
+                            let tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${index + 1}</td>
+                                <td style="font-weight:700; text-align:left; padding-left:12px; color:#ffcc00;">${team.name || 'Team'}</td>
+                                <td>${team.matchesPlayed || 0}</td>
+                                <td>${team.won || 0}</td>
+                                <td>${team.lost || 0}</td>
+                                <td style="color:#00d2ff; font-weight:600;">${team.netRunRate || '+0.000'}</td>
+                                <td style="font-weight:700; color:#00ff88;">${team.points || 0}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    });
                 }
-
-                // অবজেক্ট থেকে অ্যারেতে রূপান্তর এবং পয়েন্ট ও রানরেট অনুযায়ী সর্টিং
-                let teamsArray = Object.keys(teams).map(key => teams[key]);
-                teamsArray.sort((a, b) => {
-                    if ((b.points || 0) !== (a.points || 0)) {
-                        return (b.points || 0) - (a.points || 0);
-                    }
-                    return parseFloat(b.netRunRate || 0) - parseFloat(a.netRunRate || 0);
-                });
-
-                teamsArray.forEach((team, index) => {
-                    let tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${index + 1}</td>
-                        <td style="font-weight:700; text-align:left; padding-left:12px; color:#ffcc00;">${team.name || 'Team'}</td>
-                        <td>${team.matchesPlayed || 0}</td>
-                        <td>${team.won || 0}</td>
-                        <td>${team.lost || 0}</td>
-                        <td style="color:#00d2ff; font-weight:600;">${team.netRunRate || '+0.000'}</td>
-                        <td style="font-weight:700; color:#00ff88;">${team.points || 0}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
             });
         }
+        
+        loadPointsTable();
 
         function updateUI(data) {
             if (!data) return;
@@ -564,5 +572,3 @@
     </script>
 </body>
 </html>
-
-
