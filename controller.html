@@ -287,15 +287,11 @@
 
     // ব্যাক বাটনে ক্লিক করলে সঠিকভাবে নির্দিষ্ট টুর্নামেন্ট পেজে ফিরে যাওয়ার লজিক
     window.returnToTournamentImmediately = async function() {
-        // রিমুভ কমান্ডটি বাদ দেওয়া হলো, যাতে ব্যাক করলেও ম্যাচের ডেটা সেভ থাকে
-        
         let targetTourId = activeTournamentId;
         if (!targetTourId || targetTourId === "null" || targetTourId === "undefined") {
             try {
                 const snapshot = await get(ref(db, `live_matches/${currentMatchUser}/score/tournamentId`));
-                if (snapshot.exists()) {
-                    targetTourId = snapshot.val();
-                }
+                if (snapshot.exists()) targetTourId = snapshot.val();
             } catch (err) {}
         }
 
@@ -366,9 +362,7 @@
                     });
                 }
             }
-        } catch (err) {
-            console.error("Error setting status completed:", err);
-        }
+        } catch (err) {}
     }
 
     async function saveMatchStatsToTournament() {
@@ -405,41 +399,46 @@
         } catch (e) {}
     }
 
-    async function updateTournamentStandings(winnerTeam, loserTeam, matchRunsScored, matchOversBowled, matchRunsConceded, matchOversAgainst) {
+    function oversToBalls(oStr) { let p = String(oStr).split('.'); return (parseInt(p[0] || 0) * 6) + (parseInt(p[1] || 0)); }
+    function calculateNRR(runsScored, ballsFaced, runsConceded, ballsBowled) {
+        let oversFaced = ballsFaced / 6; let oversBowled = ballsBowled / 6;
+        let nrr = (oversFaced > 0 ? runsScored / oversFaced : 0) - (oversBowled > 0 ? runsConceded / oversBowled : 0);
+        return (nrr >= 0 ? "+" : "") + nrr.toFixed(3);
+    }
+
+    async function updateTournamentStandings(winTeamName, loseTeamName, winRuns, winOvers, loseRuns, loseOvers, isTie = false) {
         if (!activeTournamentId) return;
         const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${activeTournamentId}/teams/`);
         try {
             const snapshot = await get(pointsRef);
             let teamsData = snapshot.val() || {};
             
-            let t1Key = "team1", t2Key = "team2";
-            let t1Obj = teamsData[t1Key] || { name: document.getElementById('batTeamName').value, matchesPlayed: 0, won: 0, lost: 0, points: 0, totalRunsScored: 0, totalOversFaced: 0, totalRunsConceded: 0, totalOversBowled: 0, netRunRate: "+0.000" };
-            let t2Obj = teamsData[t2Key] || { name: document.getElementById('bowlTeamName').value, matchesPlayed: 0, won: 0, lost: 0, points: 0, totalRunsScored: 0, totalOversFaced: 0, totalRunsConceded: 0, totalOversBowled: 0, netRunRate: "+0.000" };
-
-            let winnerKey = t1Obj.name.toLowerCase().trim() === winnerTeam.toLowerCase().trim() ? t1Key : t2Key;
-            let loserKey = winnerKey === t1Key ? t2Key : t1Key;
-            let winObj = winnerKey === t1Key ? t1Obj : t2Obj;
-            let loseObj = loserKey === t1Key ? t1Obj : t2Obj;
-
-            winObj.name = winnerTeam; loseObj.name = loserTeam;
-            winObj.matchesPlayed += 1;
+            let wKey = winTeamName.replace(/[.#$\[\]]/g, '_');
+            let lKey = loseTeamName.replace(/[.#$\[\]]/g, '_');
             
-            if (winnerTeam === "Tied") { winObj.points += 1; loseObj.points += 1; } 
+            let winObj = teamsData[wKey] || { name: winTeamName, matchesPlayed: 0, won: 0, lost: 0, tied: 0, points: 0, totalRunsScored: 0, totalBallsFaced: 0, totalRunsConceded: 0, totalBallsBowled: 0, netRunRate: "+0.000" };
+            let loseObj = teamsData[lKey] || { name: loseTeamName, matchesPlayed: 0, won: 0, lost: 0, tied: 0, points: 0, totalRunsScored: 0, totalBallsFaced: 0, totalRunsConceded: 0, totalBallsBowled: 0, netRunRate: "+0.000" };
+
+            winObj.totalBallsFaced = winObj.totalBallsFaced || oversToBalls(winObj.totalOversFaced || 0);
+            winObj.totalBallsBowled = winObj.totalBallsBowled || oversToBalls(winObj.totalOversBowled || 0);
+            loseObj.totalBallsFaced = loseObj.totalBallsFaced || oversToBalls(loseObj.totalOversFaced || 0);
+            loseObj.totalBallsBowled = loseObj.totalBallsBowled || oversToBalls(loseObj.totalOversBowled || 0);
+
+            winObj.matchesPlayed += 1; loseObj.matchesPlayed += 1;
+            
+            if (isTie) { winObj.tied = (winObj.tied || 0) + 1; winObj.points += 1; loseObj.tied = (loseObj.tied || 0) + 1; loseObj.points += 1; } 
             else { winObj.won += 1; winObj.points += 2; loseObj.lost += 1; }
+            
+            let winBallsFaced = oversToBalls(winOvers); let loseBallsFaced = oversToBalls(loseOvers);
+            
+            winObj.totalRunsScored += winRuns; winObj.totalRunsConceded += loseRuns; winObj.totalBallsFaced += winBallsFaced; winObj.totalBallsBowled += loseBallsFaced;
+            loseObj.totalRunsScored += loseRuns; loseObj.totalRunsConceded += winRuns; loseObj.totalBallsFaced += loseBallsFaced; loseObj.totalBallsBowled += winBallsFaced;
+            
+            winObj.netRunRate = calculateNRR(winObj.totalRunsScored, winObj.totalBallsFaced, winObj.totalRunsConceded, winObj.totalBallsBowled);
+            loseObj.netRunRate = calculateNRR(loseObj.totalRunsScored, loseObj.totalBallsFaced, loseObj.totalRunsConceded, loseObj.totalBallsBowled);
 
-            loseObj.matchesPlayed += 1;
-            winObj.totalRunsScored += matchRunsScored; winObj.totalOversFaced += matchOversBowled;
-            winObj.totalRunsConceded += matchRunsConceded; winObj.totalOversBowled += matchOversAgainst;
-            loseObj.totalRunsScored += matchRunsConceded; loseObj.totalOversFaced += matchOversAgainst;
-            loseObj.totalRunsConceded += matchRunsScored; loseObj.totalOversBowled += matchOversBowled;
-
-            let winRunRate = winObj.totalOversFaced > 0 ? (winObj.totalRunsScored / winObj.totalOversFaced) - (winObj.totalRunsConceded / winObj.totalOversBowled) : 0;
-            let loseRunRate = loseObj.totalOversFaced > 0 ? (loseObj.totalRunsScored / loseObj.totalOversFaced) - (loseObj.totalRunsConceded / loseObj.totalOversBowled) : 0;
-
-            winObj.netRunRate = (winRunRate >= 0 ? "+" : "") + winRunRate.toFixed(3);
-            loseObj.netRunRate = (loseRunRate >= 0 ? "+" : "") + loseRunRate.toFixed(3);
-
-            teamsData[winnerKey] = winObj; teamsData[loserKey] = loseObj;
+            teamsData[wKey] = winObj; teamsData[lKey] = loseObj;
+            if(teamsData["team1"]) delete teamsData["team1"]; if(teamsData["team2"]) delete teamsData["team2"];
             await set(pointsRef, teamsData);
         } catch (e) {}
     }
@@ -447,10 +446,8 @@
     function getPlayersList(isBattingTeam) {
         const sBat = localStorage.getItem(`tempBatSquad_${currentMatchUser}_${activeMatchId}`) || "";
         const sBowl = localStorage.getItem(`tempBowlSquad_${currentMatchUser}_${activeMatchId}`) || "";
-
         const targetSquad = isBattingTeam ? sBat : sBowl;
         if (!targetSquad || targetSquad.trim() === "") return [];
-
         let lines = targetSquad.split('\n').map(p => p.trim()).filter(p => p.length > 0);
         return lines.length > 1 ? lines.slice(1) : lines;
     }
@@ -472,8 +469,7 @@
         bowlingPlayers.forEach(player => {
             if (player !== lastBowler || player === currentBowler) {
                 let opt = document.createElement('option');
-                opt.value = player;
-                opt.innerText = player;
+                opt.value = player; opt.innerText = player;
                 bowlerSelect.appendChild(opt);
             }
         });
@@ -483,12 +479,8 @@
         battingPlayers.forEach(player => {
             if (!outPlayersList.includes(player) || player === currentBat1) {
                 let opt = document.createElement('option');
-                opt.value = player;
-                opt.innerText = player;
-                if (player === currentBat2 && player !== "") {
-                    opt.disabled = true;
-                    opt.hidden = true;
-                }
+                opt.value = player; opt.innerText = player;
+                if (player === currentBat2 && player !== "") { opt.disabled = true; opt.hidden = true; }
                 bat1Select.appendChild(opt);
             }
         });
@@ -498,12 +490,8 @@
         battingPlayers.forEach(player => {
             if (!outPlayersList.includes(player) || player === currentBat2) {
                 let opt = document.createElement('option');
-                opt.value = player;
-                opt.innerText = player;
-                if (player === currentBat1 && player !== "") {
-                    opt.disabled = true;
-                    opt.hidden = true;
-                }
+                opt.value = player; opt.innerText = player;
+                if (player === currentBat1 && player !== "") { opt.disabled = true; opt.hidden = true; }
                 bat2Select.appendChild(opt);
             }
         });
@@ -516,16 +504,11 @@
 
         if (b1 !== "" && b2 !== "" && b1 === b2) {
             alert("⚠️ Same player cannot be in both striker and non-striker positions!");
-            if (changedSide === 'striker') {
-                document.getElementById('bat1Name').value = "";
-            } else {
-                document.getElementById('bat2Name').value = "";
-            }
+            if (changedSide === 'striker') { document.getElementById('bat1Name').value = ""; } 
+            else { document.getElementById('bat2Name').value = ""; }
         }
         
-        updateSuggestions();
-        processAndUpdate();
-        autoClosePanel();
+        updateSuggestions(); processAndUpdate(); autoClosePanel();
     };
 
     function processAndUpdate() {
@@ -581,12 +564,86 @@
             triggerEvent: evtToTrigger, triggerId: evtId || Date.now(), 
             isLeagueMatch: isLeagueMatchGlobal, tournamentPointsUpdated: tournamentPointsUpdated,
             detailedStats: detailedStats,
-            tournamentId: activeTournamentId
+            tournamentId: activeTournamentId,
+            autoInningsSwitched: autoInningsSwitched,
+            matchEnded: matchEnded
         };
 
         localStorage.setItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`, JSON.stringify(scoreData));
         sendToFirebase(scoreData); 
         currentEvent = ""; 
+    }
+
+    // স্মার্ট রিস্টোর ফাংশন - পেজ রিলোড করলেও শেষ বল থেকে ম্যাচ শুরু হবে
+    function loadControllerState() {
+        const storedData = localStorage.getItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
+        if (storedData) {
+            const data = JSON.parse(storedData);
+            
+            // 1. Teams Restore
+            if (data.batTeamName) document.getElementById('batTeamName').value = data.batTeamName;
+            if (data.bowlTeamName) document.getElementById('bowlTeamName').value = data.bowlTeamName;
+
+            // 2. Squads Restore
+            if (data.squad1Data) localStorage.setItem(`tempBatSquad_${currentMatchUser}_${activeMatchId}`, data.squad1Data);
+            if (data.squad2Data) localStorage.setItem(`tempBowlSquad_${currentMatchUser}_${activeMatchId}`, data.squad2Data);
+
+            // 3. Scores Restore
+            document.getElementById('runs').value = data.runs || 0;
+            document.getElementById('wickets').value = data.wickets || 0;
+            document.getElementById('overs').value = data.overs || "0.0";
+            if (data.totalOvers) document.getElementById('totalOvers').value = data.totalOvers;
+            
+            // 4. Match System Vars Restore
+            if (data.outPlayers) outPlayersList = [...data.outPlayers];
+            if (data.currentOverBalls) currentOverBalls = [...data.currentOverBalls];
+            if (data.overHistory) overHistoryList = [...data.overHistory];
+            if (data.firstInningsRuns !== undefined) firstInningsRunsStored = data.firstInningsRuns;
+            if (data.firstInningsOvers !== undefined) firstInningsOversStored = data.firstInningsOvers;
+            if (data.detailedStats) detailedStats = data.detailedStats;
+            if (data.autoInningsSwitched !== undefined) autoInningsSwitched = data.autoInningsSwitched;
+            if (data.matchEnded !== undefined) matchEnded = data.matchEnded;
+            if (data.tournamentPointsUpdated !== undefined) tournamentPointsUpdated = data.tournamentPointsUpdated;
+            
+            lastBowler = data.lastBowler || ""; activeBowler = data.activeBowler || ""; bowlersRecord = data.bowlersRecord || {};
+
+            // 5. Playing Players Restore
+            if (data.bat1Name) {
+                document.getElementById('bat1Name').innerHTML = `<option value="${data.bat1Name}">${data.bat1Name}</option>`;
+                document.getElementById('bat1Name').value = data.bat1Name;
+            }
+            document.getElementById('bat1Runs').value = data.bat1Runs || 0; 
+            document.getElementById('bat1Balls').value = data.bat1Balls || 0;
+            
+            if (data.bat2Name) {
+                document.getElementById('bat2Name').innerHTML = `<option value="${data.bat2Name}">${data.bat2Name}</option>`;
+                document.getElementById('bat2Name').value = data.bat2Name;
+            }
+            document.getElementById('bat2Runs').value = data.bat2Runs || 0; 
+            document.getElementById('bat2Balls').value = data.bat2Balls || 0;
+            
+            if (data.bowlerName) {
+                document.getElementById('bowlerName').innerHTML = `<option value="${data.bowlerName}">${data.bowlerName}</option>`;
+                document.getElementById('bowlerName').value = data.bowlerName;
+            }
+            
+            let figParts = (data.bowlerFig || "0-0").split('-'); 
+            document.getElementById('bWickets').value = figParts[0] || 0; 
+            document.getElementById('bRuns').value = figParts[1] || 0; 
+            document.getElementById('bowlerOvers').value = data.bowlerOvers || "0.0";
+            
+            if (data.innings) document.getElementById('innings').value = data.innings;
+            if (data.target) document.getElementById('targetMsg').value = data.target;
+            
+            // 6. UI Toggle States Restore
+            isSquadVisible = data.showSquadsOnScreen || false;
+            isPointsTableVisible = data.showPointsTableOnScreen || false;
+            isSummaryVisible = data.showSummaryOnScreen || false;
+            updateToggleButtonsUI();
+            
+            return true;
+        }
+        return false;
     }
 
     function initDS(pName) {
@@ -835,61 +892,6 @@
             }
         } else { 
             if(currentEvent === "") processAndUpdate(); 
-        }
-    }
-
-    function loadControllerState() {
-        const storedData = localStorage.getItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
-        if (storedData) {
-            const data = JSON.parse(storedData);
-            document.getElementById('runs').value = data.runs || 0;
-            document.getElementById('wickets').value = data.wickets || 0;
-            document.getElementById('overs').value = data.overs || "0.0";
-            
-            if(!scheduledMatchOvers && data.totalOvers) {
-                document.getElementById('totalOvers').value = data.totalOvers;
-            }
-            
-            if (data.outPlayers) outPlayersList = [...data.outPlayers];
-            if (data.currentOverBalls) currentOverBalls = [...data.currentOverBalls];
-            if (data.overHistory) overHistoryList = [...data.overHistory];
-            if (data.firstInningsRuns !== undefined) firstInningsRunsStored = data.firstInningsRuns;
-            if (data.firstInningsOvers !== undefined) firstInningsOversStored = data.firstInningsOvers;
-            detailedStats = data.detailedStats || {};
-            
-            lastBowler = data.lastBowler || ""; activeBowler = data.activeBowler || ""; bowlersRecord = data.bowlersRecord || {};
-
-            if (data.bat1Name) {
-                document.getElementById('bat1Name').innerHTML = `<option value="${data.bat1Name}">${data.bat1Name}</option>`;
-                document.getElementById('bat1Name').value = data.bat1Name;
-            }
-            document.getElementById('bat1Runs').value = data.bat1Runs || 0; 
-            document.getElementById('bat1Balls').value = data.bat1Balls || 0;
-            
-            if (data.bat2Name) {
-                document.getElementById('bat2Name').innerHTML = `<option value="${data.bat2Name}">${data.bat2Name}</option>`;
-                document.getElementById('bat2Name').value = data.bat2Name;
-            }
-            document.getElementById('bat2Runs').value = data.bat2Runs || 0; 
-            document.getElementById('bat2Balls').value = data.bat2Balls || 0;
-            
-            if (data.bowlerName) {
-                document.getElementById('bowlerName').innerHTML = `<option value="${data.bowlerName}">${data.bowlerName}</option>`;
-                document.getElementById('bowlerName').value = data.bowlerName;
-            }
-            
-            let figParts = (data.bowlerFig || "0-0").split('-'); 
-            document.getElementById('bWickets').value = figParts[0] || 0; 
-            document.getElementById('bRuns').value = figParts[1] || 0; 
-            document.getElementById('bowlerOvers').value = data.bowlerOvers || "0.0";
-            
-            if (data.innings) document.getElementById('innings').value = data.innings;
-            document.getElementById('targetMsg').value = data.target || "1st Innings is going on...";
-            
-            isSquadVisible = data.showSquadsOnScreen || false;
-            isPointsTableVisible = data.showPointsTableOnScreen || false;
-            isSummaryVisible = data.showSummaryOnScreen || false;
-            updateToggleButtonsUI();
         }
     }
 
@@ -1148,7 +1150,7 @@
     };
 
     window.declareWinnerManually = function() {
-        if(!confirm("⚠️ End match now and generate result?")) return;
+        if(!confirm("⚠️️ End match now and generate result?")) return;
         let runs = getVal('runs'); let tMsg = document.getElementById('targetMsg').value;
         let bTeam = document.getElementById('batTeamName').value;
         let bwTeam = document.getElementById('bowlTeamName').value;
@@ -1198,7 +1200,6 @@
         };
 
         sendToFirebase(finalScoreData); 
-        // మ్యాచ్ পুরোপুরি শেষ, তাই এখন স্টোরেজ ডিলিট করা যেতে পারে
         localStorage.removeItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
         localStorage.removeItem(`currentMatchPlayers_${currentMatchUser}_${activeMatchId}`);
         
@@ -1429,6 +1430,7 @@
         let squad2 = "";
         scheduledMatchOvers = null;
 
+        // ১. টুর্নামেন্ট ডাটাবেস থেকে প্রাথমিক ডেটা আনা হচ্ছে
         if (activeTournamentId && activeMatchId) {
             try {
                 const userSnap = await get(ref(db, 'usernames/' + currentMatchUser));
@@ -1447,7 +1449,6 @@
                             
                             if (matchInfo.overs) {
                                 scheduledMatchOvers = matchInfo.overs;
-                                document.getElementById('totalOvers').value = scheduledMatchOvers;
                             }
                             
                             isLeagueMatchGlobal = (matchInfo.type === 'league');
@@ -1463,48 +1464,35 @@
                         }
                     }
                 }
-            } catch (err) {
-                console.error("Error reading match info:", err);
-            }
+            } catch (err) {}
         }
 
+        // ২. যদি কোনো কারণে লাইভ ডেটা থাকে তবে সেটিকে প্রাধান্য দেওয়া হবে
         try {
             const liveSnap = await get(ref(db, `live_matches/${currentMatchUser}/score`));
             if (liveSnap.exists()) {
                 const mData = liveSnap.val();
-                if (!loadedBatTeam) loadedBatTeam = mData.batTeamName || "";
-                if (!loadedBowlTeam) loadedBowlTeam = mData.bowlTeamName || "";
+                
+                // যদি সোয়াপ হওয়া টিম থাকে তবে সেটাই এখানে ওভাররাইট হবে
+                if (mData.batTeamName) loadedBatTeam = mData.batTeamName;
+                if (mData.bowlTeamName) loadedBowlTeam = mData.bowlTeamName;
                 
                 if (mData.squad1Data && mData.squad1Data !== "[object Object]" && !mData.squad1Data.includes("Player 1\nPlayer 2")) {
-                    if (!squad1) squad1 = mData.squad1Data;
+                    squad1 = mData.squad1Data;
                 }
                 if (mData.squad2Data && mData.squad2Data !== "[object Object]" && !mData.squad2Data.includes("Player 1\nPlayer 2")) {
-                    if (!squad2) squad2 = mData.squad2Data;
+                    squad2 = mData.squad2Data;
                 }
                 
                 if (!scheduledMatchOvers && mData.totalOvers) {
                     scheduledMatchOvers = mData.totalOvers;
-                    document.getElementById('totalOvers').value = scheduledMatchOvers;
-                }
-                if (mData.firstInningsRuns !== undefined && mData.firstInningsRuns > 0) {
-                    firstInningsRunsStored = mData.firstInningsRuns;
-                }
-                if (mData.firstInningsOvers !== undefined) {
-                    firstInningsOversStored = mData.firstInningsOvers;
                 }
             }
         } catch (e) {}
 
-        if (loadedBatTeam) document.getElementById('batTeamName').value = loadedBatTeam;
-        if (loadedBowlTeam) document.getElementById('bowlTeamName').value = loadedBowlTeam;
-
+        // ৩. ইনপুটে ডেটা সেট করার আগে ফলব্যাক চেক
         if (!squad1 || squad1.trim() === "") squad1 = loadedBatTeam;
         if (!squad2 || squad2.trim() === "") squad2 = loadedBowlTeam;
-
-        localStorage.setItem(`tempBatSquad_${currentMatchUser}_${activeMatchId}`, squad1);
-        localStorage.setItem(`tempBowlSquad_${currentMatchUser}_${activeMatchId}`, squad2);
-
-        loadControllerState();
 
         if (loadedBatTeam) document.getElementById('batTeamName').value = loadedBatTeam;
         if (loadedBowlTeam) document.getElementById('bowlTeamName').value = loadedBowlTeam;
@@ -1515,9 +1503,18 @@
             document.getElementById('totalOvers').value = 10;
         }
 
+        // স্কোয়াডগুলোকে স্টোরেজে পাঠানো হচ্ছে
+        localStorage.setItem(`tempBatSquad_${currentMatchUser}_${activeMatchId}`, squad1);
+        localStorage.setItem(`tempBowlSquad_${currentMatchUser}_${activeMatchId}`, squad2);
+
+        // ৪. ফাইনাল স্মার্ট রিস্টোর: লোকাল স্টোরেজ থেকে একদম শেষ অবস্থা হুবহু রিস্টোর করবে
+        let isResumed = loadControllerState();
+
+        // প্লেয়ার লিস্ট আপডেট করে প্যানেল ওপেন করা হচ্ছে
         updateSuggestions();
         document.getElementById('playerPanel').open = true;
 
+        // লাইভ ভিউয়ারে ডেটা পাঠানোর জন্য প্রসেস কল
         processAndUpdate();
     }
 
