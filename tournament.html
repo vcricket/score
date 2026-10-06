@@ -44,6 +44,7 @@
 
         .btn-launch-match { background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-size: 13px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
         .btn-launch-match:hover { background: #0056b3; }
+        .btn-launch-match:disabled { opacity: 0.7; cursor: not-allowed; }
 
         .completed-badge { background: #e2e8f0; color: #2d3748; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
         .page-section { display: none; }
@@ -175,7 +176,6 @@
                 currentUserId = currentUsername;
             }
 
-            // যদি টুর্নামেন্ট আইডি (t) না থাকে, তবে হাব পেজ দেখাবে
             if (!tourId || tourId.trim() === "" || tourId === "null") {
                 document.getElementById('noTournamentView').style.display = 'block';
                 document.getElementById('activeTournamentView').style.display = 'none';
@@ -183,7 +183,6 @@
                 return;
             }
 
-            // যদি টুর্নামেন্ট আইডি থাকে, তবে নির্দিষ্ট টুর্নামেন্ট প্যানেল দেখাবে
             document.getElementById('noTournamentView').style.display = 'none';
             document.getElementById('activeTournamentView').style.display = 'block';
 
@@ -440,13 +439,17 @@
                     let isCompleted = match.status === "completed";
                     let isRunning = match.status === "running";
 
+                    // টিমের নামের অ্যাপোস্ট্রফি ফিক্স করা
+                    let safeTeam1 = (match.team1 || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                    let safeTeam2 = (match.team2 || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
                     let actionButton = "";
                     if (isCompleted) {
                         actionButton = `<span class="completed-badge">Completed (${match.winner || 'Finished'})</span>`;
                     } else if (isRunning) {
-                        actionButton = `<button class="btn-launch-match" style="background: #28a745;" onclick="window.launchOrResumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')">▶️ Resume Match</button>`;
+                        actionButton = `<button class="btn-launch-match" style="background: #28a745;" onclick="window.launchOrResumeMatch(this, '${matchId}', '${safeTeam1}', '${safeTeam2}', '${match.overs || 10}', '${match.type || 'League'}')">▶️ Resume Match</button>`;
                     } else {
-                        actionButton = `<button class="btn-launch-match" onclick="window.launchOrResumeMatch('${matchId}', '${match.team1}', '${match.team2}', '${match.overs || 10}', '${match.type || 'League'}')">🚀 Launch Match</button>`;
+                        actionButton = `<button class="btn-launch-match" onclick="window.launchOrResumeMatch(this, '${matchId}', '${safeTeam1}', '${safeTeam2}', '${match.overs || 10}', '${match.type || 'League'}')">🚀 Launch Match</button>`;
                     }
 
                     li.innerHTML = `
@@ -468,7 +471,6 @@
         }
     }
 
-    // শিডিউল বা ম্যাচ সেভ করার ফাংশন
     window.scheduleMatch = async function() {
         const team1 = document.getElementById('team1Select').value;
         const team2 = document.getElementById('team2Select').value;
@@ -506,49 +508,59 @@
         }
     };
 
-    // নির্দিষ্ট ম্যাচের লঞ্চ বা রিজিউম করার ফাংশন
-    window.launchOrResumeMatch = async function(matchId, t1, t2, overs, type) {
+    // নির্দিষ্ট ম্যাচের লঞ্চ বা রিজিউম করার ফাংশন (Smart Tracker সহ)
+    window.launchOrResumeMatch = async function(btnElement, matchId, t1, t2, overs, type) {
         try {
+            alert("Step 1: Button Clicked! Checking database...");
+            let originalText = btnElement.innerText;
+            btnElement.innerText = "⏳ Loading...";
+            btnElement.disabled = true;
+
             const matchRef = ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${matchId}`);
             const matchSnap = await get(matchRef);
 
             let isAlreadyStarted = false;
             if (matchSnap.exists()) {
-                let mData = matchSnap.val();
-                if (mData.status === 'running') {
+                if (matchSnap.val().status === 'running') {
                     isAlreadyStarted = true;
                 }
             }
 
             if (!isAlreadyStarted) {
+                alert("Step 2: Match is new. Checking your credits...");
                 const userRef = ref(db, `users/${currentUserId}`);
                 const userSnap = await get(userRef);
 
-                let currentCredits = 1;
+                let currentCredits = 0;
                 if (userSnap.exists() && userSnap.val().credits !== undefined) {
                     currentCredits = parseInt(userSnap.val().credits);
                 }
 
+                alert("Step 3: You have " + currentCredits + " credits. Deducting 1 credit...");
+
                 if (currentCredits <= 0) {
-                    alert("❌ Insufficient credits! You have 0 credits left. Please top up to launch a match.");
+                    alert("❌ Insufficient credits! You have 0 credits.");
+                    btnElement.innerText = originalText;
+                    btnElement.disabled = false;
                     return;
                 }
 
-                await update(userRef, {
-                    credits: currentCredits - 1
-                });
-
-                alert("🔔 Notice: 1 credit has been deducted for launching this match.");
-
-                await update(matchRef, {
-                    status: 'running'
-                });
+                // ক্রেডিট ও স্ট্যাটাস আপডেট
+                await update(userRef, { credits: currentCredits - 1 });
+                await update(matchRef, { status: 'running' });
+                alert("Step 4: Credit deducted and match started!");
             }
 
-            window.location.href = `controller.html?t=${tourId}&u=${currentUsername}&m=${matchId}&t1=${encodeURIComponent(t1)}&t2=${encodeURIComponent(t2)}&overs=${overs}&type=${encodeURIComponent(type)}`;
+            alert("Step 5: Redirecting to Controller...");
+            let baseUrl = window.location.href.split('?')[0].replace('tournament.html', 'controller.html');
+            let targetUrl = `${baseUrl}?t=${tourId}&u=${currentUsername}&m=${matchId}&t1=${encodeURIComponent(t1)}&t2=${encodeURIComponent(t2)}&overs=${overs}&type=${encodeURIComponent(type)}`;
+            
+            window.location.href = targetUrl;
+            
         } catch (err) {
-            console.error("Error launching match:", err);
-            alert("❌ Failed to launch match.");
+            alert("❌ Error found: " + err.message); 
+            btnElement.innerText = "Try Again";
+            btnElement.disabled = false;
         }
     };
 
@@ -563,7 +575,7 @@
         }
     };
 
-    // Firebase Auth State Listener (Security Check)
+    // Firebase Auth State Listener
     onAuthStateChanged(auth, (user) => {
         if (user) {
             if (!currentUsername) {
