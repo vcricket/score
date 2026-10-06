@@ -65,7 +65,7 @@
         .btn-signup { background-color: #007bff; }
         .btn-logout { background-color: #4a5568; }
         
-        /* বড় গোলাকার প্রোফাইল ও GO বাটন সেকশন */
+        /* Profile and Dashboard Styles */
         .dashboard-profile-container {
             margin: 15px 0;
             display: flex;
@@ -264,12 +264,12 @@
                 </div>
             </div>
 
-            <!-- বড় গোলাকার প্রোফাইল ছবি ও GO বাটন -->
+            <!-- প্রোফাইল ও GO বাটন -->
             <div class="dashboard-profile-container">
                 <a id="myProfileLinkImg" href="profile.html" class="dashboard-profile-link" title="Click to open Profile Hub">
                     <img id="dashboardLargeAvatar" src="https://via.placeholder.com/110" alt="Profile Avatar" class="dashboard-large-avatar">
                 </a>
-                <a id="myProfileLinkBtn" href="profile.html" class="btn-profile-go">GO ➔</a>
+                <a id="myProfileLinkBtn" href="profile.html" class="btn-profile-go">Tournament / Profile ➔</a>
             </div>
 
             <!-- Payment Recharge Box -->
@@ -279,24 +279,23 @@
                 • Official PhonePe No: <b style="font-size: 13px; color: #1e3c72;">7980735754</b><br>
                 
                 <a href="upi://pay?pa=7980735754@ybl&pn=Cricket%20Scoreboard&am=50&cu=INR&tn=1%20Match%20Credit" class="upi-btn">
-                    ⚡ Pay ₹50 via UPI (PhonePe / GPay / Paytm)
+                    ⚡ Pay ₹50 via UPI
                 </a>
 
                 <small style="display:block; margin-top:8px; color: #555;">After payment, send screenshot on WhatsApp:</small>
                 <a href="https://wa.me/917980735754?text=Hello,%20I%20have%20paid%20%E2%82%B950%20via%20UPI%20for%201%20match%20credit." target="_blank" class="whatsapp-btn">
-                    💬 Send Screenshot on WhatsApp
+                    💬 Send Screenshot
                 </a>
             </div>
 
             <button class="btn-logout" style="margin-top: 15px;" onclick="logout()">Logout</button>
         </div>
-
     </div>
-
 </div>
 
+<!-- Firebase Scripts (Corrected Version 10.13.0) -->
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { 
         getAuth, 
         createUserWithEmailAndPassword, 
@@ -306,8 +305,8 @@
         signOut, 
         setPersistence, 
         browserLocalPersistence 
-    } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-    import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
@@ -467,13 +466,11 @@
             username = userData.username || "";
             credits = userData.credits !== undefined ? userData.credits : 0;
         } else {
-            // যদি ডাটাবেজে ইউজার নোড মিসিং থাকে, লোকালস্টোরেজ থেকে ইউজারনেম নেওয়া
             username = localStorage.getItem('proCricketUsername') || "user";
         }
 
         localStorage.setItem('proCricketUsername', username);
 
-        // UI-তে ভ্যালু সেট করা
         document.getElementById('user-credits').innerText = credits;
         document.getElementById('display-username').innerText = username;
         
@@ -483,14 +480,12 @@
         let baseUrl = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
         document.getElementById('viewer-link-input').value = `${baseUrl}/viewer.html?u=${username}`;
 
-        // রিয়েল-টাইম ব্যালেন্স আপডেট লিসেনার
         onValue(userRef, (snap) => {
             if (snap.exists() && snap.val().credits !== undefined) {
                 document.getElementById('user-credits').innerText = snap.val().credits;
             }
         });
 
-        // প্রোফাইল ছবি ও নাম লোড করা
         const profileRef = ref(db, `users/${userId}/profile`);
         onValue(profileRef, (snap) => {
             if (snap.exists()) {
@@ -505,19 +500,7 @@
         });
     }
 
-    // পেজ লোড হওয়ার সাথে সাথে ক্যাশ চেক
-    const savedUser = localStorage.getItem('proCricketUsername');
-    if (savedUser) {
-        document.getElementById('login-section').classList.add('hidden');
-        document.getElementById('signup-section').classList.add('hidden');
-        document.getElementById('dashboard-section').classList.remove('hidden');
-        document.getElementById('display-username').innerText = savedUser;
-        let baseUrl = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
-        document.getElementById('viewer-link-input').value = `${baseUrl}/viewer.html?u=${savedUser}`;
-        document.getElementById('myProfileLinkImg').href = `profile.html?u=${savedUser}`;
-        document.getElementById('myProfileLinkBtn').href = `profile.html?u=${savedUser}`;
-    }
-
+    // ফায়ারবেস লগ-ইন চেক করার পরেই ডাটা লোড হবে
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             document.getElementById('login-section').classList.add('hidden');
@@ -526,10 +509,8 @@
 
             loadUserData(user.uid);
         } else {
-            if (!localStorage.getItem('proCricketUsername')) {
-                document.getElementById('dashboard-section').classList.add('hidden');
-                document.getElementById('login-section').classList.remove('hidden');
-            }
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('login-section').classList.remove('hidden');
         }
     });
 </script>
