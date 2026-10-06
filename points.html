@@ -26,7 +26,7 @@
 <div class="container">
     <div class="header-area">
         <h2>📊 Tournament Points Table</h2>
-        <a href="index.html" class="btn-back">🏠 Dashboard</a>
+        <a id="dashboardLinkBtn" href="index.html" class="btn-back">🏠 Dashboard</a>
     </div>
     
     <div class="table-responsive">
@@ -48,9 +48,11 @@
     </div>
 </div>
 
+<!-- Firebase Scripts (Corrected Version 10.13.0 and Auth Added) -->
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
@@ -63,10 +65,15 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getDatabase(app);
 
     const urlParams = new URLSearchParams(window.location.search);
-    const currentMatchUser = urlParams.get('u');
+    let currentMatchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername');
+
+    if (currentMatchUser) {
+        document.getElementById('dashboardLinkBtn').href = `index.html?u=${currentMatchUser}`;
+    }
 
     async function loadPointsTable() {
         const tableBody = document.getElementById('pointsTableBody');
@@ -88,7 +95,7 @@
                 return;
             }
 
-            // পয়েন্ট এবং নেট রানরেটের ভিত্তিতে দলগুলোকে সাজানো (Sorting)
+            // পয়েন্ট এবং নেট রানরেটের ভিত্তিতে দলগুলোকে সাজানো (Sorting)
             teamsArray.sort((a, b) => (b.points || 0) - (a.points || 0) || parseFloat(b.netRunRate || 0) - parseFloat(a.netRunRate || 0));
 
             teamsArray.forEach((team, index) => {
@@ -109,7 +116,19 @@
         }
     }
 
-    loadPointsTable();
+    // Firebase Auth State Listener (Security Check)
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            if (!currentMatchUser) {
+                currentMatchUser = localStorage.getItem('proCricketUsername') || "user";
+            }
+            loadPointsTable();
+        } else {
+            alert("⚠️ Please login from dashboard first.");
+            window.location.href = "index.html";
+        }
+    });
+
 </script>
 
 </body>
