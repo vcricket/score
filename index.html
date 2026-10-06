@@ -209,8 +209,8 @@
 
 <div class="container">
     
-    <!-- Login Form -->
-    <div id="login-section">
+    <!-- Login Form (এখানে class="hidden" যোগ করা হয়েছে) -->
+    <div id="login-section" class="hidden">
         <h2>Sign In</h2>
         <input type="email" id="login-email" placeholder="Enter your email" required>
         
@@ -500,7 +500,7 @@
         });
     }
 
-    // ফায়ারবেস লগ-ইন চেক করার পরেই ডাটা লোড হবে
+    // ফায়ারবেস লগ-ইন চেক (এখানে আপডেট করা হয়েছে)
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             document.getElementById('login-section').classList.add('hidden');
@@ -509,6 +509,7 @@
 
             loadUserData(user.uid);
         } else {
+            // ইউজার সত্যি লগ-আউট থাকলে তবেই লগ-ইন ফর্ম দেখাবে
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById('login-section').classList.remove('hidden');
         }
