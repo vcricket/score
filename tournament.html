@@ -134,9 +134,11 @@
 
 </div>
 
+<!-- Firebase Scripts (Corrected Version 10.13.0 and Auth Added) -->
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-    import { getDatabase, ref, get, set, push, remove, update } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getDatabase, ref, get, set, push, remove, update } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
@@ -147,22 +149,18 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getDatabase(app);
 
     const urlParams = new URLSearchParams(window.location.search);
     let tourId = urlParams.get('t');
     let currentUsername = urlParams.get('u') || localStorage.getItem('proCricketUsername');
 
-    if (!currentUsername) {
-        alert("⚠️ Please login from dashboard first.");
-        window.location.href = "index.html";
-    } else {
-        localStorage.setItem('proCricketUsername', currentUsername);
+    if (currentUsername) {
+        document.getElementById('profileLinkBtn').href = `profile.html?u=${currentUsername}`;
+        document.getElementById('dashboardLinkBtn').href = `index.html?u=${currentUsername}`;
+        document.getElementById('backToHubBtn').href = `tournament.html?u=${currentUsername}`;
     }
-
-    document.getElementById('profileLinkBtn').href = `profile.html?u=${currentUsername}`;
-    document.getElementById('dashboardLinkBtn').href = `index.html?u=${currentUsername}`;
-    document.getElementById('backToHubBtn').href = `tournament.html?u=${currentUsername}`;
 
     let currentUserId = "";
     let globalTeamsData = {};
@@ -356,7 +354,7 @@
                             playersHTML += `
                                 <div class="player-row">
                                     <span>👤 ${player}</span>
-                                    <button class="btn-edit-player" onclick="window.editPlayerName('${team.name}', ${idx}, '${player}')">✏️️ Edit</button>
+                                    <button class="btn-edit-player" onclick="window.editPlayerName('${team.name}', ${idx}, '${player}')">✏ Edit</button>
                                 </div>
                             `;
                         });
@@ -470,7 +468,7 @@
         }
     }
 
-    // শিডিউল বা ম্যাচ সেভ করার ফাংশন (কোনো ক্রেডিট কাটবে না)
+    // শিডিউল বা ম্যাচ সেভ করার ফাংশন
     window.scheduleMatch = async function() {
         const team1 = document.getElementById('team1Select').value;
         const team2 = document.getElementById('team2Select').value;
@@ -508,7 +506,7 @@
         }
     };
 
-    // নির্দিষ্ট ম্যাচের লঞ্চ বা রিজিউম করার ফাংশন (১ ক্রেডিট কাটবে যদি নতুন স্টার্ট হয়)
+    // নির্দিষ্ট ম্যাচের লঞ্চ বা রিজিউম করার ফাংশন
     window.launchOrResumeMatch = async function(matchId, t1, t2, overs, type) {
         try {
             const matchRef = ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${matchId}`);
@@ -565,7 +563,19 @@
         }
     };
 
-    initTournamentHub();
+    // Firebase Auth State Listener (Security Check)
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            if (!currentUsername) {
+                currentUsername = localStorage.getItem('proCricketUsername') || "user";
+            }
+            initTournamentHub();
+        } else {
+            alert("⚠️ Please login from dashboard first.");
+            window.location.href = "index.html";
+        }
+    });
+
 </script>
 
 </body>
