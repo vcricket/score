@@ -235,9 +235,11 @@
     <button id="updateBtn" class="btn-main">🟢 Live Auto-Update System Active</button>
 </div>
 
+<!-- Firebase Scripts (Corrected Version 10.13.0 and Auth Added) -->
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-    import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
@@ -250,17 +252,13 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getDatabase(app);
 
     const urlParams = new URLSearchParams(window.location.search);
-    const currentMatchUser = urlParams.get('u');
+    let currentMatchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername');
     const activeTournamentId = urlParams.get('t');
     const activeMatchId = urlParams.get('m') || "default_match";
-
-    if (!currentMatchUser) {
-        alert("⚠️ Unauthorized access! Please launch match from your Dashboard.");
-        window.location.href = "index.html";
-    }
 
     let isLeagueMatchGlobal = true;
     let tournamentPointsUpdated = false;
@@ -404,7 +402,7 @@
         return (nrr >= 0 ? "+" : "") + nrr.toFixed(3);
     }
 
-    // স্মার্ট পয়েন্ট টেবিল আপডেটার - ডুপ্লিকেট টিম যুক্ত হওয়া বন্ধ করবে
+    // স্মার্ট পয়েন্ট টেবিল আপডেটার
     async function updateTournamentStandings(winTeamName, loseTeamName, winRuns, winOvers, loseRuns, loseOvers, isTie = false) {
         if (!activeTournamentId) return;
         const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${activeTournamentId}/teams/`);
@@ -1300,7 +1298,7 @@
         alert(`📺 ${playerName}'s stats casted to Scoreboard!`); document.getElementById('leaderboardModal').style.display = 'none';
     };
 
-    // **SMART KEY FINDER:** টিমের নাম স্পেস বা ছোট-বড় হাতের অক্ষরের কারণে বারবার পয়েন্ট টেবিলে যুক্ত হওয়া বন্ধ করবে
+    // **SMART KEY FINDER**
     function parseSquadData(obj, teamName) {
         if (!obj) return "";
         if (typeof obj === 'string') return obj === "[object Object]" ? "" : obj;
@@ -1425,7 +1423,6 @@
         let squad2 = "";
         scheduledMatchOvers = null;
 
-        // 1. Check if we have a saved state to resume from
         let hasSavedState = getControllerState();
 
         if (activeTournamentId && activeMatchId && !hasSavedState) {
@@ -1516,7 +1513,19 @@
         processAndUpdate();
     }
 
-    initPage();
+    // Firebase Auth State Listener (Security Check)
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            if (!currentMatchUser) {
+                currentMatchUser = localStorage.getItem('proCricketUsername') || "user";
+            }
+            initPage();
+        } else {
+            alert("⚠️ Please login from dashboard first.");
+            window.location.href = "index.html";
+        }
+    });
+
 </script>
 </body>
 </html>
