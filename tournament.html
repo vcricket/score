@@ -508,10 +508,9 @@
         }
     };
 
-    // নির্দিষ্ট ম্যাচের লঞ্চ বা রিজিউম করার ফাংশন (Smart Tracker সহ)
+    // নির্দিষ্ট ম্যাচের লঞ্চ বা রিজিউম করার ফাংশন (Alerts Removed & Fix Applied)
     window.launchOrResumeMatch = async function(btnElement, matchId, t1, t2, overs, type) {
         try {
-            alert("Step 1: Button Clicked! Checking database...");
             let originalText = btnElement.innerText;
             btnElement.innerText = "⏳ Loading...";
             btnElement.disabled = true;
@@ -527,7 +526,6 @@
             }
 
             if (!isAlreadyStarted) {
-                alert("Step 2: Match is new. Checking your credits...");
                 const userRef = ref(db, `users/${currentUserId}`);
                 const userSnap = await get(userRef);
 
@@ -535,8 +533,6 @@
                 if (userSnap.exists() && userSnap.val().credits !== undefined) {
                     currentCredits = parseInt(userSnap.val().credits);
                 }
-
-                alert("Step 3: You have " + currentCredits + " credits. Deducting 1 credit...");
 
                 if (currentCredits <= 0) {
                     alert("❌ Insufficient credits! You have 0 credits.");
@@ -548,10 +544,13 @@
                 // ক্রেডিট ও স্ট্যাটাস আপডেট
                 await update(userRef, { credits: currentCredits - 1 });
                 await update(matchRef, { status: 'running' });
-                alert("Step 4: Credit deducted and match started!");
+
+                // **মাস্টার ফিক্স**: আগের টুর্নামেন্ট/ম্যাচের লাইভ ডাটাবেস মুছে দিচ্ছি। 
+                // এতে করে কন্ট্রোলার পেজ খোলার সময় আগের ম্যাচের ডাটা বা টিম আসবে না, সম্পূর্ণ নতুন টিমগুলোই আসবে।
+                await remove(ref(db, `live_matches/${currentUsername}/score`));
             }
 
-            alert("Step 5: Redirecting to Controller...");
+            // কোডুলারের জন্য সেফ URL
             let baseUrl = window.location.href.split('?')[0].replace('tournament.html', 'controller.html');
             let targetUrl = `${baseUrl}?t=${tourId}&u=${currentUsername}&m=${matchId}&t1=${encodeURIComponent(t1)}&t2=${encodeURIComponent(t2)}&overs=${overs}&type=${encodeURIComponent(type)}`;
             
