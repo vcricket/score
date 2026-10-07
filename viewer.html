@@ -70,7 +70,7 @@
             border-radius: 50%; 
             background: #1a1c4b; color: #fff; 
             display: flex; justify-content: center; align-items: center; 
-            font-size: 17px; /* Decreased as requested */
+            font-size: 17px;
             font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.15); 
             font-family: 'Oswald', sans-serif; line-height: 1; flex-shrink: 0; 
             letter-spacing: -0.5px;
@@ -324,19 +324,23 @@
         let eventQueue = [];
         let isEventPlaying = false;
 
-        function formatShortName(name, maxLength = 12) {
+        // Custom Helper: Auto-Shorten Long Names - COMPLETELY FIXED
+        function formatShortName(name, maxLength = 15) {
             if (!name || name === '--') return '--';
             name = name.trim();
             if (name.length <= maxLength) return name;
             
-            let parts = name.split(/\s+/);
+            // Filter out any invisible spaces or empty strings after split
+            let parts = name.split(/\s+/).filter(p => p.trim().length > 0);
+            
             if (parts.length > 1) {
+                // Ensure the first valid character is picked
                 let firstInitial = parts[0].charAt(0).toUpperCase() + '.';
                 let lastName = parts[parts.length - 1]; 
                 let shortName = firstInitial + ' ' + lastName;
                 
-                if (shortName.length > 15) { 
-                    return shortName.substring(0, 13) + '..';
+                if (shortName.length > 18) { 
+                    return shortName.substring(0, 16) + '..';
                 }
                 return shortName;
             }
@@ -558,7 +562,7 @@
                 
                 let sBat1 = formatShortName(data.bat1Name, 15);
                 let sBat2 = formatShortName(data.bat2Name, 15);
-                let sBowler = formatShortName(data.bowlerName, 15);
+                let sBowler = formatShortName(data.bowlerName, 16);
                 
                 document.getElementById('sum-bat1').innerText = `${sBat1} - ${data.bat1Runs} (${data.bat1Balls}b)`;
                 document.getElementById('sum-bat2').innerText = `${sBat2} - ${data.bat2Runs} (${data.bat2Balls}b)`;
@@ -624,28 +628,26 @@
                 }
             }
 
-            // --- REFINED BALL LOGIC ---
             const overContainer = document.getElementById('overBallsContainer'); 
-            let ballsHtml = ''; // Removed 'This Ov:' completely
+            let ballsHtml = '';
             if (data.currentOverBalls && Array.isArray(data.currentOverBalls)) {
                 data.currentOverBalls.forEach(ball => {
                     let cClass = "ball-circle";
-                    let strBall = String(ball).toUpperCase();
+                    let strBall = String(ball).toUpperCase().trim();
                     
                     if (strBall === "4") {
                         cClass += " four"; 
                     } else if (strBall === "6") {
                         cClass += " six"; 
-                    } else if (strBall === "W" || strBall === "OUT" || strBall === "RO" || strBall === "LBW" || strBall === "WK") {
+                    } else if (strBall === "WD" || strBall === "WIDE" || strBall.includes("WD") || strBall.includes("WIDE")) {
+                        cClass += " extra"; 
+                    } else if (strBall === "NB" || strBall === "NO" || strBall.includes("NB")) {
+                        cClass += " extra"; 
+                    } else if (strBall === "LB" || strBall === "B" || strBall === "LBW") {
+                        if(strBall === "LBW") cClass += " wicket";
+                        else cClass += " extra"; 
+                    } else if (strBall.includes("W") || strBall.includes("OUT") || strBall === "RO" || strBall === "WK") {
                         cClass += " wicket"; 
-                    } else if (strBall.includes("WD") || strBall.includes("WIDE")) {
-                        cClass += " extra";
-                    } else if (strBall.includes("NB") || strBall.includes("NO")) {
-                        cClass += " extra";
-                    } else if (strBall.includes("LB") || strBall === "B" || strBall.includes("LEG")) {
-                        cClass += " extra";
-                    } else if (strBall.includes("W")) {
-                        cClass += " wicket"; // Fallback for unexpected wicket formats
                     }
                     
                     ballsHtml += `<span class="${cClass}">${ball}</span>`;
@@ -654,9 +656,9 @@
             overContainer.innerHTML = ballsHtml;
             
             // --- SHORT NAMES LOGIC APPLIED HERE ---
-            let bat1Short = formatShortName(data.bat1Name, 12);
-            let bat2Short = formatShortName(data.bat2Name, 12);
-            let bowlerShort = formatShortName(data.bowlerName, 12);
+            let bat1Short = formatShortName(data.bat1Name, 15);
+            let bat2Short = formatShortName(data.bat2Name, 15);
+            let bowlerShort = formatShortName(data.bowlerName, 16);
 
             document.getElementById('disp-bat1-name').innerText = `${bat1Short} 🏏`; 
             document.getElementById('disp-bat1-runs').innerText = data.bat1Runs || 0; 
