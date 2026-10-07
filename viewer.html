@@ -50,7 +50,7 @@
         /* --- RESTRICTED TARGET BOX --- */
         .rates-target-box { 
             flex: 0 1 auto; 
-            max-width: 250px; /* এটি বক্সটিকে অতিরিক্ত বড় হতে বাধা দেবে */
+            max-width: 250px; 
             display: flex; 
             flex-direction: row; 
             justify-content: center; 
@@ -62,9 +62,9 @@
             border-right: 1px solid rgba(255, 255, 255, 0.1); 
         }
         .target-text { 
-            font-size: 16px; /* ২ লাইন ধরানোর জন্য পারফেক্ট ফন্ট সাইজ */
+            font-size: 16px; 
             color: #ffcc00; 
-            white-space: normal; /* পরের লাইনে লেখা পাঠানোর জন্য */
+            white-space: normal; 
             line-height: 1.1; 
             margin: 0; 
             text-transform: uppercase; 
@@ -88,12 +88,12 @@
         .bowler-box { flex: 1 1 auto; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; gap: 10px; overflow: hidden; min-width: 200px; }
         .bowler-info { display: flex; flex-direction: column; justify-content: center; flex-shrink: 1; overflow: hidden; }
         .bowl-name { font-size: 20px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-        .bowl-stats { font-size: 19px; /* Reduced to 19px as requested */ color: #a1a3cc; font-weight: 600; line-height: 1; margin-top: 2px; white-space: nowrap;}
+        .bowl-stats { font-size: 19px; color: #a1a3cc; font-weight: 600; line-height: 1; margin-top: 2px; white-space: nowrap;}
 
         /* --- PROTECTED BALLS CONTAINER --- */
         .balls-container { 
             display: flex; align-items: center; gap: 6px; justify-content: flex-end; 
-            flex-shrink: 0; /* কোনো অবস্থাতেই এই বক্সটি গায়েব বা ছোট হবে না */
+            flex-shrink: 0; 
         }
         .ball-circle { 
             width: 34px; 
@@ -352,6 +352,26 @@
         let eventQueue = [];
         let isEventPlaying = false;
 
+        // Custom Helper: Auto-Shorten Long Names
+        function formatShortName(name, maxLength = 12) {
+            if (!name || name === '--') return '--';
+            name = name.trim();
+            if (name.length <= maxLength) return name;
+            
+            let parts = name.split(/\s+/);
+            if (parts.length > 1) {
+                let firstInitial = parts[0].charAt(0).toUpperCase() + '.';
+                let lastName = parts[parts.length - 1]; // Only the last word
+                let shortName = firstInitial + ' ' + lastName;
+                
+                if (shortName.length > 15) { 
+                    return shortName.substring(0, 13) + '..';
+                }
+                return shortName;
+            }
+            return name.substring(0, maxLength - 2) + '..';
+        }
+
         function enqueueEvent(eventData) {
             eventQueue.push(eventData);
             processQueue();
@@ -564,9 +584,15 @@
                 document.getElementById('sum-bat-team').innerText = data.batTeamName || 'TEAM A';
                 document.getElementById('sum-score').innerHTML = `${data.runs}<span style="font-size: 20px; color:#ffcccc;">/${data.wickets}</span>`;
                 document.getElementById('sum-overs').innerText = data.overs;
-                document.getElementById('sum-bat1').innerText = `${data.bat1Name} - ${data.bat1Runs} (${data.bat1Balls}b)`;
-                document.getElementById('sum-bat2').innerText = `${data.bat2Name} - ${data.bat2Runs} (${data.bat2Balls}b)`;
-                document.getElementById('sum-bowler').innerText = `${data.bowlerName} (${data.bowlerFig} - ${data.bowlerOvers}Ov)`;
+                
+                // Show short names in summary as well (optional, but keeps UI consistent)
+                let sBat1 = formatShortName(data.bat1Name, 15);
+                let sBat2 = formatShortName(data.bat2Name, 15);
+                let sBowler = formatShortName(data.bowlerName, 15);
+                
+                document.getElementById('sum-bat1').innerText = `${sBat1} - ${data.bat1Runs} (${data.bat1Balls}b)`;
+                document.getElementById('sum-bat2').innerText = `${sBat2} - ${data.bat2Runs} (${data.bat2Balls}b)`;
+                document.getElementById('sum-bowler').innerText = `${sBowler} (${data.bowlerFig} - ${data.bowlerOvers}Ov)`;
 
                 const overTableBody = document.getElementById('overProgressTableBody'); overTableBody.innerHTML = '';
                 if(data.overHistory && data.overHistory.length > 0) {
@@ -642,15 +668,20 @@
             }
             overContainer.innerHTML = ballsHtml;
             
-            document.getElementById('disp-bat1-name').innerText = `${data.bat1Name || '--'} 🏏`; 
+            // --- SHORT NAMES LOGIC APPLIED HERE ---
+            let bat1Short = formatShortName(data.bat1Name, 12);
+            let bat2Short = formatShortName(data.bat2Name, 12);
+            let bowlerShort = formatShortName(data.bowlerName, 12);
+
+            document.getElementById('disp-bat1-name').innerText = `${bat1Short} 🏏`; 
             document.getElementById('disp-bat1-runs').innerText = data.bat1Runs || 0; 
             document.getElementById('disp-bat1-balls').innerText = `(${data.bat1Balls || 0})`;
 
-            document.getElementById('disp-bat2-name').innerText = data.bat2Name || '--'; 
+            document.getElementById('disp-bat2-name').innerText = bat2Short; 
             document.getElementById('disp-bat2-runs').innerText = data.bat2Runs || 0; 
             document.getElementById('disp-bat2-balls').innerText = `(${data.bat2Balls || 0})`;
 
-            document.getElementById('disp-bowler-name').innerText = data.bowlerName || '--'; 
+            document.getElementById('disp-bowler-name').innerText = bowlerShort; 
             document.getElementById('disp-bowler-fig').innerText = data.bowlerFig || '0-0'; 
             document.getElementById('disp-bowler-overs').innerText = data.bowlerOvers || '0.0';
 
