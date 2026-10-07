@@ -324,35 +324,6 @@
         let eventQueue = [];
         let isEventPlaying = false;
 
-        // Custom Helper: Bulletproof Short Name Logic (Fixes . Sharma issue)
-        function formatShortName(name, maxLength = 15) {
-            if (!name || name === '--') return '--';
-            name = name.trim();
-            
-            // Split by whitespace to get all words
-            let parts = name.split(/\s+/).filter(p => p.trim().length > 0);
-            
-            // If there's only one word (e.g. "Sharma"), return it as is if it fits, or truncate
-            if (parts.length <= 1) {
-                if (name.length <= maxLength) return name;
-                return name.substring(0, maxLength - 2) + '..';
-            }
-            
-            // If length is already within limit, return full name
-            if (name.length <= maxLength) return name;
-            
-            // Multiple words: Format as First Initial + Last Name (e.g. "A. Sharma")
-            let firstName = parts[0];
-            let lastName = parts[parts.length - 1];
-            let firstInitial = firstName.charAt(0).toUpperCase() + '.';
-            let shortName = firstInitial + ' ' + lastName;
-            
-            if (shortName.length > 18) { 
-                return shortName.substring(0, 16) + '..';
-            }
-            return shortName;
-        }
-
         function enqueueEvent(eventData) {
             eventQueue.push(eventData);
             processQueue();
@@ -382,10 +353,10 @@
             let timeoutDuration = 3500;
             let type = evt.type;
             
-            if(type === 'FOUR') { textEl.className = 'event-text'; textEl.classList.add('color-four', 'animate-four'); textEl.innerText = '4'; }
-            else if(type === 'SIX') { textEl.className = 'event-text'; textEl.classList.add('color-six', 'animate-six'); textEl.innerText = '6'; }
-            else if(type === 'OUT') { textEl.className = 'event-text'; textEl.classList.add('color-out', 'animate-out'); textEl.innerText = 'OUT!'; }
-            else if(type === 'FREE_HIT') { textEl.className = 'event-text'; textEl.classList.add('color-freehit', 'animate-freehit'); textEl.innerText = 'FREE HIT!'; }
+            if(type === 'FOUR') { textEl.classList.add('color-four', 'animate-four'); textEl.innerText = '4'; }
+            else if(type === 'SIX') { textEl.classList.add('color-six', 'animate-six'); textEl.innerText = '6'; }
+            else if(type === 'OUT') { textEl.classList.add('color-out', 'animate-out'); textEl.innerText = 'OUT!'; }
+            else if(type === 'FREE_HIT') { textEl.classList.add('color-freehit', 'animate-freehit'); textEl.innerText = 'FREE HIT!'; }
             else if(type === 'OVER_END' || type === 'INNINGS_BREAK') {
                 let list = evt.overHistory || [];
                 let lastOverInfo = list.length > 0 ? list[list.length - 1] : { over: '1', totalRuns: '0', totalWickets: '0' };
@@ -403,9 +374,9 @@
                 } else {
                     textEl.classList.add('color-over-summary', 'animate-over-summary');
                     textEl.innerHTML = `
-                        <div style="font-size: 22px; color: #ffcc00; margin-bottom: 5px;">📊 End of Over ${lastOverInfo.over}</div>
-                        <div style="font-size: 32px; color: #00ff88; font-weight: bold;">Score: ${lastOverInfo.totalRuns}/${lastOverInfo.totalWickets}</div>
-                        <div style="font-size: 15px; color: #ddd; margin-top: 8px;">Over completed! Starting next over...</div>
+                        <div style="font-size: 24px; color: #ffcc00; margin-bottom: 5px;">📊 End of Over ${lastOverInfo.over}</div>
+                        <div style="font-size: 28px; color: #00ff88; font-weight: bold;">Score: ${lastOverInfo.totalRuns}/${lastOverInfo.totalWickets}</div>
+                        <div style="font-size: 14px; color: #aaa; margin-top: 8px;">Over completed! Starting next over...</div>
                     `;
                     timeoutDuration = 4500;
                 }
@@ -426,7 +397,7 @@
                     if(cat === "best_scorer") {
                         let sr = s.balls ? ((s.runs/s.balls)*100).toFixed(1) : "0.0";
                         htmlContent = `
-                            <div>Runs: <span style="color:#00ff88;">${s.runs||0}</span> <span style="font-size:14px; color:#ccc;">(${s.balls||0}b)</span></div>
+                            <div>Runs: <span style="color:#00ff88;">${s.runs||0}</span> <span style="font-size:14px; color:#aaa;">(${s.balls||0}b)</span></div>
                             <div>4s/6s: <span style="color:#ffcc00;">${s.fours||0}/${s.sixes||0}</span></div>
                             <div>SR: <span style="color:#00d2ff;">${sr}</span></div>
                         `;
@@ -446,9 +417,9 @@
                     }
                     
                     textEl.innerHTML = `
-                        <div style="font-size: 18px; color: #00d2ff; text-transform: uppercase; margin-bottom: 5px;">🌟 Player Spotlight</div>
-                        <div style="font-size: 32px; color: #ffcc00; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px; margin-bottom: 12px;">${pData.name}</div>
-                        <div style="display: flex; justify-content: space-around; font-size: 20px; color: #fff;">
+                        <div style="font-size: 20px; color: #00d2ff; text-transform: uppercase; margin-bottom: 5px;">🌟 Player Spotlight</div>
+                        <div style="font-size: 30px; color: #ffcc00; font-weight: bold; border-bottom: 2px solid #555; padding-bottom: 5px; margin-bottom: 10px;">${pData.name}</div>
+                        <div style="display: flex; justify-content: space-around; font-size: 18px; color: #fff;">
                             ${htmlContent}
                         </div>
                     `;
@@ -460,9 +431,9 @@
                 let m = evt.momData;
                 if(m) {
                     textEl.innerHTML = `
-                        <div style="font-size: 22px; color: #fff; margin-bottom: 10px; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:8px;">🌟 Man of the Match</div>
-                        <div style="font-size: 45px; color: #00ff88; font-weight: bold;">${m.name}</div>
-                        <div style="font-size: 22px; color: #ffcc00; margin-top: 10px;">${m.reason}</div>
+                        <div style="font-size: 22px; color: #fff; margin-bottom: 10px; border-bottom:1px solid #555;">🌟 Man of the Match</div>
+                        <div style="font-size: 40px; color: #00ff88; font-weight: bold;">${m.name}</div>
+                        <div style="font-size: 20px; color: #ffcc00; margin-top: 10px;">${m.reason}</div>
                     `;
                 }
                 timeoutDuration = 8000;
@@ -516,7 +487,7 @@
                         tbody.innerHTML = '';
                         
                         if(!teams) { 
-                            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#ccc;">Tournament data loading...</td></tr>`; 
+                            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#888;">Tournament data loading...</td></tr>`; 
                             return; 
                         }
 
@@ -531,13 +502,13 @@
                         teamsArray.forEach((team, index) => {
                             let tr = document.createElement('tr');
                             tr.innerHTML = `
-                                <td style="font-weight: 700;">${index + 1}</td>
-                                <td style="font-weight:700; text-align:left; padding-left:15px; color:#fff;">${team.name || 'Team'}</td>
+                                <td>${index + 1}</td>
+                                <td style="font-weight:700; text-align:left; padding-left:12px; color:#ffcc00;">${team.name || 'Team'}</td>
                                 <td>${team.matchesPlayed || 0}</td>
                                 <td>${team.won || 0}</td>
                                 <td>${team.lost || 0}</td>
-                                <td style="color:#a8d8ff; font-weight:600;">${team.netRunRate || '+0.000'}</td>
-                                <td style="font-weight:700; color:#55ffaa;">${team.points || 0}</td>
+                                <td style="color:#00d2ff; font-weight:600;">${team.netRunRate || '+0.000'}</td>
+                                <td style="font-weight:700; color:#00ff88;">${team.points || 0}</td>
                             `;
                             tbody.appendChild(tr);
                         });
@@ -566,22 +537,18 @@
                 document.getElementById('sum-score').innerHTML = `${data.runs}<span style="font-size: 20px; color:#ffcccc;">/${data.wickets}</span>`;
                 document.getElementById('sum-overs').innerText = data.overs;
                 
-                let sBat1 = formatShortName(data.bat1Name, 15);
-                let sBat2 = formatShortName(data.bat2Name, 15);
-                let sBowler = formatShortName(data.bowlerName, 16);
-                
-                document.getElementById('sum-bat1').innerText = `${sBat1} - ${data.bat1Runs} (${data.bat1Balls}b)`;
-                document.getElementById('sum-bat2').innerText = `${sBat2} - ${data.bat2Runs} (${data.bat2Balls}b)`;
-                document.getElementById('sum-bowler').innerText = `${sBowler} (${data.bowlerFig} - ${data.bowlerOvers}Ov)`;
+                document.getElementById('sum-bat1').innerText = `${data.bat1Name || '--'} - ${data.bat1Runs || 0} (${data.bat1Balls || 0}b)`;
+                document.getElementById('sum-bat2').innerText = `${data.bat2Name || '--'} - ${data.bat2Runs || 0} (${data.bat2Balls || 0}b)`;
+                document.getElementById('sum-bowler').innerText = `${data.bowlerName || '--'} (${data.bowlerFig || '0-0'} - ${data.bowlerOvers || '0.0'}Ov)`;
 
                 const overTableBody = document.getElementById('overProgressTableBody'); overTableBody.innerHTML = '';
                 if(data.overHistory && data.overHistory.length > 0) {
                     data.overHistory.forEach(item => {
-                        let row = document.createElement('tr');
-                        row.innerHTML = `<td style="font-weight: 700; color: #fff;">Over ${item.over}</td><td style="font-weight: 700; color: #55ffaa;">${item.totalRuns}</td><td style="font-weight: 700; color: #ff4757;">${item.totalWickets}</td>`;
+                        let row = document.createElement('tr'); row.style.borderBottom = "1px solid #333";
+                        row.innerHTML = `<td style="padding: 4px; font-weight: 700; color: #ffcc00;">Over ${item.over}</td><td style="text-align:center; padding: 4px; font-weight: 700;">${item.totalRuns}</td><td style="text-align:right; padding: 4px; color: #ff4757;">${item.totalWickets}</td>`;
                         overTableBody.appendChild(row);
                     });
-                } else overTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#999; padding: 15px;">No over completed yet.</td></tr>`;
+                } else overTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#666; padding: 15px;">No over completed yet.</td></tr>`;
             } else summaryScreen.classList.remove('active');
 
             if (!data.showSquadsOnScreen && !data.showPointsTableOnScreen && !data.showSummaryOnScreen) {
@@ -641,40 +608,31 @@
                     let cClass = "ball-circle";
                     let strBall = String(ball).toUpperCase().trim();
                     
-                    if (strBall === "4") {
-                        cClass += " four"; 
-                    } else if (strBall === "6") {
-                        cClass += " six"; 
-                    } else if (strBall === "WD" || strBall === "WIDE" || strBall.includes("WD") || strBall.includes("WIDE")) {
-                        cClass += " extra"; 
-                    } else if (strBall === "NB" || strBall === "NO" || strBall.includes("NB")) {
-                        cClass += " extra"; 
-                    } else if (strBall === "LB" || strBall === "B" || strBall === "LBW") {
+                    if (strBall === "4") cClass += " four"; 
+                    else if (strBall === "6") cClass += " six"; 
+                    else if (strBall === "WD" || strBall === "WIDE" || strBall.includes("WD")) cClass += " extra"; 
+                    else if (strBall === "NB" || strBall === "NO" || strBall.includes("NB")) cClass += " extra"; 
+                    else if (strBall === "LB" || strBall === "B" || strBall === "LBW") {
                         if(strBall === "LBW") cClass += " wicket";
                         else cClass += " extra"; 
                     } else if (strBall.includes("W") || strBall.includes("OUT") || strBall === "RO" || strBall === "WK") {
                         cClass += " wicket"; 
                     }
-                    
                     ballsHtml += `<span class="${cClass}">${ball}</span>`;
                 });
             }
             overContainer.innerHTML = ballsHtml;
             
-            // --- SHORT NAMES LOGIC APPLIED HERE ---
-            let bat1Short = formatShortName(data.bat1Name, 15);
-            let bat2Short = formatShortName(data.bat2Name, 15);
-            let bowlerShort = formatShortName(data.bowlerName, 16);
-
-            document.getElementById('disp-bat1-name').innerText = `${bat1Short} 🏏`; 
+            // --- FULL NAME DISPLAY (NO SHORTENING) ---
+            document.getElementById('disp-bat1-name').innerText = `${data.bat1Name || '--'} 🏏`; 
             document.getElementById('disp-bat1-runs').innerText = data.bat1Runs || 0; 
             document.getElementById('disp-bat1-balls').innerText = `(${data.bat1Balls || 0})`;
 
-            document.getElementById('disp-bat2-name').innerText = bat2Short; 
+            document.getElementById('disp-bat2-name').innerText = data.bat2Name || '--'; 
             document.getElementById('disp-bat2-runs').innerText = data.bat2Runs || 0; 
             document.getElementById('disp-bat2-balls').innerText = `(${data.bat2Balls || 0})`;
 
-            document.getElementById('disp-bowler-name').innerText = bowlerShort; 
+            document.getElementById('disp-bowler-name').innerText = data.bowlerName || '--'; 
             document.getElementById('disp-bowler-fig').innerText = data.bowlerFig || '0-0'; 
             document.getElementById('disp-bowler-overs').innerText = data.bowlerOvers || '0.0';
 
