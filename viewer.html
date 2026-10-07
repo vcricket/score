@@ -34,11 +34,9 @@
         .team-name { font-family: 'Oswald', sans-serif; font-size: 20px; font-weight: 700; line-height: 1.1; letter-spacing: 0.5px; }
         .overs-text { font-size: 21px; color: #a1a3cc; font-weight: 600; text-transform: uppercase; line-height: 1; margin-top: 1px; }
 
-        /* --- UPDATED SCORE FONT SIZE (Increased by 3px) --- */
         .score-box { display: flex; align-items: center; padding: 0 20px; font-family: 'Oswald', sans-serif; font-size: 33px; font-weight: 700; color: #f95e26; border-right: 1px solid rgba(255, 255, 255, 0.1); flex-shrink: 0; }
         .score-box .wickets { font-size: 33px; color: #f95e26; }
 
-        /* Flexible Batsmen Box */
         .batsmen-box { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; padding: 0 15px; background: rgba(0,0,0,0.2); overflow: hidden; min-width: 150px; }
         .batter-row { display: flex; justify-content: space-between; align-items: center; font-size: 22px; line-height: 1.1; padding: 0; }
         .batter-row.striker { font-weight: 700; color: #fff; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 2px; padding-bottom: 1px;}
@@ -48,7 +46,6 @@
         .bat-stats .runs { font-weight: 700; font-size: 24px; text-align: right; color: #fff; line-height: 1; }
         .bat-stats .balls { font-size: 21px; color: #a1a3cc; line-height: 1; }
 
-        /* --- RESTRICTED TARGET BOX --- */
         .rates-target-box { 
             flex: 0 1 auto; max-width: 250px; display: flex; flex-direction: row; 
             justify-content: center; align-items: center; gap: 12px; background: rgba(0, 0, 0, 0.4); 
@@ -60,7 +57,6 @@
         #crrBadge { color: #00d2ff; } 
         #rrrBadge { color: #f95e26; } 
 
-        /* Flexible Bowler Box */
         .bowler-box { flex: 1 1 auto; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; gap: 10px; overflow: hidden; min-width: 200px; }
         .bowler-info { display: flex; flex-direction: column; justify-content: center; flex-shrink: 1; overflow: hidden; }
         .bowl-name { font-size: 20px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
@@ -68,11 +64,21 @@
 
         /* --- PROTECTED BALLS CONTAINER --- */
         .balls-container { display: flex; align-items: center; gap: 6px; justify-content: flex-end; flex-shrink: 0; }
-        .ball-circle { width: 34px; height: 34px; border-radius: 50%; background: #1a1c4b; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 22px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.15); font-family: 'Oswald', sans-serif; line-height: 1; flex-shrink: 0; }
+        .ball-circle { 
+            width: 32px; 
+            height: 32px; 
+            border-radius: 50%; 
+            background: #1a1c4b; color: #fff; 
+            display: flex; justify-content: center; align-items: center; 
+            font-size: 17px; /* Decreased as requested */
+            font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.15); 
+            font-family: 'Oswald', sans-serif; line-height: 1; flex-shrink: 0; 
+            letter-spacing: -0.5px;
+        }
         .ball-circle.four { background: #28a745; border-color: #28a745; } 
         .ball-circle.six { background: #007bff; border-color: #007bff; } 
         .ball-circle.wicket { background: #dc3545; border-color: #dc3545; } 
-        .ball-circle.extra { background: #ffc107; color: #000; border-color: #ffc107; font-size: 16px; }
+        .ball-circle.extra { background: #ffc107; color: #000; border-color: #ffc107; font-size: 15px; }
 
         /* =========================================
            GLASSMORPHISM OVERLAYS & ANIMATIONS
@@ -318,7 +324,6 @@
         let eventQueue = [];
         let isEventPlaying = false;
 
-        // Custom Helper: Auto-Shorten Long Names
         function formatShortName(name, maxLength = 12) {
             if (!name || name === '--') return '--';
             name = name.trim();
@@ -327,7 +332,7 @@
             let parts = name.split(/\s+/);
             if (parts.length > 1) {
                 let firstInitial = parts[0].charAt(0).toUpperCase() + '.';
-                let lastName = parts[parts.length - 1]; // Only the last word
+                let lastName = parts[parts.length - 1]; 
                 let shortName = firstInitial + ' ' + lastName;
                 
                 if (shortName.length > 15) { 
@@ -619,15 +624,30 @@
                 }
             }
 
+            // --- REFINED BALL LOGIC ---
             const overContainer = document.getElementById('overBallsContainer'); 
-            let ballsHtml = '';
+            let ballsHtml = ''; // Removed 'This Ov:' completely
             if (data.currentOverBalls && Array.isArray(data.currentOverBalls)) {
                 data.currentOverBalls.forEach(ball => {
                     let cClass = "ball-circle";
-                    if (ball === "4") cClass += " four"; 
-                    else if (ball === "6") cClass += " six"; 
-                    else if (ball.includes("W") || ball === "RO" || ball === "LBW") cClass += " wicket"; 
-                    else if (ball.includes("NB") || ball.includes("WD") || ball.includes("LB")) cClass += " extra";
+                    let strBall = String(ball).toUpperCase();
+                    
+                    if (strBall === "4") {
+                        cClass += " four"; 
+                    } else if (strBall === "6") {
+                        cClass += " six"; 
+                    } else if (strBall === "W" || strBall === "OUT" || strBall === "RO" || strBall === "LBW" || strBall === "WK") {
+                        cClass += " wicket"; 
+                    } else if (strBall.includes("WD") || strBall.includes("WIDE")) {
+                        cClass += " extra";
+                    } else if (strBall.includes("NB") || strBall.includes("NO")) {
+                        cClass += " extra";
+                    } else if (strBall.includes("LB") || strBall === "B" || strBall.includes("LEG")) {
+                        cClass += " extra";
+                    } else if (strBall.includes("W")) {
+                        cClass += " wicket"; // Fallback for unexpected wicket formats
+                    }
+                    
                     ballsHtml += `<span class="${cClass}">${ball}</span>`;
                 });
             }
