@@ -16,12 +16,12 @@
         @keyframes waveShine { 0% { left: -50%; opacity: 0; } 5% { left: -50%; opacity: 1; } 85% { left: 120%; opacity: 1; } 90% { left: 120%; opacity: 0; } 100% { left: 120%; opacity: 0; } }
 
         /* =========================================
-           NEW SCOREBOARD DESIGN (FULL WIDTH - 10px GAP)
+           NEW SCOREBOARD DESIGN (FLEXIBLE PARTITIONS)
            ========================================= */
         .scoreboard-container { 
             position: absolute; bottom: 30px; 
             left: 10px; right: 10px; /* 10px gap on both sides */
-            display: flex; height: 52px; /* Height unchanged */
+            display: flex; height: 52px; 
             background: rgba(11, 12, 42, 0.85); backdrop-filter: blur(5px); color: white;
             border-radius: 4px; box-shadow: 0 8px 20px rgba(0,0,0,0.8);
             border: 1px solid rgba(255,255,255,0.1); font-family: 'Poppins', sans-serif; 
@@ -31,41 +31,44 @@
         .scoreboard-container.hidden { bottom: -180px; opacity: 0; }
 
         .team-overs { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0 15px; background: rgba(0, 0, 0, 0.3); border-right: 1px solid rgba(255, 255, 255, 0.1); }
-        .team-name { font-family: 'Oswald', sans-serif; font-size: 30px; /* Increased 10px */ font-weight: 700; line-height: 1; letter-spacing: 0.5px; }
-        .overs-text { font-size: 21px; /* Increased 10px */ color: #a1a3cc; font-weight: 600; text-transform: uppercase; line-height: 1; margin-top: 1px; }
+        .team-name { font-family: 'Oswald', sans-serif; font-size: 20px; font-weight: 700; line-height: 1.1; letter-spacing: 0.5px; }
+        .overs-text { font-size: 21px; color: #a1a3cc; font-weight: 600; text-transform: uppercase; line-height: 1; margin-top: 1px; }
 
         .score-box { display: flex; align-items: center; padding: 0 20px; font-family: 'Oswald', sans-serif; font-size: 30px; font-weight: 700; color: #f95e26; border-right: 1px solid rgba(255, 255, 255, 0.1); }
         .score-box .wickets { font-size: 30px; color: #f95e26; }
 
-        .batsmen-box { flex: 1.2; display: flex; flex-direction: column; justify-content: center; padding: 0 15px; background: rgba(0,0,0,0.2); min-width: 220px; }
-        .batter-row { display: flex; justify-content: space-between; align-items: center; font-size: 22px; /* Increased 10px */ line-height: 1.1; padding: 0; }
+        /* Removed fixed min-width, set to dynamic flex */
+        .batsmen-box { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; padding: 0 15px; background: rgba(0,0,0,0.2); }
+        .batter-row { display: flex; justify-content: space-between; align-items: center; font-size: 22px; line-height: 1.1; padding: 0; }
         .batter-row.striker { font-weight: 700; color: #fff; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 2px; padding-bottom: 1px;}
         .batter-row:not(.striker) { color: #a1a3cc; font-weight: 500; }
-        .bat-name { overflow: hidden; text-overflow: ellipsis; }
-        .bat-stats { display: flex; align-items: center; gap: 8px; }
-        .bat-stats .runs { font-weight: 700; font-size: 24px; /* Increased 10px */ width: 35px; text-align: right; color: #fff; line-height: 1; }
-        .bat-stats .balls { font-size: 21px; /* Increased 10px */ color: #a1a3cc; width: 35px; line-height: 1; }
+        .bat-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .bat-stats { display: flex; align-items: center; gap: 8px; margin-left: 15px; }
+        .bat-stats .runs { font-weight: 700; font-size: 24px; width: auto; text-align: right; color: #fff; line-height: 1; }
+        .bat-stats .balls { font-size: 21px; color: #a1a3cc; width: auto; line-height: 1; }
 
-        .rates-target-box { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.4); padding: 0 15px; min-width: 130px; border-left: 1px solid rgba(255, 255, 255, 0.1); border-right: 1px solid rgba(255, 255, 255, 0.1); }
+        /* Removed fixed min-width, set to dynamic flex */
+        .rates-target-box { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.4); padding: 0 15px; border-left: 1px solid rgba(255, 255, 255, 0.1); border-right: 1px solid rgba(255, 255, 255, 0.1); }
         .target-text { font-size: 11px; color: #ffcc00; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.1; margin-bottom: 2px; text-transform: uppercase; font-weight: 700; }
         .rates-row { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 1px; }
         .rate-badge { background: transparent; border: none; padding: 0; margin: 0; font-size: 13px; font-weight: 800; border-radius: 0; line-height: 1.1; }
         #crrBadge { color: #00d2ff; } 
         #rrrBadge { color: #f95e26; } 
 
-        .bowler-box { flex: 1.5; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; gap: 15px; }
+        /* Removed fixed min-width, set to dynamic flex */
+        .bowler-box { flex: 1 1 auto; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; gap: 15px; }
         .bowler-info { display: flex; flex-direction: column; justify-content: center; }
-        .bowl-name { font-size: 23px; /* Increased 10px */ font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;}
-        .bowl-stats { font-size: 21px; /* Increased 10px */ color: #a1a3cc; font-weight: 600; line-height: 1; margin-top: 2px;}
+        .bowl-name { font-size: 23px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; white-space: nowrap;}
+        .bowl-stats { font-size: 21px; color: #a1a3cc; font-weight: 600; line-height: 1; margin-top: 2px; white-space: nowrap;}
 
         .balls-container { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
         .ball-circle { 
-            width: 34px; /* Scaled up for 10px font increase */
+            width: 34px; 
             height: 34px; 
-            border-radius: 50%; /* Made perfectly round */
+            border-radius: 50%; 
             background: #1a1c4b; color: #fff; 
             display: flex; justify-content: center; align-items: center; 
-            font-size: 22px; /* Increased 10px */
+            font-size: 22px; 
             font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.15); 
             font-family: 'Oswald', sans-serif; 
             line-height: 1;
@@ -73,7 +76,7 @@
         .ball-circle.four { background: #28a745; border-color: #28a745; } 
         .ball-circle.six { background: #007bff; border-color: #007bff; } 
         .ball-circle.wicket { background: #dc3545; border-color: #dc3545; } 
-        .ball-circle.extra { background: #ffc107; color: #000; border-color: #ffc107; font-size: 16px; /* slightly smaller to fit text like 'NB' in a circle */}
+        .ball-circle.extra { background: #ffc107; color: #000; border-color: #ffc107; font-size: 16px; }
 
         /* =========================================
            GLASSMORPHISM OVERLAYS & ANIMATIONS
