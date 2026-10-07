@@ -74,7 +74,7 @@
         .ball-circle.extra { background: #ffc107; color: #000; border-color: #ffc107; font-size: 16px; }
 
         /* =========================================
-           GLASSMORPHISM OVERLAYS & ANIMATIONS (LIGHTER & CLEARER)
+           GLASSMORPHISM OVERLAYS & ANIMATIONS
            ========================================= */
         .squad-presentation-overlay, .points-overlay, .summary-overlay, .event-overlay {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -85,32 +85,32 @@
         .squad-presentation-overlay.active, .points-overlay.active, .summary-overlay.active, .event-overlay.active { opacity: 1; pointer-events: auto; }
 
         .glass-panel {
-            background: rgba(0, 0, 0, 0.25); /* Much lighter background */
-            backdrop-filter: blur(15px); /* Stronger blur for smooth glass look */
+            background: rgba(0, 0, 0, 0.25); 
+            backdrop-filter: blur(15px); 
             -webkit-backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 12px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             color: #fff;
             overflow: hidden;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.8); /* Added shadow for text readability */
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8); 
         }
         .glass-header {
-            background: rgba(0, 0, 0, 0.4); /* Softer header */
+            background: rgba(0, 0, 0, 0.4); 
             color: #fff; text-align: center; font-family: 'Oswald', sans-serif;
             font-size: 24px; font-weight: 700; padding: 12px 0; letter-spacing: 1px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* --- SQUAD --- */
-        .squad-board { width: 75%; max-width: 900px; transform: scale(0.9); transition: transform 0.5s ease; }
+        /* --- SQUAD (Fixed height issue) --- */
+        .squad-board { width: 80%; max-width: 950px; transform: scale(0.9); transition: transform 0.5s ease; }
         .squad-presentation-overlay.active .squad-board { transform: scale(1); }
         .squad-body { display: flex; position: relative; padding: 15px; }
         .vs-circle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 45px; height: 45px; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 800; color: #fff; border: 1px solid rgba(255,255,255,0.2); z-index: 2; }
-        .squad-col { flex: 1; padding: 10px; text-align: center; max-height: 380px; overflow-y: auto; }
+        .squad-col { flex: 1; padding: 10px 20px; text-align: center; } /* Removed max-height so it fits all 11 players automatically */
         .team-title { font-family: 'Oswald', sans-serif; color: #fff; font-size: 20px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; background: linear-gradient(90deg, rgba(211,47,47,0.7), rgba(0,0,0,0.3)); padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);}
-        .player-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; text-align: left; }
-        .player-list li { background: rgba(0, 0, 0, 0.4); padding: 8px 15px; border-radius: 20px; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; color: #fff; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .player-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; text-align: left; }
+        .player-list li { background: rgba(0, 0, 0, 0.4); padding: 6px 15px; border-radius: 15px; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; color: #fff; border: 1px solid rgba(255, 255, 255, 0.05); }
 
         /* --- POINTS TABLE --- */
         .points-container { width: 85%; max-width: 900px; padding-bottom: 20px; transform: scale(0.9); transition: transform 0.5s ease; }
