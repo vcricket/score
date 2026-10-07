@@ -59,7 +59,7 @@
 
         .bowler-box { flex: 1 1 auto; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; gap: 10px; overflow: hidden; min-width: 200px; }
         .bowler-info { display: flex; flex-direction: column; justify-content: center; flex-shrink: 1; overflow: hidden; }
-        .bowl-name { font-size: 20px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .bowl-name { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: 0.5px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;} /* Removed uppercase constraint */
         .bowl-stats { font-size: 19px; color: #a1a3cc; font-weight: 600; line-height: 1; margin-top: 2px; white-space: nowrap;}
 
         /* --- PROTECTED BALLS CONTAINER --- */
@@ -324,19 +324,18 @@
         let eventQueue = [];
         let isEventPlaying = false;
 
-        // Custom Helper: Auto-Shorten Long Names - COMPLETELY FIXED
+        // Custom Helper: Auto-Shorten Long Names - FIXED BUG FOR INITIALS
         function formatShortName(name, maxLength = 15) {
             if (!name || name === '--') return '--';
             name = name.trim();
             if (name.length <= maxLength) return name;
             
-            // Filter out any invisible spaces or empty strings after split
             let parts = name.split(/\s+/).filter(p => p.trim().length > 0);
             
             if (parts.length > 1) {
-                // Ensure the first valid character is picked
-                let firstInitial = parts[0].charAt(0).toUpperCase() + '.';
-                let lastName = parts[parts.length - 1]; 
+                let firstName = parts[0];
+                let lastName = parts[parts.length - 1];
+                let firstInitial = firstName.charAt(0).toUpperCase() + '.';
                 let shortName = firstInitial + ' ' + lastName;
                 
                 if (shortName.length > 18) { 
