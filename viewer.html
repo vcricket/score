@@ -20,8 +20,8 @@
            ========================================= */
         .scoreboard-container { 
             position: absolute; bottom: 30px; 
-            left: 10px; right: 10px; 
-            display: flex; height: 52px; 
+            left: 10px; right: 10px; /* 10px gap on both sides */
+            display: flex; height: 52px; /* Fixed Height */
             background: rgba(11, 12, 42, 0.85); backdrop-filter: blur(5px); color: white;
             border-radius: 4px; box-shadow: 0 8px 20px rgba(0,0,0,0.8);
             border: 1px solid rgba(255,255,255,0.1); font-family: 'Poppins', sans-serif; 
@@ -49,13 +49,38 @@
 
         /* --- RESTRICTED TARGET BOX --- */
         .rates-target-box { 
-            flex: 0 1 auto; max-width: 250px; display: flex; flex-direction: row; 
-            justify-content: center; align-items: center; gap: 12px; background: rgba(0, 0, 0, 0.4); 
-            padding: 0 15px; border-left: 1px solid rgba(255, 255, 255, 0.1); border-right: 1px solid rgba(255, 255, 255, 0.1); 
+            flex: 0 1 auto; 
+            max-width: 250px; 
+            display: flex; 
+            flex-direction: row; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 12px; 
+            background: rgba(0, 0, 0, 0.4); 
+            padding: 0 15px; 
+            border-left: 1px solid rgba(255, 255, 255, 0.1); 
+            border-right: 1px solid rgba(255, 255, 255, 0.1); 
         }
-        .target-text { font-size: 16px; color: #ffcc00; white-space: normal; line-height: 1.1; margin: 0; text-transform: uppercase; font-weight: 700; text-align: left; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .target-text { 
+            font-size: 16px; 
+            color: #ffcc00; 
+            white-space: normal; 
+            line-height: 1.1; 
+            margin: 0; 
+            text-transform: uppercase; 
+            font-weight: 700; 
+            text-align: left;
+            display: -webkit-box;
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
         .rates-row { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; flex-shrink: 0; }
-        .rate-badge { background: transparent; border: none; padding: 0; margin: 0; font-size: 20px; font-weight: 800; border-radius: 0; line-height: 1.1; }
+        .rate-badge { 
+            background: transparent; border: none; padding: 0; margin: 0; 
+            font-size: 20px; 
+            font-weight: 800; border-radius: 0; line-height: 1.1; 
+        }
         #crrBadge { color: #00d2ff; } 
         #rrrBadge { color: #f95e26; } 
 
@@ -66,8 +91,22 @@
         .bowl-stats { font-size: 19px; color: #a1a3cc; font-weight: 600; line-height: 1; margin-top: 2px; white-space: nowrap;}
 
         /* --- PROTECTED BALLS CONTAINER --- */
-        .balls-container { display: flex; align-items: center; gap: 6px; justify-content: flex-end; flex-shrink: 0; }
-        .ball-circle { width: 34px; height: 34px; border-radius: 50%; background: #1a1c4b; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 22px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.15); font-family: 'Oswald', sans-serif; line-height: 1; flex-shrink: 0; }
+        .balls-container { 
+            display: flex; align-items: center; gap: 6px; justify-content: flex-end; 
+            flex-shrink: 0; 
+        }
+        .ball-circle { 
+            width: 34px; 
+            height: 34px; 
+            border-radius: 50%; 
+            background: #1a1c4b; color: #fff; 
+            display: flex; justify-content: center; align-items: center; 
+            font-size: 22px; 
+            font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.15); 
+            font-family: 'Oswald', sans-serif; 
+            line-height: 1;
+            flex-shrink: 0;
+        }
         .ball-circle.four { background: #28a745; border-color: #28a745; } 
         .ball-circle.six { background: #007bff; border-color: #007bff; } 
         .ball-circle.wicket { background: #dc3545; border-color: #dc3545; } 
@@ -80,6 +119,7 @@
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             background: transparent; 
             display: flex; justify-content: center; align-items: center;
+            padding: 20px; box-sizing: border-box; /* Adds minimum 20px gap from all screen edges */
             opacity: 0; pointer-events: none; transition: opacity 0.5s ease; z-index: 50;
         }
         .squad-presentation-overlay.active, .points-overlay.active, .summary-overlay.active, .event-overlay.active { opacity: 1; pointer-events: auto; }
@@ -102,15 +142,15 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* --- SQUAD (Fixed height issue) --- */
+        /* --- SQUAD (Fixed 11 Players, No Scroll) --- */
         .squad-board { width: 80%; max-width: 950px; transform: scale(0.9); transition: transform 0.5s ease; }
         .squad-presentation-overlay.active .squad-board { transform: scale(1); }
         .squad-body { display: flex; position: relative; padding: 15px; }
         .vs-circle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 45px; height: 45px; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 800; color: #fff; border: 1px solid rgba(255,255,255,0.2); z-index: 2; }
-        .squad-col { flex: 1; padding: 10px 20px; text-align: center; } /* Removed max-height so it fits all 11 players automatically */
+        .squad-col { flex: 1; padding: 10px 20px; text-align: center; overflow: hidden; } /* Fixed, no scroll */
         .team-title { font-family: 'Oswald', sans-serif; color: #fff; font-size: 20px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; background: linear-gradient(90deg, rgba(211,47,47,0.7), rgba(0,0,0,0.3)); padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);}
         .player-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; text-align: left; }
-        .player-list li { background: rgba(0, 0, 0, 0.4); padding: 6px 15px; border-radius: 15px; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; color: #fff; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .player-list li { background: rgba(0, 0, 0, 0.4); padding: 5px 15px; border-radius: 15px; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; color: #fff; border: 1px solid rgba(255, 255, 255, 0.05); }
 
         /* --- POINTS TABLE --- */
         .points-container { width: 85%; max-width: 900px; padding-bottom: 20px; transform: scale(0.9); transition: transform 0.5s ease; }
@@ -469,7 +509,8 @@
             if(!rawText) return; const lines = rawText.split('\n').filter(line => line.trim() !== '');
             if(lines.length > 0) {
                 document.getElementById(titleElementId).innerText = lines[0]; let playersHtml = ''; let playerIndex = 1;
-                for(let i = 1; i < lines.length && i <= 15; i++) playersHtml += `<li><span style="color:#ffcc00; margin-right:8px; font-weight:750;">${playerIndex++}.</span> ${lines[i]}</li>`;
+                // Changed from 15 to 11 exactly
+                for(let i = 1; i < lines.length && i <= 11; i++) playersHtml += `<li><span style="color:#ffcc00; margin-right:8px; font-weight:750;">${playerIndex++}.</span> ${lines[i]}</li>`;
                 document.getElementById(listElementId).innerHTML = playersHtml;
             } else { document.getElementById(titleElementId).innerText = defaultTitle; document.getElementById(listElementId).innerHTML = ''; }
         }
