@@ -16,11 +16,13 @@
         @keyframes waveShine { 0% { left: -50%; opacity: 0; } 5% { left: -50%; opacity: 1; } 85% { left: 120%; opacity: 1; } 90% { left: 120%; opacity: 0; } 100% { left: 120%; opacity: 0; } }
 
         /* =========================================
-           NEW SCOREBOARD DESIGN (SINGLE LINE)
+           NEW SCOREBOARD DESIGN (FULL WIDTH - 10px GAP)
            ========================================= */
         .scoreboard-container { 
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            display: flex; height: 52px; background: rgba(11, 12, 42, 0.85); backdrop-filter: blur(5px); color: white;
+            position: absolute; bottom: 30px; 
+            left: 10px; right: 10px; /* 10px gap on both sides */
+            display: flex; height: 52px; /* Height unchanged */
+            background: rgba(11, 12, 42, 0.85); backdrop-filter: blur(5px); color: white;
             border-radius: 4px; box-shadow: 0 8px 20px rgba(0,0,0,0.8);
             border: 1px solid rgba(255,255,255,0.1); font-family: 'Poppins', sans-serif; 
             overflow: hidden; white-space: nowrap; transition: bottom 0.4s ease, opacity 0.3s ease;
@@ -35,27 +37,27 @@
         .score-box { display: flex; align-items: center; padding: 0 20px; font-family: 'Oswald', sans-serif; font-size: 30px; font-weight: 700; color: #f95e26; border-right: 1px solid rgba(255, 255, 255, 0.1); }
         .score-box .wickets { font-size: 30px; color: #f95e26; }
 
-        .batsmen-box { display: flex; flex-direction: column; justify-content: center; padding: 0 15px; background: rgba(0,0,0,0.2); min-width: 200px; }
+        .batsmen-box { flex: 1.2; display: flex; flex-direction: column; justify-content: center; padding: 0 15px; background: rgba(0,0,0,0.2); min-width: 180px; }
         .batter-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; line-height: 1.2; padding: 2px 0; }
         .batter-row.striker { font-weight: 700; color: #fff; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 1px; }
         .batter-row:not(.striker) { color: #a1a3cc; font-weight: 500; }
-        .bat-name { max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
+        .bat-name { overflow: hidden; text-overflow: ellipsis; }
         .bat-stats { display: flex; align-items: center; gap: 8px; }
         .bat-stats .runs { font-weight: 700; font-size: 14px; width: 22px; text-align: right; color: #fff; }
         .bat-stats .balls { font-size: 11px; color: #a1a3cc; width: 20px; }
 
-        .rates-target-box { display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(180deg, rgba(156,229,244,0.9), rgba(94,202,230,0.9)); color: #000; padding: 0 15px; min-width: 130px; border-left: 1px solid rgba(255, 255, 255, 0.1); border-right: 1px solid rgba(255, 255, 255, 0.1); }
-        .target-text { font-size: 11px; color: #222; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.1; margin-bottom: 2px; text-transform: uppercase; font-weight: 700; }
+        .rates-target-box { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(180deg, rgba(156,229,244,0.9), rgba(94,202,230,0.9)); color: #000; padding: 0 15px; min-width: 130px; border-left: 1px solid rgba(255, 255, 255, 0.1); border-right: 1px solid rgba(255, 255, 255, 0.1); }
+        .target-text { font-size: 11px; color: #222; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.1; margin-bottom: 2px; text-transform: uppercase; font-weight: 700; }
         .rates-row { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 1px; }
         .rate-badge { background: transparent; border: none; padding: 0; margin: 0; color: #000; font-size: 13px; font-weight: 800; border-radius: 0; line-height: 1.1; }
         #rrrBadge { color: #c62828; }
 
-        .bowler-box { display: flex; align-items: center; padding: 0 15px; gap: 15px; }
+        .bowler-box { flex: 1.5; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; gap: 15px; }
         .bowler-info { display: flex; flex-direction: column; justify-content: center; }
         .bowl-name { font-size: 13px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.5px;}
         .bowl-stats { font-size: 11px; color: #a1a3cc; font-weight: 600; }
 
-        .balls-container { display: flex; align-items: center; gap: 4px; }
+        .balls-container { display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
         .ball-circle { width: 22px; height: 26px; border-radius: 3px; background: #1a1c4b; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 12px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.15); font-family: 'Oswald', sans-serif; }
         .ball-circle.four { background: #28a745; border-color: #28a745; } 
         .ball-circle.six { background: #007bff; border-color: #007bff; } 
@@ -67,13 +69,12 @@
            ========================================= */
         .squad-presentation-overlay, .points-overlay, .summary-overlay, .event-overlay {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: transparent; /* No black screen */
+            background: transparent; 
             display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.5s ease; z-index: 50;
         }
         .squad-presentation-overlay.active, .points-overlay.active, .summary-overlay.active, .event-overlay.active { opacity: 1; pointer-events: auto; }
 
-        /* Generic Transparent Glass Panel */
         .glass-panel {
             background: rgba(15, 15, 15, 0.45);
             backdrop-filter: blur(8px);
@@ -152,7 +153,6 @@
         @keyframes animFreeHit { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .animate-freehit { animation: animFreeHit 0.8s forwards; }
 
-        /* Transparent Glass for Match Winner, Innings break, Player Stats etc */
         .glass-animation-box {
             background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 16px;
@@ -327,7 +327,7 @@
             const scoreboard = document.getElementById('mainScoreboard');
             
             scoreboard.classList.add('hidden');
-            textEl.className = 'event-text glass-animation-box'; // Added glass box
+            textEl.className = 'event-text glass-animation-box'; 
             void textEl.offsetWidth; 
             
             let timeoutDuration = 3500;
