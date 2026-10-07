@@ -365,18 +365,18 @@
                 if (isFirstInningsBreak) {
                     textEl.classList.add('color-innings', 'animate-innings');
                     textEl.innerHTML = `
-                        <div style="font-size: 24px; color: #ffcc00; margin-bottom: 5px;">📊 End of Over ${lastOverInfo.over}</div>
-                        <div style="font-size: 36px; color: #00ff88; font-weight: bold;">Score: ${lastOverInfo.totalRuns}/${lastOverInfo.totalWickets}</div>
-                        <div style="font-size: 24px; color: #ff4757; font-weight: bold; margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.3); padding-top: 8px;">🛑 1st Innings Ended!</div>
-                        <div style="font-size: 20px; color: #ffcc00; margin-top: 6px;">${evt.targetMsg}</div>
+                        <div style="font-size: 34px; color: #ffcc00; margin-bottom: 8px;">📊 End of Over ${lastOverInfo.over}</div>
+                        <div style="font-size: 46px; color: #00ff88; font-weight: bold;">Score: ${lastOverInfo.totalRuns}/${lastOverInfo.totalWickets}</div>
+                        <div style="font-size: 34px; color: #ff4757; font-weight: bold; margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.3); padding-top: 12px;">🛑 1st Innings Ended!</div>
+                        <div style="font-size: 30px; color: #ffcc00; margin-top: 10px;">${evt.targetMsg}</div>
                     `;
                     timeoutDuration = 7000;
                 } else {
                     textEl.classList.add('color-over-summary', 'animate-over-summary');
                     textEl.innerHTML = `
-                        <div style="font-size: 24px; color: #ffcc00; margin-bottom: 5px;">📊 End of Over ${lastOverInfo.over}</div>
-                        <div style="font-size: 28px; color: #00ff88; font-weight: bold;">Score: ${lastOverInfo.totalRuns}/${lastOverInfo.totalWickets}</div>
-                        <div style="font-size: 14px; color: #aaa; margin-top: 8px;">Over completed! Starting next over...</div>
+                        <div style="font-size: 34px; color: #ffcc00; margin-bottom: 8px;">📊 End of Over ${lastOverInfo.over}</div>
+                        <div style="font-size: 42px; color: #00ff88; font-weight: bold;">Score: ${lastOverInfo.totalRuns}/${lastOverInfo.totalWickets}</div>
+                        <div style="font-size: 25px; color: #ddd; margin-top: 12px;">Over completed! Starting next over...</div>
                     `;
                     timeoutDuration = 4500;
                 }
@@ -397,7 +397,7 @@
                     if(cat === "best_scorer") {
                         let sr = s.balls ? ((s.runs/s.balls)*100).toFixed(1) : "0.0";
                         htmlContent = `
-                            <div>Runs: <span style="color:#00ff88;">${s.runs||0}</span> <span style="font-size:14px; color:#aaa;">(${s.balls||0}b)</span></div>
+                            <div>Runs: <span style="color:#00ff88;">${s.runs||0}</span> <span style="font-size:24px; color:#aaa;">(${s.balls||0}b)</span></div>
                             <div>4s/6s: <span style="color:#ffcc00;">${s.fours||0}/${s.sixes||0}</span></div>
                             <div>SR: <span style="color:#00d2ff;">${sr}</span></div>
                         `;
@@ -417,9 +417,9 @@
                     }
                     
                     textEl.innerHTML = `
-                        <div style="font-size: 20px; color: #00d2ff; text-transform: uppercase; margin-bottom: 5px;">🌟 Player Spotlight</div>
-                        <div style="font-size: 30px; color: #ffcc00; font-weight: bold; border-bottom: 2px solid #555; padding-bottom: 5px; margin-bottom: 10px;">${pData.name}</div>
-                        <div style="display: flex; justify-content: space-around; font-size: 18px; color: #fff;">
+                        <div style="font-size: 28px; color: #00d2ff; text-transform: uppercase; margin-bottom: 8px;">🌟 Player Spotlight</div>
+                        <div style="font-size: 38px; color: #ffcc00; font-weight: bold; border-bottom: 2px solid #555; padding-bottom: 8px; margin-bottom: 15px;">${pData.name}</div>
+                        <div style="display: flex; justify-content: space-around; font-size: 28px; color: #fff;">
                             ${htmlContent}
                         </div>
                     `;
@@ -431,9 +431,9 @@
                 let m = evt.momData;
                 if(m) {
                     textEl.innerHTML = `
-                        <div style="font-size: 22px; color: #fff; margin-bottom: 10px; border-bottom:1px solid #555;">🌟 Man of the Match</div>
-                        <div style="font-size: 40px; color: #00ff88; font-weight: bold;">${m.name}</div>
-                        <div style="font-size: 20px; color: #ffcc00; margin-top: 10px;">${m.reason}</div>
+                        <div style="font-size: 32px; color: #fff; margin-bottom: 12px; border-bottom:1px solid #55ffaa; padding-bottom:8px;">🌟 Man of the Match</div>
+                        <div style="font-size: 45px; color: #00ff88; font-weight: bold;">${m.name}</div>
+                        <div style="font-size: 30px; color: #ffcc00; margin-top: 15px;">${m.reason}</div>
                     `;
                 }
                 timeoutDuration = 8000;
