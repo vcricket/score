@@ -20,8 +20,8 @@
            ========================================= */
         .scoreboard-container { 
             position: absolute; bottom: 30px; 
-            left: 10px; right: 10px; /* 10px gap on both sides */
-            display: flex; height: 52px; /* Fixed Height */
+            left: 10px; right: 10px; 
+            display: flex; height: 52px; 
             background: rgba(11, 12, 42, 0.85); backdrop-filter: blur(5px); color: white;
             border-radius: 4px; box-shadow: 0 8px 20px rgba(0,0,0,0.8);
             border: 1px solid rgba(255,255,255,0.1); font-family: 'Poppins', sans-serif; 
@@ -49,38 +49,13 @@
 
         /* --- RESTRICTED TARGET BOX --- */
         .rates-target-box { 
-            flex: 0 1 auto; 
-            max-width: 250px; 
-            display: flex; 
-            flex-direction: row; 
-            justify-content: center; 
-            align-items: center; 
-            gap: 12px; 
-            background: rgba(0, 0, 0, 0.4); 
-            padding: 0 15px; 
-            border-left: 1px solid rgba(255, 255, 255, 0.1); 
-            border-right: 1px solid rgba(255, 255, 255, 0.1); 
+            flex: 0 1 auto; max-width: 250px; display: flex; flex-direction: row; 
+            justify-content: center; align-items: center; gap: 12px; background: rgba(0, 0, 0, 0.4); 
+            padding: 0 15px; border-left: 1px solid rgba(255, 255, 255, 0.1); border-right: 1px solid rgba(255, 255, 255, 0.1); 
         }
-        .target-text { 
-            font-size: 16px; 
-            color: #ffcc00; 
-            white-space: normal; 
-            line-height: 1.1; 
-            margin: 0; 
-            text-transform: uppercase; 
-            font-weight: 700; 
-            text-align: left;
-            display: -webkit-box;
-            -webkit-line-clamp: 2; 
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
+        .target-text { font-size: 16px; color: #ffcc00; white-space: normal; line-height: 1.1; margin: 0; text-transform: uppercase; font-weight: 700; text-align: left; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .rates-row { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; flex-shrink: 0; }
-        .rate-badge { 
-            background: transparent; border: none; padding: 0; margin: 0; 
-            font-size: 20px; 
-            font-weight: 800; border-radius: 0; line-height: 1.1; 
-        }
+        .rate-badge { background: transparent; border: none; padding: 0; margin: 0; font-size: 20px; font-weight: 800; border-radius: 0; line-height: 1.1; }
         #crrBadge { color: #00d2ff; } 
         #rrrBadge { color: #f95e26; } 
 
@@ -91,29 +66,15 @@
         .bowl-stats { font-size: 19px; color: #a1a3cc; font-weight: 600; line-height: 1; margin-top: 2px; white-space: nowrap;}
 
         /* --- PROTECTED BALLS CONTAINER --- */
-        .balls-container { 
-            display: flex; align-items: center; gap: 6px; justify-content: flex-end; 
-            flex-shrink: 0; 
-        }
-        .ball-circle { 
-            width: 34px; 
-            height: 34px; 
-            border-radius: 50%; 
-            background: #1a1c4b; color: #fff; 
-            display: flex; justify-content: center; align-items: center; 
-            font-size: 22px; 
-            font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.15); 
-            font-family: 'Oswald', sans-serif; 
-            line-height: 1;
-            flex-shrink: 0;
-        }
+        .balls-container { display: flex; align-items: center; gap: 6px; justify-content: flex-end; flex-shrink: 0; }
+        .ball-circle { width: 34px; height: 34px; border-radius: 50%; background: #1a1c4b; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 22px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.15); font-family: 'Oswald', sans-serif; line-height: 1; flex-shrink: 0; }
         .ball-circle.four { background: #28a745; border-color: #28a745; } 
         .ball-circle.six { background: #007bff; border-color: #007bff; } 
         .ball-circle.wicket { background: #dc3545; border-color: #dc3545; } 
         .ball-circle.extra { background: #ffc107; color: #000; border-color: #ffc107; font-size: 16px; }
 
         /* =========================================
-           GLASSMORPHISM OVERLAYS & ANIMATIONS
+           GLASSMORPHISM OVERLAYS & ANIMATIONS (LIGHTER & CLEARER)
            ========================================= */
         .squad-presentation-overlay, .points-overlay, .summary-overlay, .event-overlay {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -124,60 +85,61 @@
         .squad-presentation-overlay.active, .points-overlay.active, .summary-overlay.active, .event-overlay.active { opacity: 1; pointer-events: auto; }
 
         .glass-panel {
-            background: rgba(15, 15, 15, 0.45);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(0, 0, 0, 0.25); /* Much lighter background */
+            backdrop-filter: blur(15px); /* Stronger blur for smooth glass look */
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             color: #fff;
             overflow: hidden;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8); /* Added shadow for text readability */
         }
         .glass-header {
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.4); /* Softer header */
             color: #fff; text-align: center; font-family: 'Oswald', sans-serif;
             font-size: 24px; font-weight: 700; padding: 12px 0; letter-spacing: 1px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         /* --- SQUAD --- */
         .squad-board { width: 75%; max-width: 900px; transform: scale(0.9); transition: transform 0.5s ease; }
         .squad-presentation-overlay.active .squad-board { transform: scale(1); }
         .squad-body { display: flex; position: relative; padding: 15px; }
-        .vs-circle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 45px; height: 45px; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 800; color: #fff; border: 1px solid rgba(255,255,255,0.3); z-index: 2; }
+        .vs-circle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 45px; height: 45px; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 800; color: #fff; border: 1px solid rgba(255,255,255,0.2); z-index: 2; }
         .squad-col { flex: 1; padding: 10px; text-align: center; max-height: 380px; overflow-y: auto; }
-        .team-title { font-family: 'Oswald', sans-serif; color: #fff; font-size: 20px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; background: linear-gradient(90deg, rgba(211,47,47,0.8), rgba(0,0,0,0.3)); padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2);}
+        .team-title { font-family: 'Oswald', sans-serif; color: #fff; font-size: 20px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; background: linear-gradient(90deg, rgba(211,47,47,0.7), rgba(0,0,0,0.3)); padding: 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);}
         .player-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; text-align: left; }
-        .player-list li { background: rgba(255, 255, 255, 0.15); padding: 8px 15px; border-radius: 20px; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; color: #fff; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .player-list li { background: rgba(0, 0, 0, 0.4); padding: 8px 15px; border-radius: 20px; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; color: #fff; border: 1px solid rgba(255, 255, 255, 0.05); }
 
         /* --- POINTS TABLE --- */
         .points-container { width: 85%; max-width: 900px; padding-bottom: 20px; transform: scale(0.9); transition: transform 0.5s ease; }
         .points-overlay.active .points-container { transform: scale(1); }
         .points-table-wrapper { padding: 15px; }
         .points-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-        .points-table th { padding: 10px; text-align: center; font-size: 14px; font-family: 'Oswald', sans-serif; letter-spacing: 1px; color: #ccc; }
-        .points-table td { padding: 10px; text-align: center; font-size: 14px; background: rgba(255, 255, 255, 0.15); border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .points-table td:first-child { border-radius: 20px 0 0 20px; border-left: 1px solid rgba(255,255,255,0.1); }
-        .points-table td:last-child { border-radius: 0 20px 20px 0; border-right: 1px solid rgba(255,255,255,0.1); }
+        .points-table th { padding: 10px; text-align: center; font-size: 14px; font-family: 'Oswald', sans-serif; letter-spacing: 1px; color: #eee; }
+        .points-table td { padding: 10px; text-align: center; font-size: 14px; background: rgba(0, 0, 0, 0.4); border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .points-table td:first-child { border-radius: 20px 0 0 20px; border-left: 1px solid rgba(255,255,255,0.05); }
+        .points-table td:last-child { border-radius: 0 20px 20px 0; border-right: 1px solid rgba(255,255,255,0.05); }
 
         /* --- MATCH SUMMARY --- */
         .summary-container { width: 85%; max-width: 850px; padding-bottom: 20px; transform: scale(0.9); transition: transform 0.5s ease; }
         .summary-overlay.active .summary-container { transform: scale(1); }
         .summary-content { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         
-        .summary-team-banner { background: linear-gradient(90deg, rgba(211, 47, 47, 0.7), rgba(0, 0, 0, 0.4)); border-radius: 25px; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 15px; }
+        .summary-team-banner { background: linear-gradient(90deg, rgba(211, 47, 47, 0.6), rgba(0, 0, 0, 0.4)); border-radius: 25px; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255, 255, 255, 0.15); margin-bottom: 15px; }
         .summary-team-name { font-family: 'Oswald', sans-serif; font-size: 22px; font-weight: 700; color: #fff; }
-        .summary-score-text { font-family: 'Oswald', sans-serif; font-size: 26px; font-weight: 700; color: #fff; background: rgba(255,255,255,0.25); padding: 5px 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
+        .summary-score-text { font-family: 'Oswald', sans-serif; font-size: 26px; font-weight: 700; color: #fff; background: rgba(0, 0, 0, 0.4); padding: 5px 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
         
         .summary-stats-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
-        .summary-stat-card { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.15); padding: 10px 20px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); }
-        .summary-stat-title { font-size: 13px; color: #ccc; font-weight: 600; }
+        .summary-stat-card { display: flex; justify-content: space-between; align-items: center; background: rgba(0, 0, 0, 0.4); padding: 10px 20px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.05); }
+        .summary-stat-title { font-size: 13px; color: #eee; font-weight: 600; }
         .summary-stat-val { font-size: 15px; color: #fff; font-weight: 700; }
 
-        .summary-over-box { background: rgba(0, 0, 0, 0.4); border-radius: 15px; padding: 15px; border: 1px solid rgba(255,255,255,0.1); max-height: 250px; overflow-y: auto; }
+        .summary-over-box { background: rgba(0, 0, 0, 0.3); border-radius: 15px; padding: 15px; border: 1px solid rgba(255,255,255,0.1); max-height: 250px; overflow-y: auto; }
         .summary-over-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; font-size: 13px; }
-        .summary-over-table th { color: #ccc; padding: 5px 10px; font-weight: 600; text-align: center; }
-        .summary-over-table td { background: rgba(255, 255, 255, 0.15); padding: 8px 10px; text-align: center; }
+        .summary-over-table th { color: #eee; padding: 5px 10px; font-weight: 600; text-align: center; }
+        .summary-over-table td { background: rgba(0, 0, 0, 0.4); padding: 8px 10px; text-align: center; }
         .summary-over-table td:first-child { border-radius: 15px 0 0 15px; }
         .summary-over-table td:last-child { border-radius: 0 15px 15px 0; }
 
@@ -201,13 +163,15 @@
         @keyframes animFreeHit { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .animate-freehit { animation: animFreeHit 0.8s forwards; }
 
+        /* Very smooth glass for animations */
         .glass-animation-box {
-            background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 16px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.5); padding: 30px 45px; text-transform: none; text-align: center;
+            background: rgba(0, 0, 0, 0.25); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3); padding: 30px 45px; text-transform: none; text-align: center;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
         }
 
-        .color-winner { color: #ffcc00; font-size: 50px; line-height: 1.3; text-shadow: 2px 2px 0 #000; max-width: 800px; }
+        .color-winner { color: #ffcc00; font-size: 50px; line-height: 1.3; text-shadow: 2px 2px 5px #000; max-width: 800px; }
         @keyframes animWinner { 0% { transform: scale(0.3); opacity: 0; } 60% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
         .animate-winner { animation: animWinner 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
@@ -243,7 +207,7 @@
             <div class="points-table-wrapper">
                 <table class="points-table">
                     <thead><tr><th>Pos</th><th style="text-align:left; padding-left:15px;">Team</th><th>P</th><th>W</th><th>L</th><th>NRR</th><th>Pts</th></tr></thead>
-                    <tbody id="pointsTablePopupBody"><tr><td colspan="7" style="text-align:center; color:#888;">Loading data...</td></tr></tbody>
+                    <tbody id="pointsTablePopupBody"><tr><td colspan="7" style="text-align:center; color:#ddd;">Loading data...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -272,7 +236,7 @@
                     <div style="font-family: 'Oswald', sans-serif; font-size: 16px; color: #fff; margin-bottom: 10px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">Over-by-Over Progression</div>
                     <table class="summary-over-table">
                         <thead><tr><th>Over</th><th>Total Runs</th><th>Wickets</th></tr></thead>
-                        <tbody id="overProgressTableBody"><tr><td colspan="3" style="text-align:center; color:#999;">Data will be shown after the over ends...</td></tr></tbody>
+                        <tbody id="overProgressTableBody"><tr><td colspan="3" style="text-align:center; color:#ddd;">Data will be shown after the over ends...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -585,7 +549,6 @@
                 document.getElementById('sum-score').innerHTML = `${data.runs}<span style="font-size: 20px; color:#ffcccc;">/${data.wickets}</span>`;
                 document.getElementById('sum-overs').innerText = data.overs;
                 
-                // Show short names in summary as well (optional, but keeps UI consistent)
                 let sBat1 = formatShortName(data.bat1Name, 15);
                 let sBat2 = formatShortName(data.bat2Name, 15);
                 let sBowler = formatShortName(data.bowlerName, 15);
