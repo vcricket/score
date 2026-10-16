@@ -64,6 +64,7 @@
         .btn-login { background-color: #28a745; }
         .btn-signup { background-color: #007bff; }
         .btn-logout { background-color: #4a5568; }
+        .btn-delete-acc { background-color: #dc3545; } /* New Delete Button Style */
         
         /* Profile and Dashboard Styles */
         .dashboard-profile-container {
@@ -158,42 +159,6 @@
             color: #007bff;
             font-weight: 500;
         }
-        .payment-box { 
-            background: #fff3cd; 
-            padding: 14px; 
-            border-radius: 8px; 
-            margin-top: 15px; 
-            font-size: 13px; 
-            color: #856404; 
-            border: 1px solid #ffeeba;
-            text-align: left;
-            line-height: 1.5;
-        }
-        .upi-btn {
-            display: block;
-            background: linear-gradient(45deg, #5f259f, #3f156d);
-            color: white;
-            text-decoration: none;
-            padding: 10px;
-            border-radius: 6px;
-            font-weight: bold;
-            margin-top: 10px;
-            font-size: 13px;
-            text-align: center;
-        }
-        .whatsapp-btn {
-            display: inline-block;
-            background-color: #25d366;
-            color: white;
-            text-decoration: none;
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-weight: bold;
-            margin-top: 8px;
-            font-size: 13px;
-            text-align: center;
-            width: 100%;
-        }
         .toggle-text { 
             color: #007bff; 
             cursor: pointer; 
@@ -267,6 +232,11 @@
             <span class="toggle-password" onclick="togglePasswordVisibility('signup-password', this)">👁</span>
         </div>
 
+        <!-- Privacy Policy Check for Play Store -->
+        <div style="margin-top: 12px; font-size: 12px; color: #555;">
+            By signing up, you agree to our <a href="https://yourwebsite.com/privacy" target="_blank" style="color: #007bff; text-decoration: underline;">Privacy Policy</a> & Terms.
+        </div>
+
         <button class="btn-signup" onclick="signup()">Register</button>
         <br>
         <span class="toggle-text" onclick="toggleAuth('login')">Already have an account? Sign In</span>
@@ -300,7 +270,8 @@
                 <a id="myProfileLinkBtn" href="profile.html" class="btn-profile-go">Tournament / Profile ➔</a>
             </div>
 
-            <!-- Payment Recharge Box -->
+            <!-- Payment Recharge Box (HIDDEN FOR PLAY STORE COMPLIANCE) -->
+            <!--
             <div class="payment-box">
                 <b>Recharge Guidelines:</b><br>
                 • 1 Match = 1 Credit = ₹50<br>
@@ -315,8 +286,7 @@
                     💬 Send Screenshot
                 </a>
             </div>
-
-            <button class="btn-logout" style="margin-top: 15px;" onclick="logout()">Logout</button>
+            -->
 
             <!-- ====== NEW APP MENU SECTION ====== -->
             <div class="app-menu-box">
@@ -324,7 +294,7 @@
                 <button class="app-menu-btn btn-share" onclick="shareMyApp()">🔗 Share App</button>
                 
                 <!-- WHATSAPP CONTACT BUTTON -->
-                <a href="https://wa.me/918327321495?text=Hello,%20I%20need%20help%20with%20the%20app" target="_blank" class="app-menu-btn btn-contact">💬 Contact Us</a>
+                <a href="https://wa.me/917980735754?text=Hello,%20I%20need%20help%20with%20the%20app" target="_blank" class="app-menu-btn btn-contact">💬 Contact Us</a>
                 
                 <!-- MORE APPS BUTTON -->
                 <a href="https://play.google.com/store/apps/developer?id=YOUR_DEV_NAME" target="_blank" class="app-menu-btn btn-moreapps">📱 More Apps</a>
@@ -333,6 +303,11 @@
                 <button class="app-menu-btn btn-about" onclick="showAbout()">ℹ️ About Us</button>
             </div>
             <!-- ================================== -->
+
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                <button class="btn-logout" style="flex: 1;" onclick="logout()">Logout</button>
+                <button class="btn-delete-acc" style="flex: 1; padding: 11px; margin: 8px 0; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; color: #fff; transition: 0.3s;" onclick="deleteMyAccount()">🗑️ Delete Account</button>
+            </div>
 
         </div>
     </div>
@@ -348,10 +323,11 @@
         sendPasswordResetEmail,
         onAuthStateChanged, 
         signOut, 
+        deleteUser, /* Added deleteUser for account deletion */
         setPersistence, 
         browserLocalPersistence 
     } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-    import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+    import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyABphVo2kWvqHEkxWSsZuDvnyXk05XzX-0",
@@ -368,8 +344,40 @@
     const db = getDatabase(app);
 
     // ==========================================
-    // NEW JAVASCRIPT FUNCTIONS FOR SHARE & ABOUT
+    // ACCOUNT DELETION LOGIC (PLAY STORE POLICY)
     // ==========================================
+    window.deleteMyAccount = async () => {
+        if(!confirm("⚠️ WARNING: Are you sure you want to permanently delete your account and all data? This cannot be undone.")) return;
+        
+        try {
+            const user = auth.currentUser;
+            if(user) {
+                const uid = user.uid;
+                let username = localStorage.getItem('proCricketUsername');
+                
+                // 1. Delete from Realtime Database
+                if (username) {
+                    await remove(ref(db, 'usernames/' + username));
+                }
+                await remove(ref(db, 'users/' + uid));
+                
+                // 2. Delete Auth Account
+                await deleteUser(user);
+                
+                alert("✅ Account deleted successfully.");
+                localStorage.removeItem('proCricketUsername');
+                window.location.reload();
+            }
+        } catch(error) {
+            if (error.code === 'auth/requires-recent-login') {
+                alert("⚠️ Please log out and log in again before deleting your account for security reasons.");
+            } else {
+                alert("❌ Error deleting account: " + error.message);
+            }
+        }
+    };
+    // ==========================================
+
     window.shareMyApp = function() {
         if (navigator.share) {
             navigator.share({
@@ -385,7 +393,6 @@
     window.showAbout = function() {
         alert('Pro Cricket Live Score\nVersion: 1.0\nDeveloped by: Kolkata Sports');
     };
-    // ==========================================
 
     window.togglePasswordVisibility = (inputId, iconElement) => {
         const passwordInput = document.getElementById(inputId);
