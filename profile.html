@@ -111,18 +111,20 @@
 
 </div>
 
-<!-- Firebase Scripts (Corrected Version 10.13.0 and Auth Added) -->
+<!-- Firebase Scripts -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
     import { getDatabase, ref, get, update, set } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
-        authDomain: "cricket-score-d187a.firebaseapp.com",
-        databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
-        projectId: "cricket-score-d187a",
-        storageBucket: "cricket-score-d187a.firebasestorage.app"
+      apiKey: "AIzaSyABphVo2kWvqHEkxWSsZuDvnyXk05XzX-0",
+      authDomain: "cricket-score-d187a.firebaseapp.com",
+      databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
+      projectId: "cricket-score-d187a",
+      storageBucket: "cricket-score-d187a.firebasestorage.app",
+      messagingSenderId: "782741896785",
+      appId: "1:782741896785:android:ca8c45a9120f7784928270"
     };
 
     const app = initializeApp(firebaseConfig);
