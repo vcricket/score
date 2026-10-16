@@ -64,7 +64,7 @@
         .btn-login { background-color: #28a745; }
         .btn-signup { background-color: #007bff; }
         .btn-logout { background-color: #4a5568; }
-        .btn-delete-acc { background-color: #dc3545; } /* New Delete Button Style */
+        .btn-delete-acc { background-color: #dc3545; }
         
         /* Profile and Dashboard Styles */
         .dashboard-profile-container {
@@ -169,7 +169,7 @@
         }
         .msg { font-size: 13px; margin-top: 6px; }
 
-        /* ====== NEW APP MENU STYLES ====== */
+        /* ====== APP MENU STYLES ====== */
         .app-menu-box {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -196,6 +196,7 @@
         .btn-moreapps { background: #007bff; }
         .btn-contact { background: #25D366; }
         .btn-about { background: #17a2b8; }
+        .btn-help { background: #e84118; grid-column: span 2; }
     </style>
 </head>
 <body>
@@ -270,24 +271,6 @@
                 <a id="myProfileLinkBtn" href="profile.html" class="btn-profile-go">Tournament / Profile ➔</a>
             </div>
 
-            <!-- Payment Recharge Box (HIDDEN FOR PLAY STORE COMPLIANCE) -->
-            <!--
-            <div class="payment-box">
-                <b>Recharge Guidelines:</b><br>
-                • 1 Match = 1 Credit = ₹50<br>
-                • Official PhonePe No: <b style="font-size: 13px; color: #1e3c72;">7980735754</b><br>
-                
-                <a href="upi://pay?pa=7980735754@ybl&pn=Cricket%20Scoreboard&am=50&cu=INR&tn=1%20Match%20Credit" class="upi-btn">
-                    ⚡ Pay ₹50 via UPI
-                </a>
-
-                <small style="display:block; margin-top:8px; color: #555;">After payment, send screenshot on WhatsApp:</small>
-                <a href="https://wa.me/917980735754?text=Hello,%20I%20have%20paid%20%E2%82%B950%20via%20UPI%20for%201%20match%20credit." target="_blank" class="whatsapp-btn">
-                    💬 Send Screenshot
-                </a>
-            </div>
-            -->
-
             <!-- ====== NEW APP MENU SECTION ====== -->
             <div class="app-menu-box">
                 <!-- SHARE APP BUTTON -->
@@ -301,6 +284,9 @@
                 
                 <!-- ABOUT BUTTON -->
                 <button class="app-menu-btn btn-about" onclick="showAbout()">ℹ️ About Us</button>
+
+                <!-- VIDEO HELP & SUPPORT BUTTON (LINKED TO YOUR FB PAGE) -->
+                <a href="https://www.facebook.com/kolkatasports0" target="_blank" class="app-menu-btn btn-help">📺 Video Help & Support</a>
             </div>
             <!-- ================================== -->
 
@@ -323,7 +309,7 @@
         sendPasswordResetEmail,
         onAuthStateChanged, 
         signOut, 
-        deleteUser, /* Added deleteUser for account deletion */
+        deleteUser, 
         setPersistence, 
         browserLocalPersistence 
     } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
