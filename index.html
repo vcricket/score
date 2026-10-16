@@ -209,7 +209,7 @@
 
 <div class="container">
     
-    <!-- Login Form (এখানে class="hidden" যোগ করা হয়েছে) -->
+    <!-- Login Form (এখানে class="hidden" যোগ করা হয়েছে) -->
     <div id="login-section" class="hidden">
         <h2>Sign In</h2>
         <input type="email" id="login-email" placeholder="Enter your email" required>
@@ -309,14 +309,13 @@
     import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
-        authDomain: "cricket-score-d187a.firebaseapp.com",
-        databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
-        projectId: "cricket-score-d187a",
-        storageBucket: "cricket-score-d187a.firebasestorage.app",
-        messagingSenderId: "782741896785",
-        appId: "1:782741896785:web:78ab5ffe8c6a43ba928270",
-        measurementId: "G-PHXZ72EC94"
+      apiKey: "AIzaSyABphVo2kWvqHEkxWSsZuDvnyXk05XzX-0",
+      authDomain: "cricket-score-d187a.firebaseapp.com",
+      databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
+      projectId: "cricket-score-d187a",
+      storageBucket: "cricket-score-d187a.firebasestorage.app",
+      messagingSenderId: "782741896785",
+      appId: "1:782741896785:android:ca8c45a9120f7784928270"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -500,7 +499,7 @@
         });
     }
 
-    // ফায়ারবেস লগ-ইন চেক (এখানে আপডেট করা হয়েছে)
+    // ফায়ারবেস লগ-ইন চেক (এখানে আপডেট করা হয়েছে)
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             document.getElementById('login-section').classList.add('hidden');
