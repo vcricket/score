@@ -65,7 +65,7 @@
         .btn-signup { background-color: #007bff; }
         .btn-logout { background-color: #4a5568; }
         
-        /* Profile and Dashboard Styles */
+        /* বড় গোলাকার প্রোফাইল ও GO বাটন সেকশন */
         .dashboard-profile-container {
             margin: 15px 0;
             display: flex;
@@ -203,34 +203,6 @@
             display: inline-block;
         }
         .msg { font-size: 13px; margin-top: 6px; }
-
-        /* ====== NEW APP MENU STYLES ====== */
-        .app-menu-box {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 2px dashed #ddd;
-        }
-        .app-menu-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: bold;
-            text-decoration: none;
-            color: white;
-            cursor: pointer;
-            border: none;
-        }
-        .btn-share { background: #f39c12; }
-        .btn-moreapps { background: #007bff; }
-        .btn-contact { background: #25D366; }
-        .btn-about { background: #17a2b8; }
     </style>
 </head>
 <body>
@@ -238,7 +210,7 @@
 <div class="container">
     
     <!-- Login Form -->
-    <div id="login-section" class="hidden">
+    <div id="login-section">
         <h2>Sign In</h2>
         <input type="email" id="login-email" placeholder="Enter your email" required>
         
@@ -292,12 +264,12 @@
                 </div>
             </div>
 
-            <!-- প্রোফাইল ও GO বাটন -->
+            <!-- বড় গোলাকার প্রোফাইল ছবি ও GO বাটন -->
             <div class="dashboard-profile-container">
                 <a id="myProfileLinkImg" href="profile.html" class="dashboard-profile-link" title="Click to open Profile Hub">
                     <img id="dashboardLargeAvatar" src="https://via.placeholder.com/110" alt="Profile Avatar" class="dashboard-large-avatar">
                 </a>
-                <a id="myProfileLinkBtn" href="profile.html" class="btn-profile-go">Tournament / Profile ➔</a>
+                <a id="myProfileLinkBtn" href="profile.html" class="btn-profile-go">GO ➔</a>
             </div>
 
             <!-- Payment Recharge Box -->
@@ -307,40 +279,24 @@
                 • Official PhonePe No: <b style="font-size: 13px; color: #1e3c72;">7980735754</b><br>
                 
                 <a href="upi://pay?pa=7980735754@ybl&pn=Cricket%20Scoreboard&am=50&cu=INR&tn=1%20Match%20Credit" class="upi-btn">
-                    ⚡ Pay ₹50 via UPI
+                    ⚡ Pay ₹50 via UPI (PhonePe / GPay / Paytm)
                 </a>
 
                 <small style="display:block; margin-top:8px; color: #555;">After payment, send screenshot on WhatsApp:</small>
                 <a href="https://wa.me/917980735754?text=Hello,%20I%20have%20paid%20%E2%82%B950%20via%20UPI%20for%201%20match%20credit." target="_blank" class="whatsapp-btn">
-                    💬 Send Screenshot
+                    💬 Send Screenshot on WhatsApp
                 </a>
             </div>
 
             <button class="btn-logout" style="margin-top: 15px;" onclick="logout()">Logout</button>
-
-            <!-- ====== NEW APP MENU SECTION ====== -->
-            <div class="app-menu-box">
-                <!-- SHARE APP BUTTON -->
-                <button class="app-menu-btn btn-share" onclick="shareMyApp()">🔗 Share App</button>
-                
-                <!-- WHATSAPP CONTACT BUTTON -->
-                <a href="https://wa.me/918327321495?text=Hello,%20I%20need%20help%20with%20the%20app" target="_blank" class="app-menu-btn btn-contact">💬 Contact Us</a>
-                
-                <!-- MORE APPS BUTTON -->
-                <a href="https://play.google.com/store/apps/developer?id=YOUR_DEV_NAME" target="_blank" class="app-menu-btn btn-moreapps">📱 More Apps</a>
-                
-                <!-- ABOUT BUTTON -->
-                <button class="app-menu-btn btn-about" onclick="showAbout()">ℹ️ About Us</button>
-            </div>
-            <!-- ================================== -->
-
         </div>
+
     </div>
+
 </div>
 
-<!-- Firebase Scripts -->
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
     import { 
         getAuth, 
         createUserWithEmailAndPassword, 
@@ -350,42 +306,23 @@
         signOut, 
         setPersistence, 
         browserLocalPersistence 
-    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-    import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+    } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+    import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyABphVo2kWvqHEkxWSsZuDvnyXk05XzX-0",
-      authDomain: "cricket-score-d187a.firebaseapp.com",
-      databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
-      projectId: "cricket-score-d187a",
-      storageBucket: "cricket-score-d187a.firebasestorage.app",
-      messagingSenderId: "782741896785",
-      appId: "1:782741896785:android:ca8c45a9120f7784928270"
+        apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
+        authDomain: "cricket-score-d187a.firebaseapp.com",
+        databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
+        projectId: "cricket-score-d187a",
+        storageBucket: "cricket-score-d187a.firebasestorage.app",
+        messagingSenderId: "782741896785",
+        appId: "1:782741896785:web:78ab5ffe8c6a43ba928270",
+        measurementId: "G-PHXZ72EC94"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
-
-    // ==========================================
-    // NEW JAVASCRIPT FUNCTIONS FOR SHARE & ABOUT
-    // ==========================================
-    window.shareMyApp = function() {
-        if (navigator.share) {
-            navigator.share({
-                title: 'Pro Cricket Live Score',
-                text: 'Check out this awesome cricket live scoring app!',
-                url: 'https://play.google.com/store/apps/details?id=com.localcricket' 
-            }).catch((error) => console.log('Error sharing', error));
-        } else {
-            alert("Share this link: https://play.google.com/store/apps/details?id=com.localcricket");
-        }
-    };
-
-    window.showAbout = function() {
-        alert('Pro Cricket Live Score\nVersion: 1.0\nDeveloped by: Kolkata Sports');
-    };
-    // ==========================================
 
     window.togglePasswordVisibility = (inputId, iconElement) => {
         const passwordInput = document.getElementById(inputId);
@@ -530,11 +467,13 @@
             username = userData.username || "";
             credits = userData.credits !== undefined ? userData.credits : 0;
         } else {
+            // যদি ডাটাবেজে ইউজার নোড মিসিং থাকে, লোকালস্টোরেজ থেকে ইউজারনেম নেওয়া
             username = localStorage.getItem('proCricketUsername') || "user";
         }
 
         localStorage.setItem('proCricketUsername', username);
 
+        // UI-তে ভ্যালু সেট করা
         document.getElementById('user-credits').innerText = credits;
         document.getElementById('display-username').innerText = username;
         
@@ -544,12 +483,14 @@
         let baseUrl = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
         document.getElementById('viewer-link-input').value = `${baseUrl}/viewer.html?u=${username}`;
 
+        // রিয়েল-টাইম ব্যালেন্স আপডেট লিসেনার
         onValue(userRef, (snap) => {
             if (snap.exists() && snap.val().credits !== undefined) {
                 document.getElementById('user-credits').innerText = snap.val().credits;
             }
         });
 
+        // প্রোফাইল ছবি ও নাম লোড করা
         const profileRef = ref(db, `users/${userId}/profile`);
         onValue(profileRef, (snap) => {
             if (snap.exists()) {
@@ -564,6 +505,19 @@
         });
     }
 
+    // পেজ লোড হওয়ার সাথে সাথে ক্যাশ চেক
+    const savedUser = localStorage.getItem('proCricketUsername');
+    if (savedUser) {
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('signup-section').classList.add('hidden');
+        document.getElementById('dashboard-section').classList.remove('hidden');
+        document.getElementById('display-username').innerText = savedUser;
+        let baseUrl = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
+        document.getElementById('viewer-link-input').value = `${baseUrl}/viewer.html?u=${savedUser}`;
+        document.getElementById('myProfileLinkImg').href = `profile.html?u=${savedUser}`;
+        document.getElementById('myProfileLinkBtn').href = `profile.html?u=${savedUser}`;
+    }
+
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             document.getElementById('login-section').classList.add('hidden');
@@ -572,8 +526,10 @@
 
             loadUserData(user.uid);
         } else {
-            document.getElementById('dashboard-section').classList.add('hidden');
-            document.getElementById('login-section').classList.remove('hidden');
+            if (!localStorage.getItem('proCricketUsername')) {
+                document.getElementById('dashboard-section').classList.add('hidden');
+                document.getElementById('login-section').classList.remove('hidden');
+            }
         }
     });
 </script>
