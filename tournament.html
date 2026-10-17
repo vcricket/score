@@ -170,12 +170,14 @@
 
     async function initTournamentHub() {
         try {
-            const userRef = ref(db, 'usernames/' + currentUsername);
-            const snap = await get(userRef);
-            if (snap.exists()) {
-                currentUserId = snap.val();
-            } else {
-                currentUserId = currentUsername;
+            if (!currentUserId) {
+                const userRef = ref(db, 'usernames/' + currentUsername);
+                const snap = await get(userRef);
+                if (snap.exists()) {
+                    currentUserId = snap.val();
+                } else {
+                    currentUserId = currentUsername;
+                }
             }
 
             if (!tourId || tourId.trim() === "" || tourId === "null") {
@@ -441,7 +443,6 @@
                     let isCompleted = match.status === "completed";
                     let isRunning = match.status === "running";
 
-                    // টিমের নামের অ্যাপোস্ট্রফি ফিক্স করা
                     let safeTeam1 = (match.team1 || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
                     let safeTeam2 = (match.team2 || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
@@ -510,7 +511,6 @@
         }
     };
 
-    // নির্দিষ্ট ম্যাচের লঞ্চ বা রিজিউম করার ফাংশন (Alerts Removed & Fix Applied)
     window.launchOrResumeMatch = async function(btnElement, matchId, t1, t2, overs, type) {
         try {
             let originalText = btnElement.innerText;
@@ -543,16 +543,12 @@
                     return;
                 }
 
-                // ক্রেডিট ও স্ট্যাটাস আপডেট
                 await update(userRef, { credits: currentCredits - 1 });
                 await update(matchRef, { status: 'running' });
 
-                // **মাস্টার ফিক্স**: আগের টুর্নামেন্ট/ম্যাচের লাইভ ডাটাবেস মুছে দিচ্ছি। 
-                // এতে করে কন্ট্রোলার পেজ খোলার সময় আগের ম্যাচের ডাটা বা টিম আসবে না, সম্পূর্ণ নতুন টিমগুলোই আসবে।
                 await remove(ref(db, `live_matches/${currentUsername}/score`));
             }
 
-            // কোডুলারের জন্য সেফ URL
             let baseUrl = window.location.href.split('?')[0].replace('tournament.html', 'controller.html');
             let targetUrl = `${baseUrl}?t=${tourId}&u=${currentUsername}&m=${matchId}&t1=${encodeURIComponent(t1)}&t2=${encodeURIComponent(t2)}&overs=${overs}&type=${encodeURIComponent(type)}`;
             
@@ -566,7 +562,9 @@
     };
 
     window.deleteMatch = async function(matchId) {
-        if (!confirm("⚠️ Are you sure you want to delete this match?")) return;
+        if (!confirm("⚠️ Are you sure you want to delete this match?")) {
+            return;
+        }
         try {
             await remove(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${matchId}`));
             alert("🗑️ Match deleted successfully!");
@@ -576,9 +574,11 @@
         }
     };
 
-    // Firebase Auth State Listener
-    onAuthStateChanged(auth, (user) => {
+    // Firebase Auth State Listener (Fixed to use direct user.uid)
+    onAuthStateChanged(auth, async (user) => {
         if (user) {
+            currentUserId = user.uid; // সরাসরি ইউজারের আসল UID সেট করে দিচ্ছি
+
             if (!currentUsername) {
                 currentUsername = localStorage.getItem('proCricketUsername') || "user";
             }
