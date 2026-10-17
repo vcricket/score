@@ -1,283 +1,283 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Cricket - User Profile & Performance</title>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Poppins', sans-serif; background: #eef2f3; padding: 20px; margin: 0; }
-        .container { max-width: 850px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        .header-nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-        
-        .btn-dash-link { background: #0056b3; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 5px; }
-        .btn-dash-link:hover { background: #004085; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Cricket - User Profile & Performance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #eef2f3; padding: 20px; margin: 0; }
+        .container { max-width: 850px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .header-nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        
+        .btn-dash-link { background: #0056b3; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-dash-link:hover { background: #004085; }
 
-        h2 { color: #333; margin: 0; font-family: 'Oswald', sans-serif; letter-spacing: 1px; text-transform: uppercase; }
-        
-        /* প্রোফাইল কার্ড স্টাইল */
-        .profile-card { display: flex; align-items: center; gap: 20px; background: #e8f4fd; border: 1px solid #b8daff; padding: 20px; border-radius: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: #ccc; object-fit: cover; border: 3px solid #0056b3; flex-shrink: 0; }
-        .profile-details { flex: 1; }
-        .profile-details h3 { margin: 0 0 5px 0; color: #0056b3; font-size: 22px; word-break: break-word; }
-        .profile-details p { margin: 0; color: #555; font-size: 14px; }
-        
-        /* নেভিগেশন বাটন */
-        .nav-menu { display: flex; gap: 12px; margin-bottom: 25px; }
-        .nav-btn { flex: 1; background: #f1f5f9; color: #334155; border: 2px solid #cbd5e1; padding: 14px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; text-align: center; text-decoration: none; display: inline-block; }
-        .nav-btn.active { background: #1e3c72; color: white; border-color: #1e3c72; box-shadow: 0 4px 10px rgba(30,60,114,0.2); }
-        .nav-btn:hover { background: #e2e8f0; color: #1e3c72; }
-        .nav-btn.active:hover { background: #162c54; color: white; }
+        h2 { color: #333; margin: 0; font-family: 'Oswald', sans-serif; letter-spacing: 1px; text-transform: uppercase; }
+        
+        /* প্রোফাইল কার্ড স্টাইল */
+        .profile-card { display: flex; align-items: center; gap: 20px; background: #e8f4fd; border: 1px solid #b8daff; padding: 20px; border-radius: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: #ccc; object-fit: cover; border: 3px solid #0056b3; flex-shrink: 0; }
+        .profile-details { flex: 1; }
+        .profile-details h3 { margin: 0 0 5px 0; color: #0056b3; font-size: 22px; word-break: break-word; }
+        .profile-details p { margin: 0; color: #555; font-size: 14px; }
+        
+        /* নেভিগেশন বাটন */
+        .nav-menu { display: flex; gap: 12px; margin-bottom: 25px; }
+        .nav-btn { flex: 1; background: #f1f5f9; color: #334155; border: 2px solid #cbd5e1; padding: 14px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; text-align: center; text-decoration: none; display: inline-block; }
+        .nav-btn.active { background: #1e3c72; color: white; border-color: #1e3c72; box-shadow: 0 4px 10px rgba(30,60,114,0.2); }
+        .nav-btn:hover { background: #e2e8f0; color: #1e3c72; }
+        .nav-btn.active:hover { background: #162c54; color: white; }
 
-        .box { background: #f9f9f9; padding: 18px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
-        
-        /* স্ট্যাটস গ্রিড (মাই পারফরম্যান্স) */
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
-        @media(max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-        .stat-card { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-        .stat-card span { font-size: 13px; color: #666; display: block; margin-bottom: 5px; }
-        .stat-card strong { font-size: 20px; color: #0056b3; }
-    </style>
+        .box { background: #f9f9f9; padding: 18px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
+        
+        /* স্ট্যাটস গ্রিড (মাই পারফরম্যান্স) */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
+        @media(max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        .stat-card { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .stat-card span { font-size: 13px; color: #666; display: block; margin-bottom: 5px; }
+        .stat-card strong { font-size: 20px; color: #0056b3; }
+    </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header-nav">
-        <h2>🏆 Pro Cricket Hub</h2>
-        <a id="dashboardLinkBtn" href="index.html" class="btn-dash-link">🏠 Go to Dashboard</a>
-    </div>
+    <div class="header-nav">
+        <h2>🏆 Pro Cricket Hub</h2>
+        <a id="dashboardLinkBtn" href="index.html" class="btn-dash-link">🏠 Go to Dashboard</a>
+    </div>
 
-    <!-- প্রোফাইল কার্ড -->
-    <div class="profile-card">
-        <img id="displayAvatar" src="https://via.placeholder.com/90" alt="Avatar" class="profile-avatar">
-        <div class="profile-details">
-            <h3 id="displayName">Loading User...</h3>
-            <p>Pro Cricket Career Performance Hub</p>
-        </div>
-        <button class="btn-dash-link" style="background: #28a745; padding: 8px 14px;" onclick="window.toggleEditMode()">✏️ Edit Profile</button>
-    </div>
+    <!-- প্রোফাইল কার্ড -->
+    <div class="profile-card">
+        <img id="displayAvatar" src="https://via.placeholder.com/90" alt="Avatar" class="profile-avatar">
+        <div class="profile-details">
+            <h3 id="displayName">Loading User...</h3>
+            <p>Pro Cricket Career Performance Hub</p>
+        </div>
+        <button class="btn-dash-link" style="background: #28a745; padding: 8px 14px;" onclick="window.toggleEditMode()">✏️ Edit Profile</button>
+    </div>
 
-    <!-- প্রোফাইল এডিট ফর্ম -->
-    <div class="box" id="profileEditBox" style="display: none;">
-        <h3>✏️ Edit Profile Details</h3>
-        <label style="font-weight: bold; font-size: 14px; color: #444;">Your Name</label>
-        <input type="text" id="inputProfileName" placeholder="Enter your full name" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px;">
-        
-        <label style="font-weight: bold; display: block; margin-top: 10px; font-size: 14px; color: #444;">Profile Picture (Choose from Gallery)</label>
-        <input type="file" id="inputProfileFile" accept="image/*" style="width: 100%; padding: 8px; margin-top: 5px; background: #fff; border: 1px solid #ccc; border-radius: 6px;">
-        
-        <div style="display: flex; gap: 10px; margin-top: 15px;">
-            <button class="btn-dash-link" style="background: #0056b3; width: 100%; justify-content: center; padding: 10px;" onclick="window.saveUserProfile()">Save Changes</button>
-            <button class="btn-dash-link" style="background: #6c757d; width: 100%; justify-content: center; padding: 10px;" onclick="window.toggleEditMode()">Cancel</button>
-        </div>
-    </div>
+    <!-- প্রোফাইল এডিট ফর্ম -->
+    <div class="box" id="profileEditBox" style="display: none;">
+        <h3>✏️ Edit Profile Details</h3>
+        <label style="font-weight: bold; font-size: 14px; color: #444;">Your Name</label>
+        <input type="text" id="inputProfileName" placeholder="Enter your full name" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px;">
+        
+        <label style="font-weight: bold; display: block; margin-top: 10px; font-size: 14px; color: #444;">Profile Picture (Choose from Gallery)</label>
+        <input type="file" id="inputProfileFile" accept="image/*" style="width: 100%; padding: 8px; margin-top: 5px; background: #fff; border: 1px solid #ccc; border-radius: 6px;">
+        
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button class="btn-dash-link" style="background: #0056b3; width: 100%; justify-content: center; padding: 10px;" onclick="window.saveUserProfile()">Save Changes</button>
+            <button class="btn-dash-link" style="background: #6c757d; width: 100%; justify-content: center; padding: 10px;" onclick="window.toggleEditMode()">Cancel</button>
+        </div>
+    </div>
 
-    <!-- দুটি নেভিগেশন বাটন (সঠিক পেজ লিংকের সাথে) -->
-    <div class="nav-menu">
-        <a id="perfBtn" href="profile.html" class="nav-btn active">📊 My Performance</a>
-        <a id="tourBtn" href="tournament.html" class="nav-btn">🏆 Tournaments & Matches</a>
-    </div>
+    <!-- দুটি নেভিগেশন বাটন (সঠিক পেজ লিংকের সাথে) -->
+    <div class="nav-menu">
+        <a id="perfBtn" href="profile.html" class="nav-btn active">📊 My Performance</a>
+        <a id="tourBtn" href="tournament.html" class="nav-btn">🏆 Tournaments & Matches</a>
+    </div>
 
-    <!-- ক্রিকেট ক্যারিয়ার পারফরম্যান্স সেকশন -->
-    <div class="box">
-        <h3 style="color: #0056b3; border-bottom: 1px solid #ddd; padding-bottom: 8px; margin-top: 0;">🏏 Cricket Career Performance</h3>
-        <div class="stats-grid">
-            <div class="stat-card">
-                <span>Matches Played</span>
-                <strong id="statMatches">0</strong>
-            </div>
-            <div class="stat-card">
-                <span>Total Runs</span>
-                <strong id="statRuns" style="color: #28a745;">0</strong>
-            </div>
-            <div class="stat-card">
-                <span>Total Wickets</span>
-                <strong id="statWickets" style="color: #dc3545;">0</strong>
-            </div>
-            <div class="stat-card">
-                <span>Total Fours (4s)</span>
-                <strong id="statFours">0</strong>
-            </div>
-            <div class="stat-card">
-                <span>Total Sixes (6s)</span>
-                <strong id="statSixes">0</strong>
-            </div>
-            <div class="stat-card">
-                <span>Man of the Match</span>
-                <strong id="statMOM" style="color: #f39c12;">0</strong>
-            </div>
-        </div>
-    </div>
+    <!-- ক্রিকেট ক্যারিয়ার পারফরম্যান্স সেকশন -->
+    <div class="box">
+        <h3 style="color: #0056b3; border-bottom: 1px solid #ddd; padding-bottom: 8px; margin-top: 0;">🏏 Cricket Career Performance</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span>Matches Played</span>
+                <strong id="statMatches">0</strong>
+            </div>
+            <div class="stat-card">
+                <span>Total Runs</span>
+                <strong id="statRuns" style="color: #28a745;">0</strong>
+            </div>
+            <div class="stat-card">
+                <span>Total Wickets</span>
+                <strong id="statWickets" style="color: #dc3545;">0</strong>
+            </div>
+            <div class="stat-card">
+                <span>Total Fours (4s)</span>
+                <strong id="statFours">0</strong>
+            </div>
+            <div class="stat-card">
+                <span>Total Sixes (6s)</span>
+                <strong id="statSixes">0</strong>
+            </div>
+            <div class="stat-card">
+                <span>Man of the Match</span>
+                <strong id="statMOM" style="color: #f39c12;">0</strong>
+            </div>
+        </div>
+    </div>
 
 </div>
 
 <!-- Firebase Scripts (Corrected Version 10.13.0 and Auth Added) -->
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-    import { getDatabase, ref, get, update, set } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getDatabase, ref, get, update, set } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
-        authDomain: "cricket-score-d187a.firebaseapp.com",
-        databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
-        projectId: "cricket-score-d187a",
-        storageBucket: "cricket-score-d187a.firebasestorage.app"
-    };
+    const firebaseConfig = {
+        apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
+        authDomain: "cricket-score-d187a.firebaseapp.com",
+        databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
+        projectId: "cricket-score-d187a",
+        storageBucket: "cricket-score-d187a.firebasestorage.app"
+    };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    let currentUsername = urlParams.get('u') || localStorage.getItem('proCricketUsername');
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentUsername = urlParams.get('u') || localStorage.getItem('proCricketUsername');
 
-    // সঠিক পেজ লিংক ও ইউজারনেম পাস করা
-    if (currentUsername) {
-        document.getElementById('dashboardLinkBtn').href = `index.html?u=${currentUsername}`;
-        document.getElementById('perfBtn').href = `profile.html?u=${currentUsername}`;
-        document.getElementById('tourBtn').href = `tournament.html?u=${currentUsername}`;
-    }
+    // সঠিক পেজ লিংক ও ইউজারনেম পাস করা
+    if (currentUsername) {
+        document.getElementById('dashboardLinkBtn').href = `index.html?u=${currentUsername}`;
+        document.getElementById('perfBtn').href = `profile.html?u=${currentUsername}`;
+        document.getElementById('tourBtn').href = `tournament.html?u=${currentUsername}`;
+    }
 
-    let currentUserId = "";
-    let selectedImageBase64 = "";
+    let currentUserId = "";
+    let selectedImageBase64 = "";
 
-    async function initProfile() {
-        try {
-            const userRef = ref(db, 'usernames/' + currentUsername);
-            const snap = await get(userRef);
-            
-            if (snap.exists()) {
-                currentUserId = snap.val();
-            } else {
-                currentUserId = currentUsername;
-            }
+    async function initProfile() {
+        try {
+            const userRef = ref(db, 'usernames/' + currentUsername);
+            const snap = await get(userRef);
+            
+            if (snap.exists()) {
+                currentUserId = snap.val();
+            } else {
+                currentUserId = currentUsername;
+            }
 
-            loadProfileData();
-            loadCareerStats();
-        } catch (err) {
-            console.error("Error initializing profile:", err);
-            currentUserId = currentUsername;
-            loadProfileData();
-            loadCareerStats();
-        }
-    }
+            loadProfileData();
+            loadCareerStats();
+        } catch (err) {
+            console.error("Error initializing profile:", err);
+            currentUserId = currentUsername;
+            loadProfileData();
+            loadCareerStats();
+        }
+    }
 
-    async function loadProfileData() {
-        try {
-            const profileRef = ref(db, `users/${currentUserId}/profile`);
-            const profileSnap = await get(profileRef);
-            
-            if (profileSnap.exists()) {
-                const data = profileSnap.val();
-                document.getElementById('displayName').innerText = data.name || currentUsername;
-                if (data.photo) {
-                    document.getElementById('displayAvatar').src = data.photo;
-                }
-            } else {
-                await set(profileRef, {
-                    name: currentUsername,
-                    photo: ""
-                });
-                document.getElementById('displayName').innerText = currentUsername;
-            }
-        } catch (e) {
-            console.error("Error loading profile details:", e);
-            document.getElementById('displayName').innerText = currentUsername;
-        }
-    }
+    async function loadProfileData() {
+        try {
+            const profileRef = ref(db, `users/${currentUserId}/profile`);
+            const profileSnap = await get(profileRef);
+            
+            if (profileSnap.exists()) {
+                const data = profileSnap.val();
+                document.getElementById('displayName').innerText = data.name || currentUsername;
+                if (data.photo) {
+                    document.getElementById('displayAvatar').src = data.photo;
+                }
+            } else {
+                await set(profileRef, {
+                    name: currentUsername,
+                    photo: ""
+                });
+                document.getElementById('displayName').innerText = currentUsername;
+            }
+        } catch (e) {
+            console.error("Error loading profile details:", e);
+            document.getElementById('displayName').innerText = currentUsername;
+        }
+    }
 
-    async function loadCareerStats() {
-        try {
-            const tournamentsSnap = await get(ref(db, `live_matches/${currentUsername}/tournaments_data/`));
-            let tMatches = 0, tRuns = 0, tWickets = 0, tFours = 0, tSixes = 0, tMOM = 0;
+    async function loadCareerStats() {
+        try {
+            const tournamentsSnap = await get(ref(db, `live_matches/${currentUsername}/tournaments_data/`));
+            let tMatches = 0, tRuns = 0, tWickets = 0, tFours = 0, tSixes = 0, tMOM = 0;
 
-            if (tournamentsSnap.exists()) {
-                const tournaments = tournamentsSnap.val();
-                Object.keys(tournaments).forEach(tourId => {
-                    const tourData = tournaments[tourId];
-                    if (tourData && tourData.players) {
-                        const myStats = tourData.players[document.getElementById('displayName').innerText] || tourData.players[currentUsername];
-                        if (myStats) {
-                            tMatches += (myStats.matchesPlayed || 0);
-                            tRuns += (myStats.runs || 0);
-                            tWickets += (myStats.wickets || 0);
-                            tFours += (myStats.fours || 0);
-                            tSixes += (myStats.sixes || 0);
-                            tMOM += (myStats.mom || 0);
-                        }
-                    }
-                });
-            }
+            if (tournamentsSnap.exists()) {
+                const tournaments = tournamentsSnap.val();
+                Object.keys(tournaments).forEach(tourId => {
+                    const tourData = tournaments[tourId];
+                    if (tourData && tourData.players) {
+                        const myStats = tourData.players[document.getElementById('displayName').innerText] || tourData.players[currentUsername];
+                        if (myStats) {
+                            tMatches += (myStats.matchesPlayed || 0);
+                            tRuns += (myStats.runs || 0);
+                            tWickets += (myStats.wickets || 0);
+                            tFours += (myStats.fours || 0);
+                            tSixes += (myStats.sixes || 0);
+                            tMOM += (myStats.mom || 0);
+                        }
+                    }
+                });
+            }
 
-            document.getElementById('statMatches').innerText = tMatches;
-            document.getElementById('statRuns').innerText = tRuns;
-            document.getElementById('statWickets').innerText = tWickets;
-            document.getElementById('statFours').innerText = tFours;
-            document.getElementById('statSixes').innerText = tSixes;
-            document.getElementById('statMOM').innerText = tMOM;
-        } catch (err) {
-            console.error("Error loading career stats:", err);
-        }
-    }
+            document.getElementById('statMatches').innerText = tMatches;
+            document.getElementById('statRuns').innerText = tRuns;
+            document.getElementById('statWickets').innerText = tWickets;
+            document.getElementById('statFours').innerText = tFours;
+            document.getElementById('statSixes').innerText = tSixes;
+            document.getElementById('statMOM').innerText = tMOM;
+        } catch (err) {
+            console.error("Error loading career stats:", err);
+        }
+    }
 
-    window.toggleEditMode = function() {
-        const box = document.getElementById('profileEditBox');
-        if (box.style.display === 'none') {
-            box.style.display = 'block';
-            document.getElementById('inputProfileName').value = document.getElementById('displayName').innerText;
-            selectedImageBase64 = "";
-        } else {
-            box.style.display = 'none';
-        }
-    };
+    window.toggleEditMode = function() {
+        const box = document.getElementById('profileEditBox');
+        if (box.style.display === 'none') {
+            box.style.display = 'block';
+            document.getElementById('inputProfileName').value = document.getElementById('displayName').innerText;
+            selectedImageBase64 = "";
+        } else {
+            box.style.display = 'none';
+        }
+    };
 
-    document.getElementById('inputProfileFile').addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                selectedImageBase64 = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-    });
+    document.getElementById('inputProfileFile').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedImageBase64 = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
 
-    window.saveUserProfile = async function() {
-        const newName = document.getElementById('inputProfileName').value.trim();
-        if (!newName) {
-            alert("⚠️ Name cannot be empty!");
-            return;
-        }
+    window.saveUserProfile = async function() {
+        const newName = document.getElementById('inputProfileName').value.trim();
+        if (!newName) {
+            alert("⚠️ Name cannot be empty!");
+            return;
+        }
 
-        try {
-            let updateData = { name: newName };
-            if (selectedImageBase64) {
-                updateData.photo = selectedImageBase64;
-            }
+        try {
+            let updateData = { name: newName };
+            if (selectedImageBase64) {
+                updateData.photo = selectedImageBase64;
+            }
 
-            await update(ref(db, `users/${currentUserId}/profile`), updateData);
-            alert("✅ Profile updated successfully!");
-            window.toggleEditMode();
-            loadProfileData();
-        } catch (err) {
-            console.error("Error updating profile:", err);
-            alert("❌ Failed to update profile. Image might be too large.");
-        }
-    };
+            await update(ref(db, `users/${currentUserId}/profile`), updateData);
+            alert("✅ Profile updated successfully!");
+            window.toggleEditMode();
+            loadProfileData();
+        } catch (err) {
+            console.error("Error updating profile:", err);
+            alert("❌ Failed to update profile. Image might be too large.");
+        }
+    };
 
-    // Firebase Auth State Listener (Security Check)
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            if (!currentUsername) {
-                currentUsername = localStorage.getItem('proCricketUsername') || "user";
-            }
-            initProfile();
-        } else {
-            alert("⚠️ Please login from dashboard first.");
-            window.location.href = "index.html";
-        }
-    });
+    // Firebase Auth State Listener (Security Check)
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            if (!currentUsername) {
+                currentUsername = localStorage.getItem('proCricketUsername') || "user";
+            }
+            initProfile();
+        } else {
+            alert("⚠️ Please login from dashboard first.");
+            window.location.href = "index.html";
+        }
+    });
 </script>
 
 </body>
