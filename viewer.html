@@ -294,17 +294,19 @@
         </div>
     </div>
 
-    <!-- Firebase Scripts (Untouched Logic) -->
+    <!-- Firebase Scripts -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyA4yHWFEhUPjff5zS71DUNFK21vtqapKSU",
-            authDomain: "cricket-score-d187a.firebaseapp.com",
-            databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
-            projectId: "cricket-score-d187a",
-            storageBucket: "cricket-score-d187a.firebasestorage.app"
+          apiKey: "AIzaSyABphVo2kWvqHEkxWSsZuDvnyXk05XzX-0",
+          authDomain: "cricket-score-d187a.firebaseapp.com",
+          databaseURL: "https://cricket-score-d187a-default-rtdb.firebaseio.com",
+          projectId: "cricket-score-d187a",
+          storageBucket: "cricket-score-d187a.firebasestorage.app",
+          messagingSenderId: "782741896785",
+          appId: "1:782741896785:android:ca8c45a9120f7784928270"
         };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
