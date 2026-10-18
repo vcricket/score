@@ -526,8 +526,15 @@
         document.getElementById('myProfileLinkImg').href = `profile.html?u=${username}`;
         document.getElementById('myProfileLinkBtn').href = `profile.html?u=${username}`;
 
-        let baseUrl = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
-        document.getElementById('viewer-link-input').value = `${baseUrl}?u=${username}`;
+        // স্বয়ংক্রিয়ভাবে সঠিক পাথ ও ইউজারনেমসহ লিংক তৈরি
+        let pathName = window.location.pathname;
+        if (pathName.endsWith('/index.html')) {
+            pathName = pathName.substring(0, pathName.length - 10);
+        }
+        let baseUrl = window.location.origin + pathName;
+        baseUrl = baseUrl.replace(/\/$/, '');
+        
+        document.getElementById('viewer-link-input').value = `${baseUrl}/index.html?u=${username}`;
 
         onValue(userRef, (snap) => {
             if (snap.exists() && snap.val().credits !== undefined) {
