@@ -255,7 +255,7 @@
 
             <!-- ভিউয়ার লিংক সেকশন -->
             <div class="link-box">
-                <b style="font-size: 13px; color: #333;">Copy to Link for OBS Studio & CameraFi Live:</b>
+                <b style="font-size: 13px; color: #333;">Your Public Viewer Link:</b>
                 <div class="link-input-group">
                     <input type="text" id="viewer-link-input" readonly onclick="this.select()" placeholder="Generating link...">
                     <button class="btn-copy" onclick="copyLink()">📋 Copy</button>
@@ -397,7 +397,7 @@
 
     window.signup = async () => {
         const username = document.getElementById('signup-username').value.trim().toLowerCase();
-        const email = document.getElementById('signup-email').value.trim().toLowerCase();
+        const email = document.getElementById('signup-email').value.trim();
         const password = document.getElementById('signup-password').value;
         const msg = document.getElementById('signup-message');
 
@@ -412,17 +412,6 @@
         }
 
         try {
-            // ১. চেক করা এই জিমেইল দিয়ে ইতিপূর্বে ফ্রি ক্রেডিট নেওয়া হয়েছে কি না
-            const sanitizedEmail = email.replace(/\./g, '_');
-            const emailRegistryRef = ref(db, 'email_registry/' + sanitizedEmail);
-            const emailSnap = await get(emailRegistryRef);
-
-            if (emailSnap.exists()) {
-                msg.style.color = "red";
-                return msg.innerText = "This email has already received the free credit. Multiple accounts per email are not allowed.";
-            }
-
-            // ২. ইউজারনেম আগে থেকে নেওয়া আছে কি না চেক
             const usernameRef = ref(db, 'usernames/' + username);
             const snapshot = await get(usernameRef);
             if (snapshot.exists()) {
@@ -430,11 +419,9 @@
                 return msg.innerText = "Username already taken! Choose another.";
             }
 
-            // ৩. নতুন অ্যাকাউন্ট তৈরি করা
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            // ৪. ডেটাবেসে ইউজারনেম এবং ক্রেডিট সেট করা
             await set(ref(db, 'usernames/' + username), user.uid);
             await set(ref(db, `users/${user.uid}`), { 
                 email: email, 
@@ -445,12 +432,6 @@
             await set(ref(db, `users/${user.uid}/profile`), {
                 name: username,
                 photo: ""
-            });
-
-            // **ফিক্স**: ৫. জিমেইলটি রেজিস্ট্রি ফোল্ডারে পার্মানেন্টলি সেভ করে দেওয়া যাতে পুনরায় ক্রেডিট না নেয়
-            await set(emailRegistryRef, {
-                uid: user.uid,
-                claimedAt: Date.now()
             });
 
             msg.style.color = "green";
@@ -545,6 +526,7 @@
         document.getElementById('myProfileLinkImg').href = `profile.html?u=${username}`;
         document.getElementById('myProfileLinkBtn').href = `profile.html?u=${username}`;
 
+        // সরাসরি viewer.html সহ লিংক জেনারেট হবে
         document.getElementById('viewer-link-input').value = `https://vcricket.github.io/score/viewer.html?u=${username}`;
 
         onValue(userRef, (snap) => {
@@ -583,4 +565,3 @@
 
 </body>
 </html>
-
