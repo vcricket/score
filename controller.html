@@ -292,7 +292,7 @@
             } catch (err) {}
         }
         if (targetTourId && targetTourId !== "null" && targetTourId !== "undefined") {
-            window.location.href = `tournament.html?t=${targetTourId}`;
+            window.location.href = `tournament.html?t=${targetTourId}&u=${currentMatchUser}`;
         } else {
             window.location.href = "index.html";
         }
@@ -1149,7 +1149,7 @@
         
         alert(`🏆 Match Completed! Man of the Match: ${momName}. Returning to Tournament...`);
         if (activeTournamentId) {
-            window.location.href = `tournament.html?t=${activeTournamentId}`;
+            window.location.href = `tournament.html?t=${activeTournamentId}&u=${currentMatchUser}`;
         } else {
             window.location.href = "index.html";
         }
@@ -1315,85 +1315,6 @@
         alert(`📺 ${playerName}'s stats casted to Scoreboard!`); document.getElementById('leaderboardModal').style.display = 'none';
     };
 
-    function parseSquadData(obj, teamName) {
-        if (!obj) return "";
-        if (typeof obj === 'string') return obj === "[object Object]" ? "" : obj;
-        if (Array.isArray(obj)) return obj[0] === teamName ? obj.join('\n') : [teamName, ...obj].join('\n');
-        
-        if (typeof obj === 'object') {
-            let pData = obj.players || obj.squad || obj.playerList || obj.squadList || obj.team;
-            if (pData) {
-                if (Array.isArray(pData)) return pData[0] === teamName ? pData.join('\n') : [teamName, ...pData].join('\n');
-                if (typeof pData === 'string') return pData;
-            }
-            let names = Object.values(obj).filter(v => typeof v === 'string' && v.trim().length > 1 && v !== teamName);
-            if (names.length > 0) return [teamName, ...names].join('\n');
-        }
-        return "";
-    }
-
-    function getControllerState() {
-        const storedData = localStorage.getItem(`localCricketLive_${currentMatchUser}_${activeMatchId}`);
-        if (storedData) {
-            const data = JSON.parse(storedData);
-            
-            if (data.batTeamName) document.getElementById('batTeamName').value = data.batTeamName;
-            if (data.bowlTeamName) document.getElementById('bowlTeamName').value = data.bowlTeamName;
-
-            document.getElementById('runs').value = data.runs || 0;
-            document.getElementById('wickets').value = data.wickets || 0;
-            document.getElementById('overs').value = data.overs || "0.0";
-            if (data.totalOvers) document.getElementById('totalOvers').value = data.totalOvers;
-            
-            if (data.outPlayers) outPlayersList = [...data.outPlayers];
-            if (data.currentOverBalls) currentOverBalls = [...data.currentOverBalls];
-            if (data.overHistory) overHistoryList = [...data.overHistory];
-            if (data.firstInningsRuns !== undefined) firstInningsRunsStored = data.firstInningsRuns;
-            if (data.firstInningsOvers !== undefined) firstInningsOversStored = data.firstInningsOvers;
-            if (data.detailedStats) detailedStats = data.detailedStats;
-            if (data.autoInningsSwitched !== undefined) autoInningsSwitched = data.autoInningsSwitched;
-            if (data.matchEnded !== undefined) matchEnded = data.matchEnded;
-            if (data.tournamentPointsUpdated !== undefined) tournamentPointsUpdated = data.tournamentPointsUpdated;
-            
-            lastBowler = data.lastBowler || ""; activeBowler = data.activeBowler || ""; bowlersRecord = data.bowlersRecord || {};
-
-            if (data.bat1Name) {
-                document.getElementById('bat1Name').innerHTML = `<option value="${data.bat1Name}">${data.bat1Name}</option>`;
-                document.getElementById('bat1Name').value = data.bat1Name;
-            }
-            document.getElementById('bat1Runs').value = data.bat1Runs || 0; 
-            document.getElementById('bat1Balls').value = data.bat1Balls || 0;
-            
-            if (data.bat2Name) {
-                document.getElementById('bat2Name').innerHTML = `<option value="${data.bat2Name}">${data.bat2Name}</option>`;
-                document.getElementById('bat2Name').value = data.bat2Name;
-            }
-            document.getElementById('bat2Runs').value = data.bat2Runs || 0; 
-            document.getElementById('bat2Balls').value = data.bat2Balls || 0;
-            
-            if (data.bowlerName) {
-                document.getElementById('bowlerName').innerHTML = `<option value="${data.bowlerName}">${data.bowlerName}</option>`;
-                document.getElementById('bowlerName').value = data.bowlerName;
-            }
-            
-            let figParts = (data.bowlerFig || "0-0").split('-'); 
-            document.getElementById('bWickets').value = figParts[0] || 0; 
-            document.getElementById('bRuns').value = figParts[1] || 0; 
-            document.getElementById('bowlerOvers').value = data.bowlerOvers || "0.0";
-            
-            if (data.innings) document.getElementById('innings').value = data.innings;
-            if (data.target) document.getElementById('targetMsg').value = data.target;
-            
-            isSquadVisible = data.showSquadsOnScreen || false;
-            isPointsTableVisible = data.showPointsTableOnScreen || false;
-            isSummaryVisible = data.showSummaryOnScreen || false;
-            updateToggleButtonsUI();
-            
-            return true;
-        }
-        return false;
-    }
-
     async function initializePointsTable(tData) {
         if (!activeTournamentId) return;
         const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${activeTournamentId}/teams/`);
@@ -1444,38 +1365,56 @@
         if (activeTournamentId && activeMatchId && !hasSavedState) {
             try {
                 const userSnap = await get(ref(db, 'usernames/' + currentMatchUser));
-                if (userSnap.exists()) {
-                    const uid = userSnap.val();
-                    const tourSnap = await get(ref(db, `users/${uid}/tournaments/${activeTournamentId}`));
-                    if (tourSnap.exists()) {
-                        const tData = tourSnap.val();
+                let uid = userSnap.exists() ? userSnap.val() : currentMatchUser;
+
+                const tourSnap = await get(ref(db, `users/${uid}/tournaments/${activeTournamentId}`));
+                if (tourSnap.exists()) {
+                    const tData = tourSnap.val();
+                    
+                    await initializePointsTable(tData);
+
+                    const matchInfo = (tData.matches || {})[activeMatchId];
+                    if (matchInfo) {
+                        loadedBatTeam = matchInfo.team1 || "";
+                        loadedBowlTeam = matchInfo.team2 || "";
                         
-                        await initializePointsTable(tData);
+                        if (matchInfo.overs) {
+                            scheduledMatchOvers = matchInfo.overs;
+                            document.getElementById('totalOvers').value = scheduledMatchOvers;
+                        }
+                        
+                        isLeagueMatchGlobal = (matchInfo.type === 'league');
+                        
+                        // ফায়ারবেস থেকে সরাসরি টিম ও স্কোয়াড লোড করা
+                        let teamsObj = tData.teams || {};
+                        let t1Obj = teamsObj[loadedBatTeam];
+                        let t2Obj = teamsObj[loadedBowlTeam];
 
-                        const matchInfo = (tData.matches || {})[activeMatchId];
-                        if (matchInfo) {
-                            loadedBatTeam = matchInfo.team1 || "";
-                            loadedBowlTeam = matchInfo.team2 || "";
-                            
-                            if (matchInfo.overs) {
-                                scheduledMatchOvers = matchInfo.overs;
-                                document.getElementById('totalOvers').value = scheduledMatchOvers;
-                            }
-                            
-                            isLeagueMatchGlobal = (matchInfo.type === 'league');
-                            
-                            let t1Obj = (tData.teams || {})[loadedBatTeam];
-                            if (!t1Obj && tData.squads) t1Obj = tData.squads[loadedBatTeam];
-                            
-                            let t2Obj = (tData.teams || {})[loadedBowlTeam];
-                            if (!t2Obj && tData.squads) t2Obj = tData.squads[loadedBowlTeam];
+                        if (!t1Obj) {
+                            let k1 = Object.keys(teamsObj).find(k => teamsObj[k].name === loadedBatTeam);
+                            if (k1) t1Obj = teamsObj[k1];
+                        }
+                        if (!t2Obj) {
+                            let k2 = Object.keys(teamsObj).find(k => teamsObj[k].name === loadedBowlTeam);
+                            if (k2) t2Obj = teamsObj[k2];
+                        }
 
-                            squad1 = parseSquadData(t1Obj, loadedBatTeam);
-                            squad2 = parseSquadData(t2Obj, loadedBowlTeam);
+                        if (t1Obj && t1Obj.players) {
+                            squad1 = [loadedBatTeam, ...t1Obj.players].join('\n');
+                        } else {
+                            squad1 = loadedBatTeam;
+                        }
+
+                        if (t2Obj && t2Obj.players) {
+                            squad2 = [loadedBowlTeam, ...t2Obj.players].join('\n');
+                        } else {
+                            squad2 = loadedBowlTeam;
                         }
                     }
                 }
-            } catch (err) {}
+            } catch (err) {
+                console.error("Error loading match/tournament data:", err);
+            }
         }
 
         if (!hasSavedState) {
@@ -1493,19 +1432,13 @@
                     if (mData.squad2Data && mData.squad2Data !== "[object Object]" && !mData.squad2Data.includes("Player 1\nPlayer 2")) {
                         squad2 = mData.squad2Data;
                     }
-                    
-                    if (!scheduledMatchOvers && mData.totalOvers) {
-                        scheduledMatchOvers = mData.totalOvers;
-                        document.getElementById('totalOvers').value = scheduledMatchOvers;
-                    }
-                    if (mData.firstInningsRuns !== undefined && mData.firstInningsRuns > 0) {
-                        firstInningsRunsStored = mData.firstInningsRuns;
-                    }
-                    if (mData.firstInningsOvers !== undefined) {
-                        firstInningsOversStored = mData.firstInningsOvers;
-                    }
                 }
             } catch (e) {}
+
+            let lsBat = localStorage.getItem(`tempBatSquad_${currentMatchUser}_${activeMatchId}`);
+            let lsBowl = localStorage.getItem(`tempBowlSquad_${currentMatchUser}_${activeMatchId}`);
+            if (lsBat && lsBat.length > loadedBatTeam.length) squad1 = lsBat;
+            if (lsBowl && lsBowl.length > loadedBowlTeam.length) squad2 = lsBowl;
 
             if (!squad1 || squad1.trim() === "") squad1 = loadedBatTeam;
             if (!squad2 || squad2.trim() === "") squad2 = loadedBowlTeam;
