@@ -259,9 +259,6 @@
     let currentMatchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername');
     const activeTournamentId = urlParams.get('t');
     const activeMatchId = urlParams.get('m') || "default_match";
-    const urlTeam1 = urlParams.get('t1'); // সরাসরি ইউআরএল থেকে টিম ১
-    const urlTeam2 = urlParams.get('t2'); // সরাসরি ইউআরএল থেকে টিম ২
-    const urlOvers = urlParams.get('overs'); // ওভার
 
     let isLeagueMatchGlobal = true;
     let tournamentPointsUpdated = false;
@@ -1357,11 +1354,11 @@
     }
 
     async function initPage() {
-        let loadedBatTeam = urlTeam1 || ""; // প্রথমে ইউআরএল থেকে টিম ১ নেওয়া
-        let loadedBowlTeam = urlTeam2 || ""; // প্রথমে ইউআরএল থেকে টিম ২ নেওয়া
+        let loadedBatTeam = "";
+        let loadedBowlTeam = "";
         let squad1 = "";
         let squad2 = "";
-        scheduledMatchOvers = urlOvers || null;
+        scheduledMatchOvers = null;
 
         let hasSavedState = getControllerState();
 
@@ -1378,11 +1375,12 @@
 
                     const matchInfo = (tData.matches || {})[activeMatchId];
                     if (matchInfo) {
-                        if (!loadedBatTeam) loadedBatTeam = matchInfo.team1 || "";
-                        if (!loadedBowlTeam) loadedBowlTeam = matchInfo.team2 || "";
+                        loadedBatTeam = matchInfo.team1 || "";
+                        loadedBowlTeam = matchInfo.team2 || "";
                         
-                        if (!scheduledMatchOvers && matchInfo.overs) {
+                        if (matchInfo.overs) {
                             scheduledMatchOvers = matchInfo.overs;
+                            document.getElementById('totalOvers').value = scheduledMatchOvers;
                         }
                         
                         isLeagueMatchGlobal = (matchInfo.type === 'league');
@@ -1420,14 +1418,27 @@
         }
 
         if (!hasSavedState) {
-            if (!squad1 || squad1.trim() === "" || squad1 === loadedBatTeam) {
-                let lsBat = localStorage.getItem(`tempBatSquad_${currentMatchUser}_${activeMatchId}`);
-                if (lsBat) squad1 = lsBat;
-            }
-            if (!squad2 || squad2.trim() === "" || squad2 === loadedBowlTeam) {
-                let lsBowl = localStorage.getItem(`tempBowlSquad_${currentMatchUser}_${activeMatchId}`);
-                if (lsBowl) squad2 = lsBowl;
-            }
+            try {
+                const liveSnap = await get(ref(db, `live_matches/${currentMatchUser}/score`));
+                if (liveSnap.exists()) {
+                    const mData = liveSnap.val();
+                    
+                    if (mData.batTeamName) loadedBatTeam = mData.batTeamName;
+                    if (mData.bowlTeamName) loadedBowlTeam = mData.bowlTeamName;
+                    
+                    if (mData.squad1Data && mData.squad1Data !== "[object Object]" && !mData.squad1Data.includes("Player 1\nPlayer 2")) {
+                        squad1 = mData.squad1Data;
+                    }
+                    if (mData.squad2Data && mData.squad2Data !== "[object Object]" && !mData.squad2Data.includes("Player 1\nPlayer 2")) {
+                        squad2 = mData.squad2Data;
+                    }
+                }
+            } catch (e) {}
+
+            let lsBat = localStorage.getItem(`tempBatSquad_${currentMatchUser}_${activeMatchId}`);
+            let lsBowl = localStorage.getItem(`tempBowlSquad_${currentMatchUser}_${activeMatchId}`);
+            if (lsBat && lsBat.length > loadedBatTeam.length) squad1 = lsBat;
+            if (lsBowl && lsBowl.length > loadedBowlTeam.length) squad2 = lsBowl;
 
             if (!squad1 || squad1.trim() === "") squad1 = loadedBatTeam;
             if (!squad2 || squad2.trim() === "") squad2 = loadedBowlTeam;
