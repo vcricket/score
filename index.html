@@ -395,9 +395,6 @@
         }
     };
 
-    // ========================================================
-    // UPDATED SIGNUP FUNCTION WITH EMAIL REGISTRY (ANTI-ABUSE)
-    // ========================================================
     window.signup = async () => {
         const username = document.getElementById('signup-username').value.trim().toLowerCase();
         const email = document.getElementById('signup-email').value.trim().toLowerCase();
@@ -433,7 +430,7 @@
                 return msg.innerText = "Username already taken! Choose another.";
             }
 
-            // ৩. নতুন অ্যাকাউন্ট তৈরি
+            // ৩. নতুন অ্যাকাউন্ট তৈরি করা
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
@@ -450,7 +447,7 @@
                 photo: ""
             });
 
-            // ৫. জিমেইল রেজিস্ট্রি ফোল্ডারে স্থায়ীভাবে সেভ করে রাখা
+            // **ফিক্স**: ৫. জিমেইলটি রেজিস্ট্রি ফোল্ডারে পার্মানেন্টলি সেভ করে দেওয়া যাতে পুনরায় ক্রেডিট না নেয়
             await set(emailRegistryRef, {
                 uid: user.uid,
                 claimedAt: Date.now()
@@ -586,3 +583,4 @@
 
 </body>
 </html>
+
