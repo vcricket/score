@@ -562,7 +562,9 @@
     };
 
     window.deleteMatch = async function(matchId) {
-        if (!confirm("⚠️ Are you sure you want to delete this match?")) return;
+        if (!confirm("⚠️ Are you sure you want to delete this match?")) {
+            return;
+        }
         try {
             await remove(ref(db, `users/${currentUserId}/tournaments/${tourId}/matches/${matchId}`));
             alert("🗑️ Match deleted successfully!");
@@ -572,9 +574,11 @@
         }
     };
 
+    // Firebase Auth State Listener (Fixed to use direct user.uid)
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            currentUserId = user.uid;
+            currentUserId = user.uid; // সরাসরি ইউজারের আসল UID সেট করে দিচ্ছি
+
             if (!currentUsername) {
                 currentUsername = localStorage.getItem('proCricketUsername') || "user";
             }
