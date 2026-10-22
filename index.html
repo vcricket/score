@@ -395,6 +395,9 @@
         }
     };
 
+    // ==========================================
+    // আপডেট করা সাইন-আপ ফাংশন (ক্রেডিট লজিক সহ)
+    // ==========================================
     window.signup = async () => {
         const username = document.getElementById('signup-username').value.trim().toLowerCase();
         const email = document.getElementById('signup-email').value.trim();
@@ -412,6 +415,7 @@
         }
 
         try {
+            // ১. ইউজারনেম এভেইলএবল আছে কি না চেক করা
             const usernameRef = ref(db, 'usernames/' + username);
             const snapshot = await get(usernameRef);
             if (snapshot.exists()) {
@@ -419,14 +423,27 @@
                 return msg.innerText = "Username already taken! Choose another.";
             }
 
+            // ২. এই ইমেইল আগে ক্রেডিট নিয়েছে কি না চেক করা
+            // Firebase Key তে '.' ব্যবহার করা যায় না, তাই '.' কে ',' দিয়ে পাল্টে নেওয়া হচ্ছে
+            const safeEmail = email.replace(/\./g, ',');
+            const claimedRef = ref(db, 'claimed_emails/' + safeEmail);
+            const claimedSnap = await get(claimedRef);
+            
+            let initialCredits = 1; // ডিফল্ট ১ ক্রেডিট
+            if (claimedSnap.exists()) {
+                initialCredits = 0; // আগেই ক্রেডিট নিয়ে থাকলে ০ করে দেওয়া হলো
+            }
+
+            // ৩. নতুন অ্যাকাউন্ট তৈরি
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
+            // ৪. ডাটাবেসে ইউজার ডেটা ও ক্রেডিট ব্যালেন্স সেভ করা
             await set(ref(db, 'usernames/' + username), user.uid);
             await set(ref(db, `users/${user.uid}`), { 
                 email: email, 
                 username: username, 
-                credits: 1 
+                credits: initialCredits 
             });
 
             await set(ref(db, `users/${user.uid}/profile`), {
@@ -434,13 +451,22 @@
                 photo: ""
             });
 
-            msg.style.color = "green";
-            msg.innerText = "Account created! 1 Free Credit added.";
+            // ৫. যদি সে ১ ক্রেডিট পায়, তাহলে তাকে claimed_emails লিস্টে সেভ করে দেওয়া হচ্ছে
+            if (initialCredits === 1) {
+                await set(claimedRef, { claimedAt: Date.now() });
+                msg.style.color = "green";
+                msg.innerText = "Account created! 1 Free Credit added.";
+            } else {
+                msg.style.color = "#ff9800"; // অরেঞ্জ কালার মেসেজ
+                msg.innerText = "Account created! (No free credit: This email was used before).";
+            }
+
         } catch (error) {
             msg.style.color = "red";
             msg.innerText = error.message;
         }
     };
+    // ==========================================
 
     window.login = () => {
         const email = document.getElementById('login-email').value.trim();
