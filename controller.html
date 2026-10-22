@@ -257,6 +257,7 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     let currentMatchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername');
+    let currentUserId = ""; // নতুন UID রাখার জন্য ভ্যারিয়েবল
     const activeTournamentId = urlParams.get('t');
     const activeMatchId = urlParams.get('m') || "default_match";
 
@@ -345,20 +346,21 @@
         }
     }
 
+    // =====================================
+    // UPDATE 1: markMatchCompletedInDatabase (Fixed to use UID)
+    // =====================================
     async function markMatchCompletedInDatabase(winnerText, winnerTeamName) {
         try {
-            if (activeTournamentId && activeMatchId) {
-                const snap = await get(ref(db, 'usernames/' + currentMatchUser));
-                if (snap.exists()) {
-                    const uid = snap.val();
-                    await update(ref(db, `users/${uid}/tournaments/${activeTournamentId}/matches/${activeMatchId}`), {
-                        status: 'completed',
-                        winner: winnerTeamName || "",
-                        resultText: winnerText || "Match Ended"
-                    });
-                }
+            if (activeTournamentId && activeMatchId && currentUserId) {
+                await update(ref(db, `users/${currentUserId}/tournaments/${activeTournamentId}/matches/${activeMatchId}`), {
+                    status: 'completed',
+                    winner: winnerTeamName || "",
+                    resultText: winnerText || "Match Ended"
+                });
             }
-        } catch (err) {}
+        } catch (err) {
+            console.error("Error updating match status: ", err);
+        }
     }
 
     async function saveMatchStatsToTournament() {
@@ -1432,6 +1434,9 @@
         } catch(e) {}
     }
 
+    // =====================================
+    // UPDATE 2: initPage (Fixed to use UID)
+    // =====================================
     async function initPage() {
         let loadedBatTeam = "";
         let loadedBowlTeam = "";
@@ -1443,10 +1448,8 @@
 
         if (activeTournamentId && activeMatchId && !hasSavedState) {
             try {
-                const userSnap = await get(ref(db, 'usernames/' + currentMatchUser));
-                if (userSnap.exists()) {
-                    const uid = userSnap.val();
-                    const tourSnap = await get(ref(db, `users/${uid}/tournaments/${activeTournamentId}`));
+                if(currentUserId) {
+                    const tourSnap = await get(ref(db, `users/${currentUserId}/tournaments/${activeTournamentId}`));
                     if (tourSnap.exists()) {
                         const tData = tourSnap.val();
                         
@@ -1475,7 +1478,9 @@
                         }
                     }
                 }
-            } catch (err) {}
+            } catch (err) {
+                console.error("Error fetching tournament data:", err);
+            }
         }
 
         if (!hasSavedState) {
@@ -1529,8 +1534,12 @@
         processAndUpdate();
     }
 
+    // =====================================
+    // UPDATE 3: Auth State Listener (UID Added)
+    // =====================================
     onAuthStateChanged(auth, (user) => {
         if (user) {
+            currentUserId = user.uid; // ইউজার আইডি সংরক্ষণ করা হলো
             if (!currentMatchUser) {
                 currentMatchUser = localStorage.getItem('proCricketUsername') || "user";
             }
@@ -1544,4 +1553,5 @@
 </script>
 </body>
 </html>
+
 
