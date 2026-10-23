@@ -83,12 +83,32 @@
         }
 
         try {
-            const pointsRef = ref(db, `live_matches/${currentMatchUser}/tournament/teams/`);
+            // প্রথমে tournamentId ফেচ করা হচ্ছে (ভিউয়ার কোডের নিয়মের সাথে মিল রেখে)
+            const tourIdRef = ref(db, `live_matches/${currentMatchUser}/score/tournamentId`);
+            const tourIdSnap = await get(tourIdRef);
+            const tourId = tourIdSnap.val();
+
+            let pointsRef;
+            if (tourId) {
+                pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${tourId}/teams/`);
+            } else {
+                // ফলব্যাক পাথ
+                pointsRef = ref(db, `live_matches/${currentMatchUser}/tournament/teams/`);
+            }
+
             const snapshot = await get(pointsRef);
             let teamsData = snapshot.val() || {};
 
             tableBody.innerHTML = "";
-            let teamsArray = Object.keys(teamsData).map(key => teamsData[key]);
+            let teamsArray = [];
+
+            // ফিল্টারিং: ভুলবশত যদি "Tied" নামের কোনো টিম বা অবজেক্ট চলে আসে, তা বাদ দেওয়া হবে
+            Object.keys(teamsData).forEach(key => {
+                let team = teamsData[key];
+                if (team && key !== "Tied" && team.name && team.name.toLowerCase() !== "tied") {
+                    teamsArray.push(team);
+                }
+            });
 
             if (teamsArray.length === 0) {
                 tableBody.innerHTML = `<tr><td colspan="6" class="loading-text">No teams found in tournament standings yet.</td></tr>`;
@@ -133,3 +153,4 @@
 
 </body>
 </html>
+
