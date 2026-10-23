@@ -567,14 +567,23 @@
                 if(match) targetNum = parseInt(match[1]); 
             }
 
+            let parts = String(data.overs).split('.'); 
+            let ballsBowled = (parseInt(parts[0]) * 6) + parseInt(parts[1] || 0);
+            let ballsRem = (totalOvers * 6) - ballsBowled;
+
             if (targetNum > 0 && !data.target.includes("Won") && !data.target.includes("Tied") && !data.target.includes("Ended")) {
                 let runsNeeded = targetNum - currentRuns;
-                let parts = String(data.overs).split('.'); 
-                let ballsBowled = (parseInt(parts[0]) * 6) + parseInt(parts[1] || 0);
-                let ballsRem = (totalOvers * 6) - ballsBowled;
                 if (runsNeeded > 0 && ballsRem > 0) {
-                    // Updated here: Showing target, runs needed and remaining balls (কত বলে কত রান প্রয়োজন)
                     targetDisplayMsg = `Target: ${targetNum} | Need ${runsNeeded} off ${ballsRem}b`;
+                }
+            } else {
+                // --- 1st Innings Projected Score Calculation ---
+                if (ballsBowled > 0 && totalOvers > 0) {
+                    let crr = (currentRuns / ballsBowled) * 6;
+                    let projectedScore = Math.round(crr * totalOvers);
+                    targetDisplayMsg = `Projected Score: ${projectedScore}`;
+                } else {
+                    targetDisplayMsg = data.target || 'Match starts soon...';
                 }
             }
 
@@ -658,3 +667,5 @@
     </script>
 </body>
 </html>
+
+
