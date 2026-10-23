@@ -16,8 +16,8 @@
         @keyframes waveShine { 0% { left: -50%; opacity: 0; } 5% { left: -50%; opacity: 1; } 85% { left: 120%; opacity: 1; } 90% { left: 120%; opacity: 0; } 100% { left: 120%; opacity: 0; } }
 
         /* =========================================
-           NEW SCOREBOARD DESIGN (UNTOUCHED & PERFECT)
-           ========================================= */
+            NEW SCOREBOARD DESIGN (UNTOUCHED & PERFECT)
+            ========================================= */
         .scoreboard-container { 
             position: absolute; bottom: 30px; 
             left: 10px; right: 10px; 
@@ -77,8 +77,8 @@
         .ball-circle.extra { background: #ffc107; color: #000; border-color: #ffc107; font-size: 15px; }
 
         /* =========================================
-           GLASSMORPHISM OVERLAYS & ANIMATIONS (UPDATED OPACITY TO 0.35)
-           ========================================= */
+            GLASSMORPHISM OVERLAYS & ANIMATIONS (UPDATED OPACITY TO 0.35)
+            ========================================= */
         .squad-presentation-overlay, .points-overlay, .summary-overlay, .event-overlay {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             background: transparent; 
@@ -573,7 +573,8 @@
                 let ballsBowled = (parseInt(parts[0]) * 6) + parseInt(parts[1] || 0);
                 let ballsRem = (totalOvers * 6) - ballsBowled;
                 if (runsNeeded > 0 && ballsRem > 0) {
-                    targetDisplayMsg = `Target: ${targetNum} | Need ${runsNeeded}`;
+                    // Updated here: Showing target, runs needed and remaining balls (কত বলে কত রান প্রয়োজন)
+                    targetDisplayMsg = `Target: ${targetNum} | Need ${runsNeeded} off ${ballsRem}b`;
                 }
             }
 
@@ -619,7 +620,6 @@
             }
             overContainer.innerHTML = ballsHtml;
             
-            // --- FULL NAME DISPLAY (NO SHORTENING) ---
             document.getElementById('disp-bat1-name').innerText = `${data.bat1Name || '--'} 🏏`; 
             document.getElementById('disp-bat1-runs').innerText = data.bat1Runs || 0; 
             document.getElementById('disp-bat1-balls').innerText = `(${data.bat1Balls || 0})`;
