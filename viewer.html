@@ -37,7 +37,7 @@
         .score-box { display: flex; align-items: center; padding: 0 20px; font-family: 'Oswald', sans-serif; font-size: 33px; font-weight: 700; color: #f95e26; border-right: 1px solid rgba(255, 255, 255, 0.1); flex-shrink: 0; }
         .score-box .wickets { font-size: 33px; color: #f95e26; }
 
-        .batsmen-box { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; padding: 0 15px; background: rgba(0,0,0,0.2); overflow: hidden; min-width: 150px; }
+        .batsmen-box { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; padding: 0 15px; background: rgba(0,0,0,0.2); overflow: hidden; min-width: 143px; }
         .batter-row { display: flex; justify-content: space-between; align-items: center; font-size: 22px; line-height: 1.1; padding: 0; }
         .batter-row.striker { font-weight: 700; color: #fff; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 2px; padding-bottom: 1px;}
         .batter-row:not(.striker) { color: #a1a3cc; font-weight: 500; }
@@ -259,7 +259,7 @@
         <div class="score-box" id="disp-score">
             0<span class="wickets">/0</span>
         </div>
-        <div class="batsmen-box">
+        <div class="batsmen-box" style="min-width: 143px;">
             <div class="batter-row striker">
                 <span class="bat-name" id="disp-bat1-name">Batter 1 🏏</span>
                 <div class="bat-stats">
@@ -574,7 +574,7 @@
             if (targetNum > 0 && !data.target.includes("Won") && !data.target.includes("Tied") && !data.target.includes("Ended")) {
                 let runsNeeded = targetNum - currentRuns;
                 if (runsNeeded > 0 && ballsRem > 0) {
-                    targetDisplayMsg = `Target: ${targetNum} | Need ${runsNeeded} off ${ballsRem}ball`;
+                    targetDisplayMsg = `Target: ${targetNum} | Need ${runsNeeded} off ${ballsRem} BALL`;
                 }
             } else {
                 // --- 1st Innings Projected Score Calculation ---
@@ -667,5 +667,4 @@
     </script>
 </body>
 </html>
-
 
