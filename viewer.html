@@ -89,7 +89,7 @@
         .squad-presentation-overlay.active, .points-overlay.active, .summary-overlay.active, .event-overlay.active { opacity: 1; pointer-events: auto; }
 
         .glass-panel {
-            background: rgba(0, 0, 0, 0.35); /* Increased opacity to 0.35 */
+            background: rgba(0, 0, 0, 0.35); 
             backdrop-filter: blur(15px); 
             -webkit-backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -168,7 +168,7 @@
         .animate-freehit { animation: animFreeHit 0.8s forwards; }
 
         .glass-animation-box {
-            background: rgba(0, 0, 0, 0.35); /* Increased opacity to 0.35 */
+            background: rgba(0, 0, 0, 0.35); 
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 16px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.4); padding: 30px 45px; text-transform: none; text-align: center;
@@ -319,6 +319,7 @@
         let lastTriggerId = 0;
         let eventQueue = [];
         let isEventPlaying = false;
+        let isMatchEnded = false; // ম্যাচ শেষ হওয়ার ফ্ল্যাগ
 
         function enqueueEvent(eventData) {
             eventQueue.push(eventData);
@@ -328,9 +329,11 @@
         function processQueue() {
             if (isEventPlaying || eventQueue.length === 0) {
                 if (!isEventPlaying && eventQueue.length === 0 && currentMatchUser) {
-                    // যদি ম্যাচ কমপ্লিটেড না থাকে তবেই শো করবে
+                    // কিউ খালি হওয়ার পর যদি ম্যাচ শেষ হয়ে থাকে তবে স্কোরবোর্ড হাইড রাখবে, নয়তো শো করবে
                     const scoreboard = document.getElementById('mainScoreboard');
-                    if (!scoreboard.dataset.matchCompleted) {
+                    if (isMatchEnded) {
+                        scoreboard.classList.add('hidden');
+                    } else {
                         scoreboard.classList.remove('hidden');
                     }
                 }
@@ -383,7 +386,10 @@
             }
             else if(type === 'WINNER') {
                 textEl.classList.add('color-winner', 'animate-winner');
-                textEl.innerHTML = evt.targetMsg;
+                textEl.innerHTML = `
+                    <div style="font-size: 32px; color: #ffcc00; margin-bottom: 12px; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:8px;">🏆 Match Result</div>
+                    <div style="font-size: 42px; color: #00ff88; font-weight: bold;">${evt.targetMsg || 'Match Won'}</div>
+                `;
                 timeoutDuration = 8000;
             }
             else if(type === 'SHOW_PLAYER_STAT') {
@@ -524,15 +530,8 @@
             const squadScreen = document.getElementById('squadPresentation'); const pointsScreen = document.getElementById('pointsTableOverlay');
             const summaryScreen = document.getElementById('matchSummaryOverlay'); const mainBoard = document.getElementById('mainScoreboard');
 
-            // --- MATCH COMPLETED / ENDED CHECK (অটো হাইড লজিক) ---
-            const isMatchCompleted = data.matchStatus === 'completed' || data.matchStatus === 'ended' || data.matchCompleted === true || data.isMatchCompleted === true || data.triggerEvent === 'MATCH_COMPLETED' || (data.target && (data.target.includes("Won") || data.target.includes("Tied") || data.target.includes("Ended")));
-
-            if (isMatchCompleted) {
-                mainBoard.classList.add('hidden');
-                mainBoard.dataset.matchCompleted = "true";
-            } else {
-                mainBoard.dataset.matchCompleted = "";
-            }
+            // --- ম্যাচ সমাপ্তি বা উইনার চেক ---
+            isMatchEnded = data.matchStatus === 'completed' || data.matchStatus === 'ended' || data.matchCompleted === true || data.isMatchCompleted === true || data.triggerEvent === 'MATCH_COMPLETED' || (data.target && (data.target.includes("Won") || data.target.includes("Tied") || data.target.includes("Ended")));
 
             if(data.showSquadsOnScreen) {
                 squadScreen.classList.add('active'); mainBoard.classList.add('hidden');
@@ -561,7 +560,7 @@
                 } else overTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#666; padding: 15px;">No over completed yet.</td></tr>`;
             } else summaryScreen.classList.remove('active');
 
-            if (!isMatchCompleted && !data.showSquadsOnScreen && !data.showPointsTableOnScreen && !data.showSummaryOnScreen) {
+            if (!isMatchEnded && !data.showSquadsOnScreen && !data.showPointsTableOnScreen && !data.showSummaryOnScreen) {
                 if (!document.getElementById('eventScreen').classList.contains('active') && !isEventPlaying) {
                     mainBoard.classList.remove('hidden');
                 }
@@ -591,7 +590,6 @@
                     targetDisplayMsg = `Target: ${targetNum} | Need ${runsNeeded} off ${ballsRem} BALL`;
                 }
             } else {
-                // --- 1st Innings Projected Score Calculation ---
                 if (ballsBowled > 0 && totalOvers > 0) {
                     let crr = (currentRuns / ballsBowled) * 6;
                     let projectedScore = Math.round(crr * totalOvers);
@@ -655,9 +653,10 @@
             document.getElementById('disp-bowler-fig').innerText = data.bowlerFig || '0-0'; 
             document.getElementById('disp-bowler-overs').innerText = data.bowlerOvers || '0.0';
 
+            // --- ইভেন্ট কিউতে পাঠানো (এখন ম্যাচ শেষের উইনার বা ম্যান অব দ্য ম্যাচ পপআপগুলো কোনো বাধা ছাড়াই শো করবে) ---
             if (data.triggerId && data.triggerId !== lastTriggerId && data.triggerEvent && data.triggerEvent !== "") {
                 lastTriggerId = data.triggerId;
-                if (!isMatchCompleted && !data.showSquadsOnScreen && !data.showPointsTableOnScreen && !data.showSummaryOnScreen) {
+                if (!data.showSquadsOnScreen && !data.showPointsTableOnScreen && !data.showSummaryOnScreen) {
                     enqueueEvent({
                         type: data.triggerEvent, 
                         targetMsg: data.target, 
@@ -681,4 +680,3 @@
     </script>
 </body>
 </html>
-
