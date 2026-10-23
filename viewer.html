@@ -328,7 +328,11 @@
         function processQueue() {
             if (isEventPlaying || eventQueue.length === 0) {
                 if (!isEventPlaying && eventQueue.length === 0 && currentMatchUser) {
-                    document.getElementById('mainScoreboard').classList.remove('hidden');
+                    // যদি ম্যাচ কমপ্লিটেড না থাকে তবেই শো করবে
+                    const scoreboard = document.getElementById('mainScoreboard');
+                    if (!scoreboard.dataset.matchCompleted) {
+                        scoreboard.classList.remove('hidden');
+                    }
                 }
                 return;
             }
@@ -520,6 +524,16 @@
             const squadScreen = document.getElementById('squadPresentation'); const pointsScreen = document.getElementById('pointsTableOverlay');
             const summaryScreen = document.getElementById('matchSummaryOverlay'); const mainBoard = document.getElementById('mainScoreboard');
 
+            // --- MATCH COMPLETED / ENDED CHECK (অটো হাইড লজিক) ---
+            const isMatchCompleted = data.matchStatus === 'completed' || data.matchStatus === 'ended' || data.matchCompleted === true || data.isMatchCompleted === true || data.triggerEvent === 'MATCH_COMPLETED' || (data.target && (data.target.includes("Won") || data.target.includes("Tied") || data.target.includes("Ended")));
+
+            if (isMatchCompleted) {
+                mainBoard.classList.add('hidden');
+                mainBoard.dataset.matchCompleted = "true";
+            } else {
+                mainBoard.dataset.matchCompleted = "";
+            }
+
             if(data.showSquadsOnScreen) {
                 squadScreen.classList.add('active'); mainBoard.classList.add('hidden');
                 formatSquad(data.squad1Data, 't1-title', 't1-list', 'TEAM A'); formatSquad(data.squad2Data, 't2-title', 't2-list', 'TEAM B');
@@ -547,7 +561,7 @@
                 } else overTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#666; padding: 15px;">No over completed yet.</td></tr>`;
             } else summaryScreen.classList.remove('active');
 
-            if (!data.showSquadsOnScreen && !data.showPointsTableOnScreen && !data.showSummaryOnScreen) {
+            if (!isMatchCompleted && !data.showSquadsOnScreen && !data.showPointsTableOnScreen && !data.showSummaryOnScreen) {
                 if (!document.getElementById('eventScreen').classList.contains('active') && !isEventPlaying) {
                     mainBoard.classList.remove('hidden');
                 }
@@ -643,7 +657,7 @@
 
             if (data.triggerId && data.triggerId !== lastTriggerId && data.triggerEvent && data.triggerEvent !== "") {
                 lastTriggerId = data.triggerId;
-                if (!data.showSquadsOnScreen && !data.showPointsTableOnScreen && !data.showSummaryOnScreen) {
+                if (!isMatchCompleted && !data.showSquadsOnScreen && !data.showPointsTableOnScreen && !data.showSummaryOnScreen) {
                     enqueueEvent({
                         type: data.triggerEvent, 
                         targetMsg: data.target, 
