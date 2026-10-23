@@ -62,6 +62,10 @@
         .bowl-name { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: 0.5px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
         .bowl-stats { font-size: 19px; color: #a1a3cc; font-weight: 600; line-height: 1; margin-top: 2px; white-space: nowrap;}
 
+        /* --- THIS OVER & BALLS CONTAINER STYLING --- */
+        .over-balls-wrapper { display: flex; flex-direction: column; justify-content: center; align-items: flex-end; flex-shrink: 0; }
+        .over-label { font-size: 11px; color: #a1a3cc; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; margin-bottom: 3px; font-family: 'Poppins', sans-serif; }
+
         .balls-container { display: flex; align-items: center; gap: 6px; justify-content: flex-end; flex-shrink: 0; }
         .ball-circle { 
             width: 32px; height: 32px; border-radius: 50%; 
@@ -77,7 +81,7 @@
         .ball-circle.extra { background: #ffc107; color: #000; border-color: #ffc107; font-size: 15px; }
 
         /* =========================================
-            GLASSMORPHISM OVERLAYS & ANIMATIONS (UPDATED OPACITY TO 0.35)
+            GLASSMORPHISM OVERLAYS & ANIMATIONS
             ========================================= */
         .squad-presentation-overlay, .points-overlay, .summary-overlay, .event-overlay {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -147,7 +151,7 @@
         .summary-over-table td:first-child { border-radius: 15px 0 0 15px; }
         .summary-over-table td:last-child { border-radius: 0 15px 15px 0; }
 
-        /* --- EVENTS (Glass Animations - Opacity 0.35) --- */
+        /* --- EVENTS --- */
         .event-overlay { z-index: 1000; }
         .event-text { font-family: 'Oswald', sans-serif; font-weight: 800; text-transform: uppercase; text-align: center; opacity: 0; }
         
@@ -287,7 +291,11 @@
                 <span class="bowl-name" id="disp-bowler-name">Bowler</span>
                 <span class="bowl-stats"><span id="disp-bowler-fig">0-0</span> | <span id="disp-bowler-overs">0.0</span></span>
             </div>
-            <div class="balls-container" id="overBallsContainer">
+            <!-- THIS OVER লেখা উপরে এবং বলের আপডেট নিচে স্ট্যাক করা হয়েছে -->
+            <div class="over-balls-wrapper">
+                <span class="over-label">This Over</span>
+                <div class="balls-container" id="overBallsContainer">
+                </div>
             </div>
         </div>
     </div>
@@ -319,7 +327,7 @@
         let lastTriggerId = 0;
         let eventQueue = [];
         let isEventPlaying = false;
-        let isMatchEnded = false; // ম্যাচ শেষ হওয়ার ফ্ল্যাগ
+        let isMatchEnded = false;
 
         function enqueueEvent(eventData) {
             eventQueue.push(eventData);
@@ -329,7 +337,6 @@
         function processQueue() {
             if (isEventPlaying || eventQueue.length === 0) {
                 if (!isEventPlaying && eventQueue.length === 0 && currentMatchUser) {
-                    // কিউ খালি হওয়ার পর যদি ম্যাচ শেষ হয়ে থাকে তবে স্কোরবোর্ড হাইড রাখবে, নয়তো শো করবে
                     const scoreboard = document.getElementById('mainScoreboard');
                     if (isMatchEnded) {
                         scoreboard.classList.add('hidden');
@@ -530,7 +537,6 @@
             const squadScreen = document.getElementById('squadPresentation'); const pointsScreen = document.getElementById('pointsTableOverlay');
             const summaryScreen = document.getElementById('matchSummaryOverlay'); const mainBoard = document.getElementById('mainScoreboard');
 
-            // --- ম্যাচ সমাপ্তি বা উইনার চেক ---
             isMatchEnded = data.matchStatus === 'completed' || data.matchStatus === 'ended' || data.matchCompleted === true || data.isMatchCompleted === true || data.triggerEvent === 'MATCH_COMPLETED' || (data.target && (data.target.includes("Won") || data.target.includes("Tied") || data.target.includes("Ended")));
 
             if(data.showSquadsOnScreen) {
@@ -653,7 +659,6 @@
             document.getElementById('disp-bowler-fig').innerText = data.bowlerFig || '0-0'; 
             document.getElementById('disp-bowler-overs').innerText = data.bowlerOvers || '0.0';
 
-            // --- ইভেন্ট কিউতে পাঠানো (এখন ম্যাচ শেষের উইনার বা ম্যান অব দ্য ম্যাচ পপআপগুলো কোনো বাধা ছাড়াই শো করবে) ---
             if (data.triggerId && data.triggerId !== lastTriggerId && data.triggerEvent && data.triggerEvent !== "") {
                 lastTriggerId = data.triggerId;
                 if (!data.showSquadsOnScreen && !data.showPointsTableOnScreen && !data.showSummaryOnScreen) {
@@ -680,3 +685,4 @@
     </script>
 </body>
 </html>
+
