@@ -9,8 +9,6 @@
         .container { max-width: 850px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f1f1f1; padding-bottom: 15px; }
         h2 { color: #0056b3; margin: 0; font-size: 22px; }
-        .btn-back { display: inline-block; padding: 8px 14px; background: #6c757d; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px; transition: background 0.2s; }
-        .btn-back:hover { background: #5a6268; }
         .table-responsive { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; }
         th, td { padding: 14px 12px; text-align: center; border-bottom: 1px solid #e9ecef; font-size: 15px; }
@@ -26,7 +24,6 @@
 <div class="container">
     <div class="header-area">
         <h2>📊 Tournament Points Table</h2>
-        <a id="dashboardLinkBtn" href="index.html" class="btn-back">🏠 Dashboard</a>
     </div>
     
     <div class="table-responsive">
@@ -51,7 +48,6 @@
 <!-- Firebase Scripts -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
     import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -65,57 +61,76 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getDatabase(app);
 
     const urlParams = new URLSearchParams(window.location.search);
-    let currentMatchUser = urlParams.get('u') || localStorage.getItem('proCricketUsername');
-
-    if (currentMatchUser) {
-        document.getElementById('dashboardLinkBtn').href = `index.html?u=${currentMatchUser}`;
-    }
+    // ইউআরএল এ ইউজারনেম না থাকলে অটোমেটিক লোকাল স্টোরেজ থেকে নেবে
+    let targetUsername = urlParams.get('u') || localStorage.getItem('proCricketUsername');
+    let tourId = urlParams.get('t');
 
     async function loadPointsTable() {
         const tableBody = document.getElementById('pointsTableBody');
-        if (!currentMatchUser) {
-            tableBody.innerHTML = `<tr><td colspan="6" style="color:red;">User context missing!</td></tr>`;
+        
+        if (!targetUsername) {
+            tableBody.innerHTML = `<tr><td colspan="6" style="color:red; padding: 20px;">⚠️ Please login first! Username missing.</td></tr>`;
             return;
         }
 
         try {
-            // প্রথমে tournamentId ফেচ করা হচ্ছে (ভিউয়ার কোডের নিয়মের সাথে মিল রেখে)
-            const tourIdRef = ref(db, `live_matches/${currentMatchUser}/score/tournamentId`);
-            const tourIdSnap = await get(tourIdRef);
-            const tourId = tourIdSnap.val();
-
-            let pointsRef;
-            if (tourId) {
-                pointsRef = ref(db, `live_matches/${currentMatchUser}/tournaments_data/${tourId}/teams/`);
-            } else {
-                // ফলব্যাক পাথ
-                pointsRef = ref(db, `live_matches/${currentMatchUser}/tournament/teams/`);
+            // ১. Username থেকে আসল UID বের করা
+            let currentUserId = targetUsername;
+            const userRef = ref(db, 'usernames/' + targetUsername);
+            const userSnap = await get(userRef);
+            if (userSnap.exists()) {
+                currentUserId = userSnap.val();
             }
 
-            const snapshot = await get(pointsRef);
-            let teamsData = snapshot.val() || {};
-
-            tableBody.innerHTML = "";
-            let teamsArray = [];
-
-            // ফিল্টারিং: ভুলবশত যদি "Tied" নামের কোনো টিম বা অবজেক্ট চলে আসে, তা বাদ দেওয়া হবে
-            Object.keys(teamsData).forEach(key => {
-                let team = teamsData[key];
-                if (team && key !== "Tied" && team.name && team.name.toLowerCase() !== "tied") {
-                    teamsArray.push(team);
+            // ২. টুর্নামেন্ট আইডি অটো-ডিটেক্ট করা (যদি লিংকে না থাকে)
+            if (!tourId || tourId === 'null') {
+                const liveSnap = await get(ref(db, `live_matches/${targetUsername}/score/tournamentId`));
+                if (liveSnap.exists() && liveSnap.val() !== "null") {
+                    tourId = liveSnap.val();
+                } else {
+                    // লাইভ ম্যাচ না থাকলে সর্বশেষ টুর্নামেন্টটি খুঁজে বের করবে
+                    const allToursSnap = await get(ref(db, `users/${currentUserId}/tournaments`));
+                    if (allToursSnap.exists()) {
+                        const tours = allToursSnap.val();
+                        const tourKeys = Object.keys(tours);
+                        tourId = tourKeys[tourKeys.length - 1]; 
+                    }
                 }
-            });
+            }
 
-            if (teamsArray.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="6" class="loading-text">No teams found in tournament standings yet.</td></tr>`;
+            if (!tourId || tourId === 'null') {
+                tableBody.innerHTML = `<tr><td colspan="6" style="color:#dc3545; padding: 20px;">⚠️ No active tournament found. Please create one!</td></tr>`;
                 return;
             }
 
-            // পয়েন্ট এবং নেট রানরেটের ভিত্তিতে দলগুলোকে সাজানো (Sorting)
+            // ৩. প্রথমে দেখবে লাইভ টুর্নামেন্ট ডেটাতে কোনো পয়েন্ট টেবিল আছে কি না
+            let teamsData = null;
+            const livePointsSnap = await get(ref(db, `live_matches/${targetUsername}/tournaments_data/${tourId}/teams`));
+            
+            if (livePointsSnap.exists()) {
+                teamsData = livePointsSnap.val();
+            }
+
+            // ৪. ম্যাচ খেলা না হলে (ডেটা না থাকলে), মেইন ডাটাবেস থেকে টিমগুলো জিরো (0) অবস্থায় নিয়ে আসবে (Fallback)
+            if (!teamsData) {
+                const mainTeamsSnap = await get(ref(db, `users/${currentUserId}/tournaments/${tourId}/teams`));
+                if (mainTeamsSnap.exists()) {
+                    teamsData = mainTeamsSnap.val();
+                }
+            }
+
+            if (!teamsData) {
+                tableBody.innerHTML = `<tr><td colspan="6" style="color:#888; padding: 20px;">No teams added yet. Please add teams in Tournament Hub!</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = "";
+            let teamsArray = Object.keys(teamsData).map(key => teamsData[key]);
+
+            // পয়েন্ট এবং নেট রানরেটের ভিত্তিতে দলগুলোকে সাজানো (Sorting)
             teamsArray.sort((a, b) => (b.points || 0) - (a.points || 0) || parseFloat(b.netRunRate || 0) - parseFloat(a.netRunRate || 0));
 
             teamsArray.forEach((team, index) => {
@@ -132,25 +147,14 @@
             });
         } catch (error) {
             console.error("Error loading points:", error);
-            tableBody.innerHTML = `<tr><td colspan="6" style="color:red;">Failed to load points table.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="6" style="color:red; padding: 20px;">Failed to load points table. Check console.</td></tr>`;
         }
     }
 
-    // Firebase Auth State Listener (Security Check)
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            if (!currentMatchUser) {
-                currentMatchUser = localStorage.getItem('proCricketUsername') || "user";
-            }
-            loadPointsTable();
-        } else {
-            alert("⚠️ Please login from dashboard first.");
-            window.location.href = "index.html";
-        }
-    });
+    // পেজ লোড হলেই পয়েন্ট টেবিল কল হবে
+    window.onload = loadPointsTable;
 
 </script>
-
 </body>
 </html>
 
