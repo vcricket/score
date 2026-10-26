@@ -21,13 +21,6 @@
         .profile-details { flex: 1; }
         .profile-details h3 { margin: 0 0 5px 0; color: #0056b3; font-size: 22px; word-break: break-word; }
         .profile-details p { margin: 0; color: #555; font-size: 14px; }
-        
-        /* নেভিগেশন বাটন */
-        .nav-menu { display: flex; gap: 12px; margin-bottom: 25px; }
-        .nav-btn { flex: 1; background: #f1f5f9; color: #334155; border: 2px solid #cbd5e1; padding: 14px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; text-align: center; text-decoration: none; display: inline-block; }
-        .nav-btn.active { background: #1e3c72; color: white; border-color: #1e3c72; box-shadow: 0 4px 10px rgba(30,60,114,0.2); }
-        .nav-btn:hover { background: #e2e8f0; color: #1e3c72; }
-        .nav-btn.active:hover { background: #162c54; color: white; }
 
         .box { background: #f9f9f9; padding: 18px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; }
         
@@ -41,11 +34,6 @@
 </head>
 <body>
 
-<div class="container">
-    <div class="header-nav">
-        <h2>🏆 Pro Cricket Hub</h2>
-        <a id="dashboardLinkBtn" href="index.html" class="btn-dash-link">🏠 Go to Dashboard</a>
-    </div>
 
     <!-- প্রোফাইল কার্ড -->
     <div class="profile-card">
@@ -70,12 +58,6 @@
             <button class="btn-dash-link" style="background: #0056b3; width: 100%; justify-content: center; padding: 10px;" onclick="window.saveUserProfile()">Save Changes</button>
             <button class="btn-dash-link" style="background: #6c757d; width: 100%; justify-content: center; padding: 10px;" onclick="window.toggleEditMode()">Cancel</button>
         </div>
-    </div>
-
-    <!-- দুটি নেভিগেশন বাটন (সঠিক পেজ লিংকের সাথে) -->
-    <div class="nav-menu">
-        <a id="perfBtn" href="profile.html" class="nav-btn active">📊 My Performance</a>
-        <a id="tourBtn" href="tournament.html" class="nav-btn">🏆 Tournaments & Matches</a>
     </div>
 
     <!-- ক্রিকেট ক্যারিয়ার পারফরম্যান্স সেকশন -->
@@ -133,13 +115,6 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     let currentUsername = urlParams.get('u') || localStorage.getItem('proCricketUsername');
-
-    // সঠিক পেজ লিংক ও ইউজারনেম পাস করা
-    if (currentUsername) {
-        document.getElementById('dashboardLinkBtn').href = `index.html?u=${currentUsername}`;
-        document.getElementById('perfBtn').href = `profile.html?u=${currentUsername}`;
-        document.getElementById('tourBtn').href = `tournament.html?u=${currentUsername}`;
-    }
 
     let currentUserId = "";
     let selectedImageBase64 = "";
@@ -268,7 +243,6 @@
         }
     };
 
-    // Firebase Auth State Listener (Security Check)
     onAuthStateChanged(auth, (user) => {
         if (user) {
             if (!currentUsername) {
@@ -284,3 +258,5 @@
 
 </body>
 </html>
+
+
