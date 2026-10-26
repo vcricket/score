@@ -73,7 +73,7 @@
             align-items: center;
             justify-content: center;
         }
-        .dashboard-profile-link {
+        .dashboard-profile-avatar {
             display: block;
             width: 110px;
             height: 110px;
@@ -81,34 +81,13 @@
             overflow: hidden;
             border: 4px solid #1e3c72;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transition: transform 0.2s ease, border-color 0.2s ease;
-            text-decoration: none;
-        }
-        .dashboard-profile-link:hover {
-            transform: scale(1.05);
-            border-color: #2a5298;
+            margin: 0 auto;
+            background: #ccc;
         }
         .dashboard-large-avatar {
             width: 100%;
             height: 100%;
             object-fit: cover;
-        }
-        .btn-profile-go {
-            display: inline-block;
-            background: #17a2b8;
-            color: white;
-            padding: 6px 22px;
-            font-size: 14px;
-            font-weight: bold;
-            border-radius: 20px;
-            text-decoration: none;
-            margin-top: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            transition: background 0.2s ease, transform 0.2s ease;
-        }
-        .btn-profile-go:hover {
-            background: #138496;
-            transform: translateY(-1px);
         }
 
         .btn-copy { 
@@ -167,36 +146,6 @@
             display: inline-block;
         }
         .msg { font-size: 13px; margin-top: 6px; }
-
-        /* ====== APP MENU STYLES ====== */
-        .app-menu-box {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 2px dashed #ddd;
-        }
-        .app-menu-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: bold;
-            text-decoration: none;
-            color: white;
-            cursor: pointer;
-            border: none;
-            text-align: center;
-        }
-        .btn-share { background: #f39c12; }
-        .btn-moreapps { background: #007bff; }
-        .btn-contact { background: #25D366; }
-        .btn-about { background: #17a2b8; }
-        .btn-help { background: #e84118; grid-column: span 2; }
     </style>
 </head>
 <body>
@@ -224,7 +173,7 @@
     <!-- Sign-Up Form -->
     <div id="signup-section" class="hidden">
         <h2>Create Account</h2>
-        <div class="welcome-gift">🎁 Sign up now and get 1 match credit FREE!</div>
+        <div class="welcome-gift">🎁 Sign up & Verify Email to get 1 FREE credit!</div>
         <input type="text" id="signup-username" placeholder="Short Username (e.g. rakib)" maxlength="15" required>
         <input type="email" id="signup-email" placeholder="Enter your email" required>
         
@@ -243,17 +192,32 @@
         <p id="signup-message" class="msg" style="color: red;"></p>
     </div>
 
+    <!-- Email Verification Section -->
+    <div id="verify-section" class="hidden">
+        <h2>Verify Your Email</h2>
+        <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; font-size: 14px; margin-bottom: 15px; border: 1px solid #ffeeba;">
+            ⚠️ We've sent a verification link to <b><span id="verify-email-display"></span></b>. <br><br>Please check your inbox (and spam folder) and click the link to activate your account and claim your free credit.
+        </div>
+        <button class="btn-login" onclick="checkVerification()">✅ I have verified my email</button>
+        <button class="btn-signup" onclick="resendVerification()">📩 Resend Link</button>
+        <button class="btn-logout" style="margin-top: 15px;" onclick="logout()">Logout</button>
+    </div>
+
     <!-- User Dashboard -->
     <div id="dashboard-section" class="hidden">
-        
         <div id="homeMainView">
             <h2 style="text-align: center; margin-bottom: 5px;">Welcome, <span id="display-username" style="color: #ff9800;">Loading...</span>!</h2>
             
+            <div class="dashboard-profile-container">
+                <div class="dashboard-profile-avatar">
+                    <img id="dashboardLargeAvatar" src="https://via.placeholder.com/110" alt="Profile Avatar" class="dashboard-large-avatar">
+                </div>
+            </div>
+
             <div class="credit-box">
                 Available Balance: <span id="user-credits">0</span> Match Credit(s)
             </div>
 
-            <!-- ভিউয়ার লিংক সেকশন -->
             <div class="link-box">
                 <b style="font-size: 13px; color: #333;">Copy this Link for CameraFi LIVE & OBS Studio:</b>
                 <div class="link-input-group">
@@ -262,38 +226,10 @@
                 </div>
             </div>
 
-            <!-- প্রোফাইল ও GO বাটন -->
-            <div class="dashboard-profile-container">
-                <a id="myProfileLinkImg" href="profile.html" class="dashboard-profile-link" title="Click to open Profile Hub">
-                    <img id="dashboardLargeAvatar" src="https://via.placeholder.com/110" alt="Profile Avatar" class="dashboard-large-avatar">
-                </a>
-                <a id="myProfileLinkBtn" href="profile.html" class="btn-profile-go">Tournament / Profile ➔</a>
-            </div>
-
-            <!-- ====== APP MENU SECTION (DIRECT HTML LINKS) ====== -->
-            <div class="app-menu-box">
-                <!-- SHARE APP BUTTON -->
-                <button class="app-menu-btn btn-share" onclick="shareMyApp()">🔗 Share App</button>
-                
-                <!-- WHATSAPP CONTACT BUTTON -->
-                <a href="https://wa.me/918327321495?text=Hello,%20I%20need%20help%20with%20the%20app" target="_blank" class="app-menu-btn btn-contact">💬 Contact Us</a>
-                
-                <!-- MORE APPS BUTTON -->
-                <a href="https://play.google.com/store/apps/developer?id=YOUR_DEV_NAME" target="_blank" class="app-menu-btn btn-moreapps">📱 More Apps</a>
-                
-                <!-- ABOUT BUTTON -->
-                <button class="app-menu-btn btn-about" onclick="showAbout()">ℹ️ About Us</button>
-
-                <!-- VIDEO HELP & SUPPORT BUTTON -->
-                <a href="https://www.facebook.com/kolkatasports0" target="_blank" class="app-menu-btn btn-help">📺 Video Help & Support</a>
-            </div>
-            <!-- ================================== -->
-
             <div style="margin-top: 15px; display: flex; gap: 10px;">
                 <button class="btn-logout" style="flex: 1;" onclick="logout()">Logout</button>
                 <button class="btn-delete-acc" style="flex: 1; padding: 11px; margin: 8px 0; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; color: #fff; transition: 0.3s;" onclick="deleteMyAccount()">🗑️ Delete Account</button>
             </div>
-
         </div>
     </div>
 </div>
@@ -302,15 +238,9 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { 
-        getAuth, 
-        createUserWithEmailAndPassword, 
-        signInWithEmailAndPassword, 
-        sendPasswordResetEmail,
-        onAuthStateChanged, 
-        signOut, 
-        deleteUser, 
-        setPersistence, 
-        browserLocalPersistence 
+        getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+        sendPasswordResetEmail, onAuthStateChanged, signOut, deleteUser, 
+        setPersistence, browserLocalPersistence, sendEmailVerification
     } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
     import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
@@ -328,6 +258,24 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
+    window.normalizeEmail = function(email) {
+        email = email.trim().toLowerCase();
+        if (email.endsWith('@gmail.com')) {
+            let parts = email.split('@');
+            let username = parts[0];
+            if (username.includes('+')) {
+                username = username.split('+')[0];
+            }
+            username = username.replace(/\./g, '');
+            return username + '@gmail.com';
+        }
+        return email;
+    };
+
+    window.encodeEmailForDb = function(email) {
+        return email.replace(/\./g, ',');
+    };
+
     window.deleteMyAccount = async () => {
         if(!confirm("⚠️ WARNING: Are you sure you want to permanently delete your account and all data? This cannot be undone.")) return;
         
@@ -336,11 +284,16 @@
             if(user) {
                 const uid = user.uid;
                 let username = localStorage.getItem('proCricketUsername');
-                
+                const encodedEmail = encodeEmailForDb(normalizeEmail(user.email));
+
                 if (username) {
                     await remove(ref(db, 'usernames/' + username));
+                    await remove(ref(db, 'users/' + username)); // Cleanup for old profile format
                 }
+                
                 await remove(ref(db, `users/${uid}`));
+                await remove(ref(db, 'registered_emails/' + encodedEmail)); 
+
                 await deleteUser(user);
                 
                 alert("✅ Account deleted successfully.");
@@ -349,27 +302,11 @@
             }
         } catch(error) {
             if (error.code === 'auth/requires-recent-login') {
-                alert("⚠️ Please log out and log in again before deleting your account for security reasons.");
+                alert("⚠️ Please log out and log in again before deleting your account.");
             } else {
                 alert("❌ Error deleting account: " + error.message);
             }
         }
-    };
-
-    window.shareMyApp = function() {
-        if (navigator.share) {
-            navigator.share({
-                title: 'Pro Cricket Live Score',
-                text: 'Check out this awesome cricket live scoring app!',
-                url: 'https://play.google.com/store/apps/details?id=com.localcricket' 
-            }).catch((error) => console.log('Error sharing', error));
-        } else {
-            alert("Share this link: https://play.google.com/store/apps/details?id=com.localcricket");
-        }
-    };
-
-    window.showAbout = function() {
-        alert('Pro Cricket Live Score\nVersion: 1.0\nDeveloped by: Kolkata Sports');
     };
 
     window.togglePasswordVisibility = (inputId, iconElement) => {
@@ -395,9 +332,6 @@
         }
     };
 
-    // ==========================================
-    // আপডেট করা সাইন-আপ ফাংশন (ক্রেডিট লজিক সহ)
-    // ==========================================
     window.signup = async () => {
         const username = document.getElementById('signup-username').value.trim().toLowerCase();
         const email = document.getElementById('signup-email').value.trim();
@@ -415,7 +349,6 @@
         }
 
         try {
-            // ১. ইউজারনেম এভেইলএবল আছে কি না চেক করা
             const usernameRef = ref(db, 'usernames/' + username);
             const snapshot = await get(usernameRef);
             if (snapshot.exists()) {
@@ -423,50 +356,42 @@
                 return msg.innerText = "Username already taken! Choose another.";
             }
 
-            // ২. এই ইমেইল আগে ক্রেডিট নিয়েছে কি না চেক করা
-            // Firebase Key তে '.' ব্যবহার করা যায় না, তাই '.' কে ',' দিয়ে পাল্টে নেওয়া হচ্ছে
-            const safeEmail = email.replace(/\./g, ',');
-            const claimedRef = ref(db, 'claimed_emails/' + safeEmail);
-            const claimedSnap = await get(claimedRef);
-            
-            let initialCredits = 1; // ডিফল্ট ১ ক্রেডিট
-            if (claimedSnap.exists()) {
-                initialCredits = 0; // আগেই ক্রেডিট নিয়ে থাকলে ০ করে দেওয়া হলো
+            const encodedEmail = encodeEmailForDb(normalizeEmail(email));
+            const emailCheckRef = ref(db, 'registered_emails/' + encodedEmail);
+            const emailSnap = await get(emailCheckRef);
+            if (emailSnap.exists()) {
+                msg.style.color = "red";
+                return msg.innerText = "This email is already registered!";
             }
 
-            // ৩. নতুন অ্যাকাউন্ট তৈরি
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            // ৪. ডাটাবেসে ইউজার ডেটা ও ক্রেডিট ব্যালেন্স সেভ করা
+            // Database Save
             await set(ref(db, 'usernames/' + username), user.uid);
+            await set(ref(db, 'registered_emails/' + encodedEmail), user.uid);
+            
             await set(ref(db, `users/${user.uid}`), { 
                 email: email, 
                 username: username, 
-                credits: initialCredits 
+                credits: 0 
             });
 
+            // Set profile data perfectly aligned with your profile.html code
             await set(ref(db, `users/${user.uid}/profile`), {
                 name: username,
-                photo: ""
+                photo: "" 
             });
 
-            // ৫. যদি সে ১ ক্রেডিট পায়, তাহলে তাকে claimed_emails লিস্টে সেভ করে দেওয়া হচ্ছে
-            if (initialCredits === 1) {
-                await set(claimedRef, { claimedAt: Date.now() });
-                msg.style.color = "green";
-                msg.innerText = "Account created! 1 Free Credit added.";
-            } else {
-                msg.style.color = "#ff9800"; // অরেঞ্জ কালার মেসেজ
-                msg.innerText = "Account created! (No free credit: This email was used before).";
-            }
-
+            await sendEmailVerification(user);
+            msg.style.color = "green";
+            msg.innerText = "Account created! Redirecting to verification...";
+            
         } catch (error) {
             msg.style.color = "red";
             msg.innerText = error.message;
         }
     };
-    // ==========================================
 
     window.login = () => {
         const email = document.getElementById('login-email').value.trim();
@@ -489,23 +414,17 @@
     window.resetPassword = async () => {
         const email = document.getElementById('login-email').value.trim();
         const msg = document.getElementById('login-message');
-
         if (!email) {
             msg.style.color = "red";
             return msg.innerText = "Please enter your email above to reset password.";
         }
-
         try {
             await sendPasswordResetEmail(auth, email);
             msg.style.color = "green";
             msg.innerText = "Password reset link sent! Check your email inbox/spam.";
         } catch (error) {
             msg.style.color = "red";
-            if (error.code === 'auth/user-not-found') {
-                msg.innerText = "No account found with this email.";
-            } else {
-                msg.innerText = error.message;
-            }
+            msg.innerText = error.code === 'auth/user-not-found' ? "No account found." : error.message;
         }
     };
 
@@ -517,73 +436,131 @@
     window.copyLink = () => {
         const inputField = document.getElementById('viewer-link-input');
         if (!inputField.value) return alert("No link available!");
-
         inputField.select();
         inputField.setSelectionRange(0, 99999);
+        document.execCommand('copy');
+        alert("Viewer link copied!");
+    };
 
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(inputField.value).then(() => alert("Viewer link copied!"));
-        } else {
-            document.execCommand('copy');
-            alert("Viewer link copied!");
+    window.checkVerification = async () => {
+        const user = auth.currentUser;
+        if(user) {
+            await user.reload(); 
+            if (user.emailVerified) {
+                document.getElementById('verify-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
+                await claimCreditIfEligible(user);
+                loadUserData(user);
+            } else {
+                alert("Email not verified yet. Please check your inbox or spam folder.");
+            }
         }
     };
 
-    async function loadUserData(userId) {
-        const userRef = ref(db, `users/${userId}`);
-        const snapshot = await get(userRef);
+    window.resendVerification = async () => {
+        const user = auth.currentUser;
+        if(user) {
+            try {
+                await sendEmailVerification(user);
+                alert("Verification email resent!");
+            } catch(error) {
+                alert(error.message);
+            }
+        }
+    };
+
+    window.claimCreditIfEligible = async (user) => {
+        const encodedEmail = encodeEmailForDb(normalizeEmail(user.email));
+        const claimRef = ref(db, 'claimed_emails/' + encodedEmail);
+        const claimSnap = await get(claimRef);
+        if (!claimSnap.exists()) {
+            await set(claimRef, true); 
+            const userCreditRef = ref(db, `users/${user.uid}/credits`);
+            const currentCreditSnap = await get(userCreditRef);
+            let credits = currentCreditSnap.exists() ? currentCreditSnap.val() : 0;
+            await set(userCreditRef, credits + 1);
+            alert("🎉 Email verified successfully! 1 Free Credit added.");
+        }
+    };
+
+    // =======================================================
+    // 100% SYNCED PHOTO FETCHER (Matches your profile.html)
+    // =======================================================
+    async function loadUserData(user) {
+        const userId = user.uid;
         
-        let username = "";
+        let username = localStorage.getItem('proCricketUsername') || "user";
         let credits = 0;
 
+        // Fetch user basic details
+        const userRef = ref(db, `users/${userId}`);
+        const snapshot = await get(userRef);
         if (snapshot.exists()) {
             const userData = snapshot.val();
-            username = userData.username || "";
+            if (userData.username) username = userData.username;
             credits = userData.credits !== undefined ? userData.credits : 0;
-        } else {
-            username = localStorage.getItem('proCricketUsername') || "user";
         }
 
+        // Set base info
         localStorage.setItem('proCricketUsername', username);
-
         document.getElementById('user-credits').innerText = credits;
         document.getElementById('display-username').innerText = username;
-        
-        document.getElementById('myProfileLinkImg').href = `profile.html?u=${username}`;
-        document.getElementById('myProfileLinkBtn').href = `profile.html?u=${username}`;
+        document.getElementById('viewer-link-input').value = `https://lcricket.github.io/s/viewer.html?u=${username}`;
 
-        // সরাসরি viewer.html সহ লিংক জেনারেট হবে
-        document.getElementById('viewer-link-input').value = `https://vcricket.github.io/score/viewer.html?u=${username}`;
-
+        // Live credits listener
         onValue(userRef, (snap) => {
             if (snap.exists() && snap.val().credits !== undefined) {
                 document.getElementById('user-credits').innerText = snap.val().credits;
             }
         });
 
-        const profileRef = ref(db, `users/${userId}/profile`);
-        onValue(profileRef, (snap) => {
+        // Function to apply fetched photo
+        const applyProfileData = (profileData) => {
+            if (profileData.name) {
+                document.getElementById('display-username').innerText = profileData.name;
+            }
+            if (profileData.photo && profileData.photo.trim() !== "") {
+                document.getElementById('dashboardLargeAvatar').src = profileData.photo;
+            }
+        };
+
+        // Listen for Profile changes exactly where profile.html saves it
+        onValue(ref(db, `users/${userId}/profile`), (snap) => {
             if (snap.exists()) {
-                const profileData = snap.val();
-                if (profileData.name) {
-                    document.getElementById('display-username').innerText = profileData.name;
-                }
-                if (profileData.photo) {
-                    document.getElementById('dashboardLargeAvatar').src = profileData.photo;
-                }
+                applyProfileData(snap.val());
+            } else if (username !== "user") {
+                // FALLBACK: For old accounts that saved directly under username
+                get(ref(db, `users/${username}/profile`)).then(oldSnap => {
+                    if (oldSnap.exists()) applyProfileData(oldSnap.val());
+                });
             }
         });
     }
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            document.getElementById('login-section').classList.add('hidden');
-            document.getElementById('signup-section').classList.add('hidden');
-            document.getElementById('dashboard-section').classList.remove('hidden');
+            await user.reload(); 
+            if (!user.emailVerified) {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('signup-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.add('hidden');
+                
+                document.getElementById('verify-section').classList.remove('hidden');
+                document.getElementById('verify-email-display').innerText = user.email;
+            } else {
+                document.getElementById('verify-section').classList.add('hidden');
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('signup-section').classList.add('hidden');
+                
+                document.getElementById('dashboard-section').classList.remove('hidden');
 
-            loadUserData(user.uid);
+                await claimCreditIfEligible(user); 
+                loadUserData(user); 
+            }
         } else {
             document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('verify-section').classList.add('hidden');
+            document.getElementById('signup-section').classList.add('hidden');
             document.getElementById('login-section').classList.remove('hidden');
         }
     });
